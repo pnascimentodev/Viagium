@@ -5,127 +5,94 @@ config:
   theme: neo-dark
   look: neo
 ---
-classDiagram
-direction RL
+erDiagram
+    USERS {
+        integer id
+        varchar firstName
+        varchar lastName
+        varchar email
+        varchar password
+        varchar phone
+        varchar document_number
+        date birthdate
+        varchar role
+        boolean is_ative
+        timestamp created_at
+        timestamp updated_at
+        timestamp deleted_at
+    }
 
-class Users {
-    -int UserId
-    -String FirstName
-    -String LastName
-    -String Email
-    -String DocumentNumber
-    -Date BirthDate
-    -String Phone
-    -String UserPassword
-    -DateTime CreatedAt
-    -DateTime UpdatedAt
-    -Boolean IsActive
-    -DateTime DeletedAt
-}
+    TRAVEL_PACKAGES {
+        integer id
+        varchar title
+        text description
+        varchar destination
+        varchar img_url
+        integer duration 
+        integer max_people
+        decimal price
+        integer created_by
+        timestamp created_at
+        timestamp updated_at
+    }
 
-class Clients {
-    -int ClientId
-}
+    TRAVEL_PACKAGE_HISTORY {
+        integer id
+        integer reservation_id
+        varchar title
+        text description
+        varchar destination
+        integer duration
+        decimal price
+        timestamp created_at
+    }
 
-class Employees {
-    -int EmployeeId
-    -int Registration
-    -Enum RoleName
-}
+    RESERVATIONS {
+        integer id
+        integer user_id
+        integer travel_package_id
+        date start_date
+        decimal total_price
+        varchar status
+        timestamp created_at
+    }
 
-class Reservations {
-    -Int ReservationId
-    -Int FK_TravelPackageId
-    -Int FK_ClientId
-    -Enum Status
-    -Int FK_PaymentId
-    -DateTime CreatedAt
-    -DateTime UpdatedAt
-    -Boolean IsActive
-    -DateTime DeletedAt
-}
+    TRAVELERS {
+        integer id
+        integer reservation_id
+        varchar firstName
+        varchar lastName
+        varchar document_number
+        date birthdate
+    }
 
-class Payments {
-    -Int PaymentId
-    -Enum PaymentMethod
-    -Enum Status
-    -Int FK_Clients
-    -DateTime CreatedAt
-    -DateTime UpdatedAt
-    -Boolean IsActive
-    -DateTime DeletedAt
-}
+    PAYMENTS {
+        integer id 
+        integer reservation_id
+        varchar payment_type
+        varchar card_last_digits
+        varchar status
+        decimal amount
+        timestamp paid_at
+    }
 
-class PaymentsStatusHistory {
-    -Int PaymentsStatusHistoryId
-    -Int FK_PaymentId
-    -Enum Status
-    -DateTime ChangedAt
-}
+    REVIEWS {
+        integer id 
+        integer reservation_id
+        integer rating
+        text description
+        timestamp created_at
+    }
 
-class TravelReviews {
-    -int TravelReviewId
-    -int FK_TravelPackageId
-    -int FK_ClientId
-    -int Rating
-    -String Comment
-    -DateTime Date
-    -Boolean IsApproved
-}
+    %% Relacionamentos
+    USERS ||--o{ TRAVEL_PACKAGES : "created_by"
+    USERS ||--o{ RESERVATIONS : "user_id"
+    TRAVEL_PACKAGES ||--o{ RESERVATIONS : "travel_package_id"
+    RESERVATIONS ||--o{ TRAVELERS : "reservation_id"
+    RESERVATIONS ||--o{ PAYMENTS : "reservation_id"
+    RESERVATIONS ||--o{ REVIEWS : "reservation_id"
+    RESERVATIONS ||--o{ TRAVEL_PACKAGE_HISTORY : "reservation_id"
 
-class TravelPackages {
-    -Int TravelPackageId
-    -String Title
-    -String Image
-    -String Description
-    -String Destination
-    -String Duration
-    -Double Price
-    -Int AvailableQuantity     
-    -Int MaxPeoplePerPackage
-    -DateTime CreatedAt
-    -DateTime UpdatedAt
-    -Boolean IsActive
-    -DateTime DeletedAt
-}
 
-class TravelPackagesHistory {
-    -Int TravelPackageHistoryId
-    -Int FK_TravelPackageId
-    -String ChangedField
-    -String OldValue
-    -String NewValue
-    -DateTime ChangedAt
-    -String ChangedBy
-}
-
-class AvailableDates {
-    -Int AvailableDatesId
-    -Datetime InitialDate
-    -Datetime FinalDate
-    -Boolean IsActive
-}
-
-class AdditionalTravellers {
-    -Int AdditionalTravellerId
-    -String DocumentNumber
-    -String FirstName
-    -String LastName
-    -Datetime BirthDate
-	-Int FK_ReservationId
-}
-
-Users --|> Clients : Herda
-Users --|> Employees : Herda
-Employees "1" --o "N" TravelPackages : Cria
-Clients "1" --o "N" Reservations : Faz
-Reservations "1" --o "N" Payments : Tem
-TravelPackages "1" --o "N" TravelReviews : Tem
-Reservations "1" --o "N" TravelPackages : Tem
-TravelPackages "N" --o "N" AvailableDates : Tem
-Reservations "N" --o "N" AdditionalTravellers : Inclui
-Payments "1" --o "N" PaymentsStatusHistory : Tem
-TravelPackages "1" --o "N" TravelPackagesHistory : Tem
-Employees "1" --o "N" Reservations: Altera 
 ```
  
