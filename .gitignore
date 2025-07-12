@@ -3,3 +3,6 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+Viagium/appsettings.json
+Viagium/appsettings.Development.json
+global.json
