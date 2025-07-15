@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Data;
 
 namespace Viagium.Model;
 
@@ -12,10 +11,10 @@ public class Reservation
     public int UserId { get; set; }
 
     [Required]
-    public int TravelPackageId { get; set; }
+    public int TravelPackageId { get; set; }  
 
     [Required]
-    public DateTime StartDate { get; set; }
+    public DateOnly StartDate { get; set; }
 
     [Required]
     public decimal TotalPrice { get; set; }
@@ -23,6 +22,4 @@ public class Reservation
     public string Status { get; set; } = "Pending";
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-
 }
