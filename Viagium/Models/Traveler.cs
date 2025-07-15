@@ -13,12 +13,12 @@ public class Traveler
     
     
     [Required]
-    [MaxLength(50)]
+    [MaxLength(100)]
     [Display(Name = "Primeiro Nome")]
     public string FistName { get; set; }
     
     [Required]
-    [MaxLength(50)]
+    [MaxLength(100)]
     [Display(Name = "Sobrenome")]
     public string LastName { get; set; }
     
@@ -29,5 +29,6 @@ public class Traveler
     
     [Required]
     [Display(Name ="Data de Nascimento")]
+    [DataType(DataType.Date)]
     public DateTime DateOfBirth { get; set; } //Verificar se vai ser DateTime ou DateOnly
 }
