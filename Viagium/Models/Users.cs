@@ -26,13 +26,18 @@ namespace Viagium.Models
         public string Phone { get; set; } = string.Empty;
         [Required]
         [Display(Name = "Documento de Identificação")]
-        public string DocumentNumber { get; set; }
+        public string DocumentNumber { get; set; } = string.Empty;
         [Required]
         [Display(Name = "Data de Nascimento")]
         [DataType(DataType.Date)]
         public DateTime DataNascimento { get; set; }
         [Required]
         [Display(Name = "Função")]
-        public UserRole Role { get; set; } = UserRole.User;
+        public Role Role { get; set; }
+        [Display(Name = "Status")]
+        public bool IsActive { get; set; } = true;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime UpdatedAt { get; set; }
+        public DateTime DeletedAt { get; set; }
     }
 }

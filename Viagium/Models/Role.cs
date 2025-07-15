@@ -2,15 +2,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Viagium.Models
 {
-    public enum UserRole
+    public enum Role
     {
-        [Display(Name = "Usuário")]
-        User = 1,
-        
+        [Display(Name = "Cliente")]
+        Client = 1,
         [Display(Name = "Administrador")]
         Admin = 2,
-        
-        [Display(Name = "Moderador")]
-        Moderator = 3
+        [Display(Name = "Suporte")]
+        Support = 3
     }
 }
