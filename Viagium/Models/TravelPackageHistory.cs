@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Viagium.Model
+namespace Viagium.Models
 {
     public class TravelPackageHistory
     {
