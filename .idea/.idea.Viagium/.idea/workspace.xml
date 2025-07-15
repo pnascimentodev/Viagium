@@ -9,10 +9,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="30de93ab-beab-44c1-992a-80dff1e894b5" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Viagium/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Viagium/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Viagium/Viagium.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/Viagium/Viagium.csproj" afterDir="false" />
-    </list>
+    <list default="true" id="30de93ab-beab-44c1-992a-80dff1e894b5" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -56,7 +53,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "feat/api-createtravelpackage",
+    "git-widget-placeholder": "developer",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -128,7 +125,7 @@
       <workItem from="1752289489589" duration="964000" />
       <workItem from="1752508921899" duration="129000" />
       <workItem from="1752509137922" duration="91000" />
-      <workItem from="1752621997343" duration="731000" />
+      <workItem from="1752621997343" duration="1054000" />
     </task>
     <task id="LOCAL-00001" summary="Feat: Configuração inicial para API com Swagger, ajustes de launchSettings e inclusão de arquivos de configuração">
       <option name="closed" value="true" />
