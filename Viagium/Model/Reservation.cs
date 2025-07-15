@@ -14,7 +14,8 @@ public class Reservation
     public int TravelPackageId { get; set; }  
 
     [Required]
-    public DateOnly StartDate { get; set; }
+    [DataType(DataType.Date)]
+    public DateTime StartDate { get; set; }
 
     [Required]
     public decimal TotalPrice { get; set; }
