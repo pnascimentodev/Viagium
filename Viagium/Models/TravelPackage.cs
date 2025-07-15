@@ -1,8 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Viagium.Models
 {
-    public class TravelPackages
+    public class TravelPackage
         {
             [Key]
             public int TravelPackagesId { get; set; }
@@ -33,7 +34,9 @@ namespace Viagium.Models
             public decimal Price { get; set; }
 
             [Required]
+            [ForeignKey("User")]
             public int CreatedBy { get; set; }
+            public User? User { get; set; }
 
             public DateTime? CreatedAt { get; set; } = DateTime.Now;
             public DateTime? UpdatedAt { get; set; }
@@ -42,5 +45,9 @@ namespace Viagium.Models
 
             public bool IsActive { get; set; } = true;
 
+            
+            
+      
+            
         }
     }

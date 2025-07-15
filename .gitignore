@@ -1,9 +1,52 @@
+# Arquivos e pastas de IDE
+.idea/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Arquivos de build
 bin/
 obj/
-/packages/
-riderModule.iml
-/_ReSharper.Caches/
+*.log
+*.cache
+*.pdb
+*.mdb
+*.ilk
+*.idb
+*.tlog
+*.lastbuildstate
+*.sbr
+*.swp
+*.tmp
+*.tmp_proj
+*.vspscc
+*.vssscc
+
+# Arquivos de configuração local
+*.local.json
+*.env
+*.env.*
+
+# Arquivos de pacotes
+packages/
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Arquivos de publicação
+*.publishsettings
+*.pubxml
+*.pubxml.user
+
+# Arquivos de cache do ReSharper
+_ReSharper.Caches/
+
+# Arquivos específicos do projeto
 Viagium/appsettings.json
 Viagium/appsettings.Development.json
 global.json
-.vs/
+

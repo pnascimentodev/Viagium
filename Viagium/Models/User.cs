@@ -2,7 +2,7 @@
 
 namespace Viagium.Models
 {
-    public class Users
+    public class User
     {
         [Key]
         [Display(Name = "Id do Usuário")]
@@ -40,5 +40,9 @@ namespace Viagium.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; }
         public DateTime DeletedAt { get; set; }
+        
+        public ICollection<TravelPackage> TravelPackages { get; set; }
+        public ICollection<Reservation> Reservations { get; set; }
+        
     }
 }

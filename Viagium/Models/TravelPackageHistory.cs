@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Viagium.Models
 {
@@ -8,7 +9,9 @@ namespace Viagium.Models
         public int TravelerPackageHistoryId { get; set; }
 
         [Required]
+        [ForeignKey("Reservation")]
         public int ReservationId { get; set; }
+        public Reservation? Reservation { get; set; }
 
         [Required]
         [MaxLength(50)]
