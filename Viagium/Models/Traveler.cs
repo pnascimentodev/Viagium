@@ -14,11 +14,10 @@ public class Traveler
     public int ReservationId { get; set; } 
     public Reservation? Reservation { get; set; }
     
-    
     [Required]
     [MaxLength(100)]
     [Display(Name = "Primeiro Nome")]
-    public string FistName { get; set; }
+    public string FirstName { get; set; }
     
     [Required]
     [MaxLength(100)]

@@ -15,7 +15,6 @@ public class Payment
     [Required]
     public string? PaymentMethod { get; set; }
     
-    [Required]
     [StringLength(4)]
     public string? CardLastFourDigits { get; set; }
 
@@ -24,5 +23,5 @@ public class Payment
     [Required]
     public decimal Amount { get; set; }
     
-    public DateTime PaidAt { get; set; } = DateTime.Now;
+    public DateTime? PaidAt { get; set; } = DateTime.Now;
 }
