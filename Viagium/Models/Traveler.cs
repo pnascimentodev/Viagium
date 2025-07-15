@@ -1,16 +1,33 @@
-﻿namespace Viagium.Models;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Viagium.Models;
 
 public class Traveler
 {
-    [key]
+    [Key]
+    [Display(Name = "ID do Viajante")]
     public int TravelersId { get; set; }
-    public int reservationId { get; set; } 
-    [Requerid]
+    
+    [Display(Name = "ID da Reserva")]
+    public int ReservationId { get; set; } 
+    
+    
+    [Required]
+    [MaxLength(50)]
+    [Display(Name = "Primeiro Nome")]
     public string FistName { get; set; }
-    [Requerid]
+    
+    [Required]
+    [MaxLength(50)]
+    [Display(Name = "Sobrenome")]
     public string LastName { get; set; }
-    [Requerid]
+    
+    [Required]
+    [MaxLength(12)]
+    [Display(Name = "Número do Documento")]
     public string DocumentNumber { get; set; }
-    [Requerid]
+    
+    [Required]
+    [Display(Name ="Data de Nascimento")]
     public DateTime DateOfBirth { get; set; } //Verificar se vai ser DateTime ou DateOnly
 }
