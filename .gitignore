@@ -1,7 +1,7 @@
 # Arquivos e pastas de IDE
 .idea/
 .vs/
-workspace.xml
+.idea/workspace.xml
 *.suo
 *.user
 *.userosscache
