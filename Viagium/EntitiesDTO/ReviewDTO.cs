@@ -1,0 +1,21 @@
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Viagium.Models;
+
+namespace Viagium.EntitiesDTO;
+
+
+public class ReviewDTO
+{
+
+    public Reservation? Reservation { get; set; } 
+        
+    [Required]
+    public int Rating { get; set; }
+
+    [Required]
+    [StringLength(500)]
+    public string Description { get; set; } = string.Empty;
+
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+}

@@ -1,0 +1,23 @@
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Viagium.Models;
+
+namespace Viagium.EntitiesDTO;
+
+public class ReservationRoomDTO
+{
+
+    
+    public Reservation? Reservation { get; set; }
+    
+    
+    public RoomType? RoomType { get; set; }
+    
+    
+    public decimal PricePerNight { get; set; }
+    
+    public int Nights { get; set; }
+    
+    public decimal TotalPrice { get; set; }
+    
+}

@@ -1,17 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Viagium.Models;
 
-namespace Viagium.Models;
+namespace Viagium.EntitiesDTO;
 
-public class Traveler
+
+public class TravelerDTO
 {
-    [Key]
-    [Display(Name = "ID do Viajante")]
-    public int TravelersId { get; set; }
     
-    [Display(Name = "ID da Reserva")]
-    [ForeignKey("Reservation")]
-    public int ReservationId { get; set; } 
     public Reservation? Reservation { get; set; }
     
     [Required]

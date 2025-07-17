@@ -1,12 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Viagium.Models;
-
-public class Hotel
+namespace Viagium.EntitiesDTO;
+public class HotelDTO
 {
-    [Key]
-    [Display(Name = "ID do Hotel")]
-    public int HotelId { get; set; }
+
     [Required(ErrorMessage = "O nome do hotel é obrigatório.")]
     [Display(Name = "Nome Fantasia do Hotel")]
     public string Name { get; set; } = string.Empty;
@@ -23,6 +20,5 @@ public class Hotel
     [Display(Name = "Telefone de Contato do Hotel")]
     public string ContactNumber { get; set; } = string.Empty;
     
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-    public DateTime? UpdatedAt { get; set; }
+
 }
