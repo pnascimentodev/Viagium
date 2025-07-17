@@ -7,6 +7,11 @@ namespace Viagium.Models
         {
             [Key]
             public int TravelPackagesId { get; set; }
+            
+            [Required]
+            [ForeignKey("Hotel")]
+            public int HotelId { get; set; }
+            public Hotel? Hotel { get; set; }
 
             [Required]
             [StringLength(100)]
