@@ -13,7 +13,6 @@ public class EntitiesMappingDTO : Profile
         CreateMap<Reservation, ReservationDTO>();
         CreateMap<ReservationRoom, ReservationRoomDTO>();
         CreateMap<Review, ReviewDTO>();
-        CreateMap<Role, RoleDTO>();
         CreateMap<RoomType, RoomTypeDTO>();
         CreateMap<Traveler, TravelerDTO>();
         CreateMap<TravelPackage, TravelPackageDTO>();
