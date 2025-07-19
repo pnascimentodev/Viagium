@@ -23,7 +23,9 @@ public class AppDbContext : DbContext
     public DbSet<ReservationRoom> ReservationRooms { get; set; }
     public DbSet<RoomType> RoomTypes { get; set; }
     public DbSet<Affiliate> Affiliates { get; set; }
-    
+    public DbSet<Address> Addresses { get; set; }
+    public DbSet<Room> Rooms { get; set; }
+
     // Configura o modelo do banco de dados
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -113,7 +115,25 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<ReservationRoom>()
             .Property(rr => rr.TotalPrice)
             .HasPrecision(18, 2);
-        
-       
+
+        //Relacionamento Afilliate - Address (1:1)
+        modelBuilder.Entity<Affiliate>()
+            .HasOne(a => a.Address)
+            .WithOne(ad => ad.Affiliate)
+            .HasForeignKey<Affiliate>(a => a.AddressId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Hotel>()
+            .HasOne(h => h.Address)
+            .WithOne(ad => ad.Hotel)
+            .HasForeignKey<Hotel>(h => h.AddressId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        //Relacionamento entre RoomType e Room (1:N)
+        modelBuilder.Entity<RoomType>()
+            .HasMany(rt => rt.Rooms)
+            .WithOne(r => r.RoomType)
+            .HasForeignKey(r => r.RoomTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -23,6 +23,10 @@ namespace Viagium.Models
 
             [Required]
             [StringLength(100)]
+            public string Origin { get; set; } = string.Empty;
+
+            [Required]
+            [StringLength(100)]
             public string Destination { get; set; } = string.Empty;
 
             [Required]
