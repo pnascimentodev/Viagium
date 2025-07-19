@@ -1,4 +1,5 @@
 ﻿using Viagium.Data;
+using Viagium.Services;
 
 namespace Viagium.Repository;
 
@@ -11,13 +12,17 @@ public class UnitOfWork: IUnitOfWork
         _context = context;
         TravelPackageRepository = travelPackageRepository;
     }
-    public void Dispose()
+    
+    public async Task<int> SaveAsync()
     {
-        throw new NotImplementedException();
+        return await ExceptionHandler.ExecuteWithHandling(
+            async () => await _context.SaveChangesAsync(),
+            "Salvamento no banco de dados"
+        );
     }
     
-    public Task<int> SaveAsync()
+    public void Dispose()
     {
-        throw new NotImplementedException();
+        _context?.Dispose();
     }
 }

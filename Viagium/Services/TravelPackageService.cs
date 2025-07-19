@@ -12,24 +12,23 @@ namespace Viagium.Services
         {
             _unitOfWork = unitOfWork;
         }
+
         public async Task<TravelPackage> AddAsync(TravelPackage travelPackage)
         {
-            var validationResults = new List<ValidationResult>();
-            var validationContext = new ValidationContext(travelPackage);
-
-            // Valida usando DataAnnotations
-            if (!Validator.TryValidateObject(travelPackage, validationContext, validationResults, true))
+            return await ExceptionHandler.ExecuteWithHandling(async () =>
             {
-                var errors = validationResults.Select(vr => vr.ErrorMessage).ToList();
-                throw new ArgumentException(string.Join("\n", errors));
-            }
-            // Validações customizadas
-            ValidateCustomRules(travelPackage);
+                // Validação de data annotations
+                var validationContext = new ValidationContext(travelPackage);
+                Validator.ValidateObject(travelPackage, validationContext, validateAllProperties: true);
 
-            await _unitOfWork.TravelPackageRepository.AddAsync(travelPackage);
-            await _unitOfWork.SaveAsync();
+                // Validações customizadas específicas do negócio
+                ValidateCustomRules(travelPackage);
 
-            return travelPackage;
+                await _unitOfWork.TravelPackageRepository.AddAsync(travelPackage);
+                await _unitOfWork.SaveAsync();
+
+                return travelPackage;
+            }, "criação de pacote de viagem");
         }
 
         private void ValidateCustomRules(TravelPackage travelPackage)

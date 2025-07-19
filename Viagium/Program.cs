@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Viagium.Data;
 using Viagium.EntitiesDTO;
+using Viagium.Repository;
+using Viagium.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +18,13 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Registra os repositórios
+builder.Services.AddScoped<ITravelPackageRepository, TravelPackageRepository>();
+
+// Registra o UnitOfWork e o serviço TravelPackageService
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<TravelPackageService>();
 
 //Configura a AutoMapper para mapear as entidades para os DTOs
 builder.Services.AddAutoMapper(typeof(EntitiesMappingDTO));
