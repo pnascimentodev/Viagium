@@ -19,7 +19,13 @@ public class AppDbContext : DbContext
     public DbSet<Review> Reviews { get; set; }
     public DbSet<Reservation> Reservations { get; set; }
     public DbSet<Payment> Payments { get; set; }
-    
+    public DbSet<Hotel> Hotels { get; set; }
+    public DbSet<ReservationRoom> ReservationRooms { get; set; }
+    public DbSet<RoomType> RoomTypes { get; set; }
+    public DbSet<Affiliate> Affiliates { get; set; }
+    public DbSet<Address> Addresses { get; set; }
+    public DbSet<Room> Rooms { get; set; }
+
     // Configura o modelo do banco de dados
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -56,5 +62,78 @@ public class AppDbContext : DbContext
             .WithMany() // Um TravelPackage pode ter várias Reservations
             .HasForeignKey(r => r.TravelPackageId) // Chave estrangeira TravelPackageId na Reservation
             .OnDelete(DeleteBehavior.Restrict); // Impede a exclusão de TravelPackage se houver Reservations associadas
+
+        // Hotel - RoomType (1:N)
+        modelBuilder.Entity<RoomType>()
+            .HasOne(rt => rt.Hotel)
+            .WithMany()
+            .HasForeignKey(rt => rt.HotelId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // RoomType - ReservationRoom (1:N)
+        modelBuilder.Entity<ReservationRoom>()
+            .HasOne(rr => rr.RoomType)
+            .WithMany()
+            .HasForeignKey(r => r.RoomTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Reservation - ReservationRoom (1:N)
+        modelBuilder.Entity<ReservationRoom>()
+            .HasOne(rr => rr.Reservation)
+            .WithMany(r => r.ReservationRooms)
+            .HasForeignKey(rr => rr.ReservationId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Relacionamento TravelPackage - Hotel (N:1)
+        modelBuilder.Entity<TravelPackage>()
+            .HasOne(tp => tp.Hotel)
+            .WithMany()
+            .HasForeignKey(tp => tp.HotelId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Relacionamento Affiliate - Hotel (1:N)
+        modelBuilder.Entity<Hotel>()
+            .HasOne(h => h.Affiliate)
+            .WithMany(a => a.Hotels)
+            .HasForeignKey(h => h.AffiliateId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Relacionamento Reservation - Payment (1:1)
+        modelBuilder.Entity<Reservation>()
+            .HasOne(r => r.Payment)
+            .WithOne(p => p.Reservation)
+            .HasForeignKey<Reservation>(r => r.PaymentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Decimais para RoomType e ReservationRoom
+        modelBuilder.Entity<RoomType>()
+            .Property(rt => rt.PricePerNight)
+            .HasPrecision(18, 2);
+        modelBuilder.Entity<ReservationRoom>()
+            .Property(rr => rr.PricePerNight)
+            .HasPrecision(18, 2);
+        modelBuilder.Entity<ReservationRoom>()
+            .Property(rr => rr.TotalPrice)
+            .HasPrecision(18, 2);
+
+        //Relacionamento Afilliate - Address (1:1)
+        modelBuilder.Entity<Affiliate>()
+            .HasOne(a => a.Address)
+            .WithOne(ad => ad.Affiliate)
+            .HasForeignKey<Affiliate>(a => a.AddressId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Hotel>()
+            .HasOne(h => h.Address)
+            .WithOne(ad => ad.Hotel)
+            .HasForeignKey<Hotel>(h => h.AddressId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        //Relacionamento entre RoomType e Room (1:N)
+        modelBuilder.Entity<RoomType>()
+            .HasMany(rt => rt.Rooms)
+            .WithOne(r => r.RoomType)
+            .HasForeignKey(r => r.RoomTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

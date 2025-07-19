@@ -7,6 +7,11 @@ namespace Viagium.Models
         {
             [Key]
             public int TravelPackagesId { get; set; }
+            
+            [Required]
+            [ForeignKey("Hotel")]
+            public int HotelId { get; set; }
+            public Hotel? Hotel { get; set; }
 
             [Required]
             [StringLength(100)]
@@ -15,6 +20,10 @@ namespace Viagium.Models
             [Required]
             [StringLength(500)]
             public string Description { get; set; } = string.Empty;
+
+            [Required]
+            [StringLength(100)]
+            public string Origin { get; set; } = string.Empty;
 
             [Required]
             [StringLength(100)]
@@ -28,6 +37,9 @@ namespace Viagium.Models
 
             [Required]
             public int MaxPeople { get; set; }
+            
+            [Required]
+            public string VehicleType { get; set; } = string.Empty;
 
             [Required]
             [DataType(DataType.Currency)]

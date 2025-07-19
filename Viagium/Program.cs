@@ -1,5 +1,9 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Viagium.Data;
+using Viagium.EntitiesDTO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,8 +17,41 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-var app = builder.Build();
+//Configura a AutoMapper para mapear as entidades para os DTOs
+builder.Services.AddAutoMapper(typeof(EntitiesMappingDTO));
 
+//Configura do JWT Bearer Authentication
+
+// le as configurações do appsettings.json
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
+
+// Configura o esquema de autenticação JWT Bearer
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme; // Define o esquema de autenticação padrão
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; // define o esqueva que requisita o token de autenticação
+    
+    //Configura os parametro de validação do token JWT
+}).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,                      // Valida se o emissor do token é o esperado
+        ValidateAudience = true,                    // Valida se o token foi criado para o público esperado
+        ValidateLifetime = true,                    // Valida se o token não está expirado
+        ValidateIssuerSigningKey = true,            // Valida se a assinatura do token está correta
+
+        ValidIssuer = jwtSettings["Issuer"],       // Define o valor esperado para o emissor do token
+        ValidAudience = jwtSettings["Audience"],   // Define o valor esperado para o público do token
+        IssuerSigningKey = new SymmetricSecurityKey(key)  // Define a chave secreta para validar a assinatura do token
+    };
+});
+
+// Adiciona autorização (para usar [Authorize] no controller)
+builder.Services.AddAuthorization();
+
+var app = builder.Build(); 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -24,8 +61,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
-
-app.MapControllers();
+app.UseAuthentication();         // Habilita o middleware que realiza a autenticação (verifica token na requisição)
+app.UseAuthorization();          // Habilita o middleware que faz a autorização (verifica se o usuário pode acessar o recurso)
 
 app.Run();

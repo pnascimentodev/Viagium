@@ -6,7 +6,7 @@ namespace Viagium.Models
     {
         [Key]
         [Display(Name = "Id do Usuário")]
-        public int UserId { get; set; }
+        public int UserId { get; private set; }
         [Required]
         [MaxLength(100)]
         [Display(Name = "Nome")]
