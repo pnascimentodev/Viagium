@@ -8,8 +8,7 @@ namespace Viagium.EntitiesDTO;
 
 public class TravelPackageDTO
 {
-
-    public Hotel? Hotel { get; set; }
+    public HotelDTO? Hotel { get; set; }
 
     [Required]
     [StringLength(100)]
@@ -33,8 +32,13 @@ public class TravelPackageDTO
     public int MaxPeople { get; set; }
 
     [Required]
+    public string VehicleType { get; set; } = string.Empty;
+
+    [Required]
     [DataType(DataType.Currency)]
     public decimal Price { get; set; }
 
-    
+    public UserDTO? User { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 }

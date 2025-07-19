@@ -8,10 +8,10 @@ public class ReservationRoomDTO
 {
 
     
-    public Reservation? Reservation { get; set; }
+    public ReservationDTO? Reservation { get; set; }
     
     
-    public RoomType? RoomType { get; set; }
+    public RoomTypeDTO? RoomType { get; set; }
     
     
     public decimal PricePerNight { get; set; }

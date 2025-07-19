@@ -7,16 +7,8 @@ namespace Viagium.EntitiesDTO;
 
 public class RoomTypeDTO
 {
-    
-
-    public Hotel? Hotel { get; set; }
-    
-    public string Name { get; set; } = string.Empty;
-    
-    public string Description { get; set; } = string.Empty;
-    
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public HotelDTO? Hotel { get; set; }
     public decimal PricePerNight { get; set; }
-    
-    public int NumberOfRoomsAvailable { get; set; }
-    
 }

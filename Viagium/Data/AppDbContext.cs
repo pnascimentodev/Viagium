@@ -22,6 +22,7 @@ public class AppDbContext : DbContext
     public DbSet<Hotel> Hotels { get; set; }
     public DbSet<ReservationRoom> ReservationRooms { get; set; }
     public DbSet<RoomType> RoomTypes { get; set; }
+    public DbSet<Affiliate> Affiliates { get; set; }
     
     // Configura o modelo do banco de dados
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -77,8 +78,8 @@ public class AppDbContext : DbContext
         // Reservation - ReservationRoom (1:N)
         modelBuilder.Entity<ReservationRoom>()
             .HasOne(rr => rr.Reservation)
-            .WithMany()
-            .HasForeignKey(r => r.ReservationId)
+            .WithMany(r => r.ReservationRooms)
+            .HasForeignKey(rr => rr.ReservationId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Relacionamento TravelPackage - Hotel (N:1)
@@ -86,6 +87,20 @@ public class AppDbContext : DbContext
             .HasOne(tp => tp.Hotel)
             .WithMany()
             .HasForeignKey(tp => tp.HotelId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Relacionamento Affiliate - Hotel (1:N)
+        modelBuilder.Entity<Hotel>()
+            .HasOne(h => h.Affiliate)
+            .WithMany(a => a.Hotels)
+            .HasForeignKey(h => h.AffiliateId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Relacionamento Reservation - Payment (1:1)
+        modelBuilder.Entity<Reservation>()
+            .HasOne(r => r.Payment)
+            .WithOne(p => p.Reservation)
+            .HasForeignKey<Reservation>(r => r.PaymentId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Decimais para RoomType e ReservationRoom

@@ -8,7 +8,7 @@ namespace Viagium.EntitiesDTO;
 public class TravelerDTO
 {
     
-    public Reservation? Reservation { get; set; }
+    public ReservationDTO? Reservation { get; set; }
     
     [Required]
     [MaxLength(100)]

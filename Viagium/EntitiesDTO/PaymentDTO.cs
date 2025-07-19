@@ -8,7 +8,7 @@ public class PaymentDTO
 {
     
     
-    public Reservation? Reservation { get; set; }
+    public ReservationDTO? Reservation { get; set; }
     
     [Required]
     public string? PaymentMethod { get; set; }

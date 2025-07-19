@@ -33,6 +33,9 @@ namespace Viagium.Models
 
             [Required]
             public int MaxPeople { get; set; }
+            
+            [Required]
+            public string VehicleType { get; set; } = string.Empty;
 
             [Required]
             [DataType(DataType.Currency)]

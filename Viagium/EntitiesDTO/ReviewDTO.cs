@@ -8,7 +8,7 @@ namespace Viagium.EntitiesDTO;
 public class ReviewDTO
 {
 
-    public Reservation? Reservation { get; set; } 
+    public ReservationDTO? Reservation { get; set; } 
         
     [Required]
     public int Rating { get; set; }

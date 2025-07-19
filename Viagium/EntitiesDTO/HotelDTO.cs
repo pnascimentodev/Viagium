@@ -3,22 +3,12 @@
 namespace Viagium.EntitiesDTO;
 public class HotelDTO
 {
-
-    [Required(ErrorMessage = "O nome do hotel é obrigatório.")]
-    [Display(Name = "Nome Fantasia do Hotel")]
-    public string Name { get; set; } = string.Empty;
-    [Required(ErrorMessage = "O endereço do hotel é obrigatório.")]
-    [Display(Name = "Endereço do Hotel")]
-    public string Location { get; set; } = string.Empty;
-    [Required(ErrorMessage = "A descrição do hotel é obrigatória.")]
-    [Display(Name = "Descrição do Hotel")]
-    public string Description { get; set; } = string.Empty;
-    [Required(ErrorMessage = "A URL da imagem do hotel é obrigatória.")]
-    [Display(Name = "URL da Imagem do Hotel")]
-    public string ImageUrl { get; set; } = string.Empty;
-    [Required(ErrorMessage = "O telefone de contato do hotel é obrigatório.")]
-    [Display(Name = "Telefone de Contato do Hotel")]
-    public string ContactNumber { get; set; } = string.Empty;
-    
-
+    public string Name { get; set; }
+    public string Location { get; set; }
+    public string Description { get; set; }
+    public string ImageUrl { get; set; }
+    public string ContactNumber { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public AffiliateDTO? Affiliate { get; set; }
 }

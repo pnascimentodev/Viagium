@@ -30,4 +30,9 @@ public class Reservation
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     
     public ICollection<Traveler> Travelers { get; set; }
+    
+    [ForeignKey("Payment")]
+    public int PaymentId { get; set; }
+    public Payment? Payment { get; set; }
+    public ICollection<ReservationRoom> ReservationRooms { get; set; }
 }
