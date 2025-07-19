@@ -9,7 +9,6 @@ public class AppDbContext : DbContext
     // Construtor que recebe as opções de configuração do DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
-        
     }
     
     public DbSet<User> Users { get; set; }
@@ -134,6 +133,19 @@ public class AppDbContext : DbContext
             .HasMany(rt => rt.Rooms)
             .WithOne(r => r.RoomType)
             .HasForeignKey(r => r.RoomTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        //Relactionamento entre TravelPackage OriginAddress e DestinationAddress (1:1)
+        modelBuilder.Entity<TravelPackage>()
+            .HasOne(tp => tp.OriginAddress)
+            .WithMany()
+            .HasForeignKey(tp => tp.OriginAddressId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<TravelPackage>()
+            .HasOne(tp => tp.DestinationAddress)
+            .WithMany()
+            .HasForeignKey(tp => tp.DestinationAddressId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

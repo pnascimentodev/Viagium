@@ -22,20 +22,25 @@ namespace Viagium.Models
             public string Description { get; set; } = string.Empty;
 
             [Required]
-            [StringLength(100)]
-            public string Origin { get; set; } = string.Empty;
+            [ForeignKey("OriginAddress")]
+            public int OriginAddressId { get; set; }
+            public Address? OriginAddress { get; set; }
 
             [Required]
-            [StringLength(100)]
-            public string Destination { get; set; } = string.Empty;
+            [ForeignKey("DestinationAddress")]
+            public int DestinationAddressId { get; set; }
+            public Address? DestinationAddress { get; set; }
 
             [Required]
+            [Url(ErrorMessage = "ImageUrl deve ser uma URL válida")]
             public string ImageUrl { get; set; } = string.Empty;
 
             [Required]
+            [Range(1, int.MaxValue, ErrorMessage = "A duração deve ser maior que zero")]
             public int Duration { get; set; }
 
             [Required]
+            [Range(1, int.MaxValue, ErrorMessage = "O máximo de pessoas deve ser maior que zero")]
             public int MaxPeople { get; set; }
             
             [Required]
@@ -43,6 +48,7 @@ namespace Viagium.Models
 
             [Required]
             [DataType(DataType.Currency)]
+            [Range(0.01, double.MaxValue, ErrorMessage = "Preço deve ser maior que zero")]
             public decimal Price { get; set; }
 
             [Required]
@@ -56,10 +62,5 @@ namespace Viagium.Models
             public DateTime? DeletedAt { get; set; }
 
             public bool IsActive { get; set; } = true;
-
-            
-            
-      
-            
         }
     }
