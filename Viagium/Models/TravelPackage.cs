@@ -22,12 +22,14 @@ namespace Viagium.Models
             public string Description { get; set; } = string.Empty;
 
             [Required]
-            [StringLength(100)]
-            public string Origin { get; set; } = string.Empty;
+            [ForeignKey("OriginAddress")]
+            public int OriginAddressId { get; set; }
+            public Address? OriginAddress { get; set; }
 
             [Required]
-            [StringLength(100)]
-            public string Destination { get; set; } = string.Empty;
+            [ForeignKey("DestinationAddress")]
+            public int DestinationAddressId { get; set; }
+            public Address? DestinationAddress { get; set; }
 
             [Required]
             public string ImageUrl { get; set; } = string.Empty;
@@ -56,10 +58,5 @@ namespace Viagium.Models
             public DateTime? DeletedAt { get; set; }
 
             public bool IsActive { get; set; } = true;
-
-            
-            
-      
-            
         }
     }
