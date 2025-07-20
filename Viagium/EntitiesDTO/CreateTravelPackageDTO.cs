@@ -6,7 +6,7 @@ using Viagium.Models;
 
 namespace Viagium.EntitiesDTO;
 
-public class TravelPackageDTO
+public class CreateTravelPackageDTO
 {
     public int HotelId { get; set; }
     public HotelDTO? Hotel { get; set; }

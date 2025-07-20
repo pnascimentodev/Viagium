@@ -15,7 +15,7 @@ public class EntitiesMappingDTO : Profile
         CreateMap<Review, ReviewDTO>();
         CreateMap<RoomType, RoomTypeDTO>();
         CreateMap<Traveler, TravelerDTO>();
-        CreateMap<TravelPackage, TravelPackageDTO>();
+        CreateMap<TravelPackage, CreateTravelPackageDTO>();
         CreateMap<TravelPackageHistory, TravelPackageHistoryDTO>();
         
     }

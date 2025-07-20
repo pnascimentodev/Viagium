@@ -8,7 +8,7 @@ public class ReservationDTO
 {
     public UserDTO? User { get; set; }
     
-    public TravelPackageDTO? TravelPackage { get; set; }
+    public CreateTravelPackageDTO? TravelPackage { get; set; }
     
     public DateTime StartDate { get; set; }
     
