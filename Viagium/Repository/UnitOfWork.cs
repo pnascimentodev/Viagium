@@ -7,11 +7,15 @@ public class UnitOfWork: IUnitOfWork
 {
     private readonly AppDbContext _context;
     public ITravelPackageRepository TravelPackageRepository { get; }
-    public UnitOfWork(AppDbContext context, ITravelPackageRepository travelPackageRepository)
+    public IUserRepository UserRepository { get; }
+
+    public UnitOfWork(AppDbContext context, ITravelPackageRepository travelPackageRepository, IUserRepository userRepository)
     {
         _context = context;
         TravelPackageRepository = travelPackageRepository;
+        UserRepository = userRepository;
     }
+
     
     public async Task<int> SaveAsync()
     {

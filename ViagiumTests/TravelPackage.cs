@@ -1,13 +1,11 @@
-using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using Viagium.Controller;
+using Viagium.Controllers;
 using Viagium.Models;
 using Viagium.Repository;
 using Viagium.Services;
-using Xunit;
-using System.Text.Json; // Adicionado para serialização
+using System.Text.Json; // Adicionado para serializaï¿½ï¿½o
 
 namespace ViagiumTests
 {
@@ -23,13 +21,13 @@ namespace ViagiumTests
                 TravelPackagesId = 1,
                 HotelId = 1,
                 Title = "Pacote Teste",
-                Description = "Descrição do pacote teste.",
+                Description = "Descriï¿½ï¿½o do pacote teste.",
                 OriginAddressId = 10,
                 DestinationAddressId = 20, // diferente do origin
                 ImageUrl = "https://imagem.com/pacote.jpg",
                 Duration = 5,
                 MaxPeople = 2,
-                VehicleType = "Ônibus",
+                VehicleType = "ï¿½nibus",
                 Price = 1000.00m,
                 CreatedBy = 99,
                 IsActive = true

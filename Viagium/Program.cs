@@ -24,6 +24,7 @@ builder.Services.AddScoped<ITravelPackageRepository, TravelPackageRepository>();
 
 // Registra o UnitOfWork e o serviço TravelPackageService
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<TravelPackageService>();
 
 //Configura a AutoMapper para mapear as entidades para os DTOs

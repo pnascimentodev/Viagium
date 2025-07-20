@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Viagium.Services;
 
-namespace Viagium.Controller;
+namespace Viagium.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
