@@ -24,12 +24,12 @@ public class CreateTravelPackageDTO
     [Required]
     [StringLength(100)]
     [Display(Name = "Origem")]
-    public string Origin { get; set; } = string.Empty;
+    public string OriginAddress { get; set; } = string.Empty;
 
     [Required]
     [StringLength(100)]
     [Display(Name = "Destino")]
-    public string Destination { get; set; } = string.Empty;
+    public string DestinationAddress { get; set; } = string.Empty;
 
     [Required]
     [Display(Name = "URL da Imagem")]

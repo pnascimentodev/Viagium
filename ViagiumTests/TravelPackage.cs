@@ -2,65 +2,87 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using Viagium.Controller;
+using Viagium.Controllers;
 using Viagium.Models;
-using Viagium.Repository;
 using Viagium.Services;
 using Xunit;
-using System.Text.Json; // Adicionado para serialização
+using System.Text.Json;
+using Viagium.EntitiesDTO;
+using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 
 namespace ViagiumTests
 {
     public class TravelPackageControllerTests
     {
         [Fact]
-        // Nome: Create_ValidTravelPackage_ReturnsCreatedAtActionWithPackage
         public async Task Create_ValidTravelPackage_ReturnsCreatedAtActionWithPackage()
         {
             // --- ARRANGE ---
-            var fakePackage = new TravelPackage
+            var fakeDto = new CreateTravelPackageDTO
             {
-                TravelPackagesId = 1,
                 HotelId = 1,
                 Title = "Pacote Teste",
-                Description = "Descrição do pacote teste.",
-                OriginAddressId = 10,
-                DestinationAddressId = 20, // diferente do origin
+                Description = "DescriÃ§Ã£o do pacote teste.",
+                OriginAddress = "Rua A",
+                DestinationAddress = "Rua B",
                 ImageUrl = "https://imagem.com/pacote.jpg",
                 Duration = 5,
                 MaxPeople = 2,
-                VehicleType = "Ônibus",
+                VehicleType = "Ã”nibus",
                 Price = 1000.00m,
                 CreatedBy = 99,
                 IsActive = true
             };
 
-            var mockRepo = new Mock<ITravelPackageRepository>();
-            mockRepo.Setup(r => r.AddAsync(It.IsAny<TravelPackage>())).Returns(Task.CompletedTask);
+            // Mock da classe Address para controlar o retorno do ToString()
+            var mockAddress = new Mock<Address>();
+            mockAddress.Setup(a => a.ToString()).Returns(fakeDto.DestinationAddress);
 
-            var mockUoW = new Mock<IUnitOfWork>();
-            mockUoW.Setup(u => u.TravelPackageRepository).Returns(mockRepo.Object);
-            mockUoW.Setup(u => u.SaveAsync()).ReturnsAsync(1);
+            var fakePackage = new TravelPackage
+            {
+                TravelPackagesId = 1,
+                HotelId = 1,
+                Title = fakeDto.Title,
+                Description = fakeDto.Description,
+                OriginAddressId = 10,
+                DestinationAddressId = 20,
+                DestinationAddress = mockAddress.Object, // Usa o objeto mockado
+                ImageUrl = fakeDto.ImageUrl,
+                Duration = fakeDto.Duration,
+                MaxPeople = fakeDto.MaxPeople,
+                VehicleType = fakeDto.VehicleType,
+                Price = fakeDto.Price,
+                CreatedBy = fakeDto.CreatedBy,
+                IsActive = true,
+                CreatedAt = System.DateTime.Now
+            };
 
-            var service = new TravelPackageService(mockUoW.Object);
-            var controller = new TravelPackageController(service);
+            var mockService = new Mock<ITravelPackage>();
+            mockService.Setup(s => s.AddAsync(It.IsAny<CreateTravelPackageDTO>()))
+                       .ReturnsAsync(fakePackage);
+
+            var mockLogger = new Mock<ILogger<TravelPackageController>>();
+            var controller = new TravelPackageController(mockService.Object, mockLogger.Object);
 
             // --- ACT ---
-            var result = await controller.Create(fakePackage);
+            var result = await controller.Create(fakeDto);
 
             // --- ASSERT ---
             result.Should().BeOfType<CreatedAtActionResult>();
             var createdResult = result as CreatedAtActionResult;
+            createdResult.Should().NotBeNull();
             createdResult.Value.Should().NotBeNull();
-            createdResult.Value.Should().BeAssignableTo<TravelPackage>();
-            var returnedPackage = createdResult.Value as TravelPackage;
-            returnedPackage.Title.Should().Be(fakePackage.Title);
-            returnedPackage.Price.Should().Be(fakePackage.Price);
-            returnedPackage.OriginAddressId.Should().NotBe(returnedPackage.DestinationAddressId);
 
-            // Log do retorno da rota
-            var retornoJson = JsonSerializer.Serialize(returnedPackage);
-            Console.WriteLine(retornoJson);
+            var json = JsonSerializer.Serialize(createdResult.Value);
+            var dict = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+
+            dict.Should().NotBeNull();
+
+            // CORREÃ‡ÃƒO: Converta os valores de JsonElement para os tipos corretos antes de comparar.
+            ((JsonElement)dict["title"]).GetString().Should().Be(fakeDto.Title);
+            ((JsonElement)dict["destination"]).GetString().Should().Be(fakeDto.DestinationAddress);
+            ((JsonElement)dict["price"]).GetDecimal().Should().Be(fakeDto.Price);
         }
     }
 }

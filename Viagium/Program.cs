@@ -22,9 +22,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Registra os repositórios
 builder.Services.AddScoped<ITravelPackageRepository, TravelPackageRepository>();
 
-// Registra o UnitOfWork e o serviço TravelPackageService
+// Registra o UnitOfWork e os serviços
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<TravelPackageService>();
+builder.Services.AddScoped<ITravelPackage, TravelPackageService>();
 
 //Configura a AutoMapper para mapear as entidades para os DTOs
 builder.Services.AddAutoMapper(typeof(EntitiesMappingDTO));
@@ -72,5 +72,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();         // Habilita o middleware que realiza a autenticação (verifica token na requisição)
 app.UseAuthorization();          // Habilita o middleware que faz a autorização (verifica se o usuário pode acessar o recurso)
+
+app.MapControllers(); // Adiciona mapeamento dos controllers
 
 app.Run();

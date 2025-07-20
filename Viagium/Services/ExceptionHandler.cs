@@ -120,6 +120,22 @@ namespace Viagium.Services
             {
                 return await operation();
             }
+            catch (DbUpdateException dbEx)
+            {
+                throw HandleDatabaseException(dbEx, operationName);
+            }
+            catch (TimeoutException timeEx)
+            {
+                throw HandleDatabaseException(timeEx, operationName);
+            }
+            catch (ValidationException)
+            {
+                throw; // Re-lança exceções de validação sem modificar
+            }
+            catch (ArgumentException)
+            {
+                throw; // Re-lança exceções de argumento sem modificar
+            }
             catch (Exception ex)
             {
                 throw HandleDatabaseException(ex, operationName);
@@ -127,15 +143,32 @@ namespace Viagium.Services
         }
 
         /// <summary>
-        /// Executa uma operação sem retorno com tratamento automático de exceções
+        /// Executa uma operação com tratamento automático de exceções (versão síncrona)
         /// </summary>
         /// <param name="operation">Operação a ser executada</param>
         /// <param name="operationName">Nome da operação para logs</param>
-        public static async Task ExecuteWithHandling(Func<Task> operation, string operationName = "operação")
+        /// <returns>Resultado da operação</returns>
+        public static T ExecuteWithHandling<T>(Func<T> operation, string operationName = "operação")
         {
             try
             {
-                await operation();
+                return operation();
+            }
+            catch (DbUpdateException dbEx)
+            {
+                throw HandleDatabaseException(dbEx, operationName);
+            }
+            catch (TimeoutException timeEx)
+            {
+                throw HandleDatabaseException(timeEx, operationName);
+            }
+            catch (ValidationException)
+            {
+                throw; // Re-lança exceções de validação sem modificar
+            }
+            catch (ArgumentException)
+            {
+                throw; // Re-lança exceções de argumento sem modificar
             }
             catch (Exception ex)
             {

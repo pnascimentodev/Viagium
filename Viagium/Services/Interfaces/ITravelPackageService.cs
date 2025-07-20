@@ -1,9 +1,10 @@
-﻿using Viagium.Models;
+﻿using Viagium.EntitiesDTO;
+using Viagium.Models;
 
 namespace Viagium.Services
 {
     public interface ITravelPackage 
     {
-        Task<TravelPackage> AddAsync(TravelPackage travelPackage);
+        Task<TravelPackage> AddAsync(CreateTravelPackageDTO travelPackageDto);
     }
 }
