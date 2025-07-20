@@ -26,7 +26,6 @@ public class TravelPackageController : ControllerBase
     [ProducesResponseType(typeof(object), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Create([FromBody] CreateTravelPackageDTO travelPackageDto)
     {
-
         try
         {
             _logger.LogInformation("Iniciando criação de pacote de viagem para destino: {Destination}", travelPackageDto.DestinationAddress);
