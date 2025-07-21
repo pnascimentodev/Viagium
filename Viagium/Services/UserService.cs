@@ -44,9 +44,6 @@ public class UserService : IUserService
         if (user.BirthDate > DateTime.Now)
             errors.Add("Data de nascimento não pode ser futura.");
 
-        if (user.DocumentNumber.Length < 11 || user.DocumentNumber.Length > 14)
-            errors.Add("Número do documento deve ter entre 11 e 14 caracteres.");
-
         if (errors.Any())
             throw new ArgumentException(string.Join("\n", errors));
     }

@@ -37,26 +37,6 @@ public class UserController : ControllerBase
 
     }
     
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] User user)
-    {
-        try
-        {
-            ExceptionHandler.ValidateObject(user, "usuário");
-            var usuario = await _userService.GetByEmailAsync(user.Email);
-            if (usuario == null)
-                return Unauthorized("Usuário não encontrado");
-            bool senhaValida = Viagium.Services.PasswordHelper.VerifyPassword(user.HashPassword, usuario.HashPassword);
-            if (!senhaValida)
-                return Unauthorized("Senha inválida");
-            return Ok(usuario);
-        }
-        catch (Exception ex)
-        {
-            return ExceptionHandler.HandleException(ex);
-        }
-    }
-    
     [HttpGet("{id}")]
     public IActionResult GetById(int id)
     {
