@@ -26,4 +26,29 @@ public class TravelPackageRepository : ITravelPackageRepository
     {
         return await _context.TravelPackages.FindAsync(id);
     }
+    
+    public async Task<TravelPackage> UpdateAsync(TravelPackage travel)
+    {
+        var existing = await _context.TravelPackages.FindAsync(travel.TravelPackagesId);
+        if (existing == null)
+            throw new KeyNotFoundException("Pacote de viagem não encontrado para atualização.");
+
+        // Atualiza apenas os campos necessários
+        existing.HotelId = travel.HotelId;
+        existing.Title = travel.Title;
+        existing.Description = travel.Description;
+        existing.OriginAddressId = travel.OriginAddressId;
+        existing.DestinationAddressId = travel.DestinationAddressId;
+        existing.ImageUrl = travel.ImageUrl;
+        existing.Duration = travel.Duration;
+        existing.MaxPeople = travel.MaxPeople;
+        existing.VehicleType = travel.VehicleType;
+        existing.Price = travel.Price;
+        existing.CreatedBy = travel.CreatedBy;
+        existing.IsActive = travel.IsActive;
+        existing.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return existing;
+    }
 }

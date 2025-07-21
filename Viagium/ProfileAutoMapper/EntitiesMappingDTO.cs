@@ -20,5 +20,7 @@ public class EntitiesMappingDTO : Profile
         CreateMap<Traveler, TravelerDTO>();
         CreateMap<TravelPackage, TravelPackageDTO>();
         CreateMap<TravelPackageHistory, TravelPackageHistoryDTO>();
+        CreateMap<TravelPackage, EditTravelPackageDTO>();
+        CreateMap<EditTravelPackageDTO, TravelPackage>();
     }
 }

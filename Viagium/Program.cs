@@ -29,7 +29,7 @@ builder.Services.AddScoped<TravelPackageService>();
 builder.Services.AddScoped<UserService>();
 
 //Configura a AutoMapper para mapear as entidades para os DTOs
-builder.Services.AddAutoMapper(typeof(EntitiesMappingDTO));
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 //Configura do JWT Bearer Authentication
 

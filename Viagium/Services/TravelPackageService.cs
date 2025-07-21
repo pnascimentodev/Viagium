@@ -66,5 +66,22 @@ namespace Viagium.Services
                 return travelPackages;
             }, "busca todos os pacotes de viagem");
         }
+        
+        public async Task<TravelPackage> UpdateAsync(TravelPackage travelPackage)
+        {
+            return await ExceptionHandler.ExecuteWithHandling(async () =>
+            {
+                // Validação de data annotations
+                var validationContext = new ValidationContext(travelPackage);
+                Validator.ValidateObject(travelPackage, validationContext, validateAllProperties: true);
+
+                // Validações customizadas específicas do negócio
+                ValidateCustomRules(travelPackage);
+
+                await _unitOfWork.TravelPackageRepository.UpdateAsync(travelPackage);
+                await _unitOfWork.SaveAsync();
+                return travelPackage;
+            }, "atualização de pacote de viagem");
+        }
     }
 }
