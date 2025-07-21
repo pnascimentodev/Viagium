@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.IdentityModel.Tokens;
+using System.ComponentModel.DataAnnotations;
 using Viagium.Models;
 using Viagium.Repository;
 
@@ -52,6 +53,18 @@ namespace Viagium.Services
 
                 return travelPackage;
             }, "busca de pacote de viagem");
+        }
+
+        public async Task<IEnumerable<TravelPackage>> GetAllAsync()
+        {
+            return await ExceptionHandler.ExecuteWithHandling(async () =>
+            {
+                var travelPackages= await _unitOfWork.TravelPackageRepository.GetAllAsync();
+                if (travelPackages == null || travelPackages.IsNullOrEmpty())
+                    throw new KeyNotFoundException("Nenhum pacote de viagem registrado.");
+
+                return travelPackages;
+            }, "busca todos os pacotes de viagem");
         }
     }
 }

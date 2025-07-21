@@ -35,4 +35,12 @@ public class TravelPackageController : ControllerBase
             return NotFound();
         return Ok(pacote);
     }
+
+
+    [HttpGet]
+    public async Task<IActionResult> GetAllTravelPackages()
+    {
+        var pacotes = await _service.GetAllAsync();
+        return Ok(pacotes);
+    }
 }
