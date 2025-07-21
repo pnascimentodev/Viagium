@@ -9,5 +9,6 @@ namespace Viagium.Services
         Task<IEnumerable<TravelPackage>> GetAllAsync();
         Task<TravelPackage> UpdateAsync(TravelPackage travelPackage);
         Task<TravelPackage> DesativateAsync(int id);
+        Task<TravelPackage> ActivateAsync(int id);
     }
 }

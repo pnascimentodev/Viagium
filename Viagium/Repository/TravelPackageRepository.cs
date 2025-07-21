@@ -64,4 +64,17 @@ public class TravelPackageRepository : ITravelPackageRepository
         await _context.SaveChangesAsync();
         return existing;
     }
+    
+    public async Task<TravelPackage> ActivateAsync(int id)
+    {
+        var existing = await _context.TravelPackages.FindAsync(id);
+        if (existing == null)
+            throw new KeyNotFoundException("Pacote de viagem não encontrado para ativação.");
+
+        existing.IsActive = true;
+        existing.DeletedAt = null;
+
+        await _context.SaveChangesAsync();
+        return existing;
+    }
 }

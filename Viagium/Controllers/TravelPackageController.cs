@@ -82,4 +82,20 @@ public class TravelPackageController : ControllerBase
             return ExceptionHandler.HandleException(ex);
         }
     }
+    
+    [HttpPost("activate/{id}")]
+    public async Task<IActionResult> Activate(int id)
+    {
+        try
+        {
+            var pacoteAtivado = await _service.ActivateAsync(id);
+            if (pacoteAtivado == null)
+                return NotFound("Pacote de viagem não encontrado para ativação.");
+            return Ok(pacoteAtivado);
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
 }
