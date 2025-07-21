@@ -48,19 +48,5 @@ public class UserService : IUserService
             throw new ArgumentException(string.Join("\n", errors));
     }
 
-    public async Task<User> LoginAsync(User user)
-    {
-        return await ExceptionHandler.ExecuteWithHandling(async () =>
-        {
-            var dbUser = await _unitOfWork.UserRepository.GetByEmailAsync(user.Email);
-            if (dbUser == null)
-                throw new ArgumentException("Usuário ou senha inválidos.");
 
-            var hashedInputPassword = PasswordHelper.HashPassword(user.HashPassword);
-            if (dbUser.HashPassword != hashedInputPassword)
-                throw new ArgumentException("Usuário ou senha inválidos.");
-
-            return dbUser;
-        }, "login de usuário");
-    }
 }

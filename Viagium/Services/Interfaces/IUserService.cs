@@ -5,5 +5,4 @@ namespace Viagium.Services;
 public interface IUserService
 {
     Task<User> AddAync(User user);
-    Task<User> LoginAsync(User user);
 }
