@@ -56,7 +56,5 @@ public class TravelPackageDTO
     public UserDTO? User { get; set; }
     
     public DateTime? CreatedAt { get; set; } = DateTime.Now;
-    public DateTime? UpdatedAt { get; set; }
-    public DateTime? DeletedAt { get; set; }
     public bool IsActive { get; set; } = true;
 }
