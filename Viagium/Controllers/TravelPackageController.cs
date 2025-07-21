@@ -7,8 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace Viagium.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
-[Authorize] // Adiciona autorização para todos os endpoints
+[Route("api/[controller]")] // Adiciona autorização para todos os endpoints
 public class TravelPackageController : ControllerBase
 {
     private readonly ITravelPackage _service;

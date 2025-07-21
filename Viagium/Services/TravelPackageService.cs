@@ -53,8 +53,7 @@ namespace Viagium.Services
             {
                 errors.Add("Endereço de origem e destino não podem ser iguais.");
             }
-
-            // Regras de negócio (não repetir validações básicas)
+        
             if (!string.IsNullOrWhiteSpace(travelPackageDto.ImageUrl))
             {
                 if (!Uri.TryCreate(travelPackageDto.ImageUrl, UriKind.Absolute, out var uriResult) ||
@@ -70,7 +69,7 @@ namespace Viagium.Services
             }
             if (travelPackageDto.CreatedBy <= 0)
             {
-                errors.Add("O usuário criador deve ser válido.");
+                errors.Add("O usuário admin deve ser válido.");
             }
             if (errors.Any())
             {
