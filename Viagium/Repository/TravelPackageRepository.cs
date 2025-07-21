@@ -1,4 +1,5 @@
-﻿using Viagium.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using Viagium.Data;
 using Viagium.Models;
 
 namespace Viagium.Repository;
@@ -14,5 +15,15 @@ public class TravelPackageRepository : ITravelPackageRepository
     public async Task AddAsync(TravelPackage travel)
     {
         await _context.TravelPackages.AddAsync(travel);
+    }
+
+    public async Task<IEnumerable<TravelPackage>> GetAllAsync()
+    {
+        return await _context.TravelPackages.ToListAsync();
+    }
+
+    public async Task<TravelPackage?> GetByIdAsync(int id)
+    {
+        return await _context.TravelPackages.FindAsync(id);
     }
 }
