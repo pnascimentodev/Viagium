@@ -23,6 +23,8 @@ public class UserController : ControllerBase
         {
             ExceptionHandler.ValidateObject(user, "usuário");
             Console.WriteLine("[LOG] Validação concluída");
+            user.HashPassword = Viagium.Services.PasswordHelper.HashPassword(user.HashPassword);
+            user.Role = Role.Client; 
             var createdUser = await _userService.AddAync(user);
             Console.WriteLine($"[LOG] Usuário criado: {createdUser?.UserId}");
             return CreatedAtAction(nameof(GetById), new { id = createdUser.UserId }, createdUser);
@@ -41,9 +43,13 @@ public class UserController : ControllerBase
         try
         {
             ExceptionHandler.ValidateObject(user, "usuário");
-            var loggedUser = await _userService.LoginAsync(user);
-            
-            return Ok(loggedUser);
+            var usuario = await _userService.GetByEmailAsync(user.Email);
+            if (usuario == null)
+                return Unauthorized("Usuário não encontrado");
+            bool senhaValida = Viagium.Services.PasswordHelper.VerifyPassword(user.HashPassword, usuario.HashPassword);
+            if (!senhaValida)
+                return Unauthorized("Senha inválida");
+            return Ok(usuario);
         }
         catch (Exception ex)
         {
