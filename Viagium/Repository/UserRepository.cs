@@ -1,4 +1,5 @@
-﻿using Viagium.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using Viagium.Data;
 using Viagium.EntitiesDTO;
 using Viagium.Models;
 

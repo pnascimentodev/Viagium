@@ -18,15 +18,18 @@ public class UserController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Cadastro([FromBody] User user)
     {
+        Console.WriteLine($"[LOG] Iniciando cadastro de usuário: {user?.Email}");
         try
         {
             ExceptionHandler.ValidateObject(user, "usuário");
+            Console.WriteLine("[LOG] Validação concluída");
             var createdUser = await _userService.AddAync(user);
-            
+            Console.WriteLine($"[LOG] Usuário criado: {createdUser?.UserId}");
             return CreatedAtAction(nameof(GetById), new { id = createdUser.UserId }, createdUser);
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"[LOG] Erro no cadastro: {ex.Message}");
             return ExceptionHandler.HandleException(ex);
         }
 
