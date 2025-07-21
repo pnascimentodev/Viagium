@@ -8,5 +8,6 @@ namespace Viagium.Repository
         Task<TravelPackage?> GetByIdAsync(int id);
         Task<IEnumerable<TravelPackage>> GetAllAsync();
         Task<TravelPackage> UpdateAsync(TravelPackage travel);
+        Task<TravelPackage> DesativateAsync(int id);
     }
 }

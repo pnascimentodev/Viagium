@@ -66,4 +66,20 @@ public class TravelPackageController : ControllerBase
             return ExceptionHandler.HandleException(ex);
         }
     }
+    
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Deactivate(int id)
+    {
+        try
+        {
+            var pacoteDesativado = await _service.DesativateAsync(id);
+            if (pacoteDesativado == null)
+                return NotFound("Pacote de viagem não encontrado para desativação.");
+            return Ok(pacoteDesativado);
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
 }

@@ -83,5 +83,17 @@ namespace Viagium.Services
                 return travelPackage;
             }, "atualização de pacote de viagem");
         }
+        
+        public async Task<TravelPackage> DesativateAsync(int id)
+        {
+            return await ExceptionHandler.ExecuteWithHandling(async () =>
+            {
+                var travelPackage = await _unitOfWork.TravelPackageRepository.DesativateAsync(id);
+                if (travelPackage == null)
+                    throw new KeyNotFoundException("Pacote de viagem não encontrado para desativação.");
+
+                return travelPackage;
+            }, "desativação de pacote de viagem");
+        }
     }
 }
