@@ -28,4 +28,15 @@ public class UserRepository : IUserRepository
     {
         return await _context.Set<User>().FindAsync(id);
     }
+
+    public async Task<List<User>> GetAllAsync()
+    {
+        return await _context.Set<User>().ToListAsync();
+    }
+
+    public async Task UpdateAsync(User user)
+    {
+        _context.Set<User>().Update(user);
+        await _context.SaveChangesAsync();
+    }
 }

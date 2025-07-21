@@ -20,5 +20,9 @@ public class EntitiesMappingDTO : Profile
         CreateMap<Traveler, TravelerDTO>();
         CreateMap<TravelPackage, TravelPackageDTO>();
         CreateMap<TravelPackageHistory, TravelPackageHistoryDTO>();
+        CreateMap<UserUpdateDTO, User>()
+            .ForMember(dest => dest.DocumentNumber, opt => opt.Ignore())
+            .ForMember(dest => dest.Role, opt => opt.Ignore())
+            .ForMember(dest => dest.IsActive, opt => opt.Ignore());
     }
 }

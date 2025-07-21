@@ -48,5 +48,33 @@ public class UserService : IUserService
             throw new ArgumentException(string.Join("\n", errors));
     }
 
+    public async Task<User?> GetByIdAsync(int id)
+    {
+        return await ExceptionHandler.ExecuteWithHandling(async () =>
+        {
+            return await _unitOfWork.UserRepository.GetByIdAsync(id);
+        }, "buscar usuário por id");
+    }
+
+    public async Task<List<User>> GetAllAsync()
+    {
+        return await ExceptionHandler.ExecuteWithHandling(async () =>
+        {
+            return await _unitOfWork.UserRepository.GetAllAsync();
+        }, "buscar todos usuários");
+    }
+
+    public async Task UpdateAsync(User user)
+    {
+        await ExceptionHandler.ExecuteWithHandling(async () =>
+        {
+            // Validação do usuário
+            var validationContext = new ValidationContext(user);
+            Validator.ValidateObject(user, validationContext, validateAllProperties: true);
+            ValidadeCustomRules(user);
+            await _unitOfWork.UserRepository.UpdateAsync(user);
+            await _unitOfWork.SaveAsync();
+        }, "atualizar usuário");
+    }
 
 }
