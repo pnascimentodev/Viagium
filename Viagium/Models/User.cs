@@ -43,6 +43,11 @@ namespace Viagium.Models
         
         public ICollection<TravelPackage> TravelPackages { get; set; }
         public ICollection<Reservation> Reservations { get; set; }
-        
+
+        public User()
+        {
+            TravelPackages = new List<TravelPackage>();
+            Reservations = new List<Reservation>();
+        }
     }
 }
