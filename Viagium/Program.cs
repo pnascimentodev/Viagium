@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Viagium.Data;
 using Viagium.EntitiesDTO;
 using Viagium.Repository;
+using Viagium.Repository.Interface;
 using Viagium.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,12 +22,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Registra os repositórios
 builder.Services.AddScoped<ITravelPackageRepository, TravelPackageRepository>();
+builder.Services.AddScoped<IAddressRepository, AddressRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Registra o UnitOfWork e o serviço TravelPackageService
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<TravelPackageService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<AddressService>();
 
 //Configura a AutoMapper para mapear as entidades para os DTOs
 builder.Services.AddAutoMapper(typeof(EntitiesMappingDTO));
