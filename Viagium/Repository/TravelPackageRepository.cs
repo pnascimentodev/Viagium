@@ -86,32 +86,5 @@ public class TravelPackageRepository : ITravelPackageRepository
         await _context.SaveChangesAsync();
         return existing;
     }
-    
-    public async Task<TravelPackage> DesactivePromotionAsync(int id)
-    {
-        var existing = await _context.TravelPackages.FindAsync(id);
-        if (existing == null)
-            throw new KeyNotFoundException("Pacote de viagem não encontrado para desativação de promoção.");
 
-        existing.IsActive = false;
-        existing.DeletedAt = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync();
-        return existing;
-    }
-
-    public async Task<TravelPackage> DesactivatePromotionAsync(int id)
-    {
-        var existing = await _context.TravelPackages.FindAsync(id);
-        if (existing == null)
-            throw new KeyNotFoundException("Pacote de viagem não encontrado para desativação de promoção.");
-
-        // Exemplo: desfaz o desconto e marca como não promocional
-        // Aqui você pode restaurar o preço original se tiver esse valor salvo em outro campo
-        existing.IsActive = false;
-        existing.DeletedAt = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync();
-        return existing;
-    }
 }
