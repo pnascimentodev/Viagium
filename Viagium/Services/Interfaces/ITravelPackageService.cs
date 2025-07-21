@@ -6,5 +6,6 @@ namespace Viagium.Services
     {
         Task<TravelPackage> AddAsync(TravelPackage travelPackage);
         Task<TravelPackage?> GetByIdAsync(int id);
+        Task<IEnumerable<TravelPackage>> GetAllAsync();
     }
 }
