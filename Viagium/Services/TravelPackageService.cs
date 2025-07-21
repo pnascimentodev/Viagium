@@ -41,5 +41,17 @@ namespace Viagium.Services
             if (errors.Any())
                 throw new ArgumentException(string.Join("\n", errors));
         }
+        
+        public async Task<TravelPackage?> GetByIdAsync(int id)
+        {
+            return await ExceptionHandler.ExecuteWithHandling(async () =>
+            {
+                var travelPackage = await _unitOfWork.TravelPackageRepository.GetByIdAsync(id);
+                if (travelPackage == null)
+                    throw new KeyNotFoundException("Pacote de viagem não encontrado.");
+
+                return travelPackage;
+            }, "busca de pacote de viagem");
+        }
     }
 }

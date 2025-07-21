@@ -28,9 +28,11 @@ public class TravelPackageController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public IActionResult GetById(int id)
+    public async Task<IActionResult> GetById(int id)
     {
-        // Método placeholder para o CreatedAtAction funcionar
-        return Ok();
+        var pacote = await _service.GetByIdAsync(id);
+        if (pacote == null)
+            return NotFound();
+        return Ok(pacote);
     }
 }

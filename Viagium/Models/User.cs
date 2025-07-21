@@ -38,7 +38,7 @@ namespace Viagium.Models
         [Display(Name = "Status")]
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-        public DateTime UpdatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
         
         public ICollection<TravelPackage> TravelPackages { get; set; }

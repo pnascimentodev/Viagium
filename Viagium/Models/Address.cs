@@ -32,9 +32,9 @@ namespace Viagium.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         [ForeignKey("Affiliate")]
         [Display(Name = "Id do Afiliado")]
-        public int AffiliateId { get; set; }
+        public int? AffiliateId { get; set; }
         public Affiliate? Affiliate { get; set; }
-        public int HotelId { get; set; }
+        public int? HotelId { get; set; }
         [Display(Name = "Id do Hotel")]
         public Hotel? Hotel { get; set; }
 

@@ -5,5 +5,6 @@ namespace Viagium.Repository
     public interface ITravelPackageRepository
     {
         Task AddAsync(TravelPackage travel);
+        Task<TravelPackage?> GetByIdAsync(int id);
     }
 }

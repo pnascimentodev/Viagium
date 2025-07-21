@@ -15,4 +15,9 @@ public class TravelPackageRepository : ITravelPackageRepository
     {
         await _context.TravelPackages.AddAsync(travel);
     }
+    
+    public async Task<TravelPackage?> GetByIdAsync(int id)
+    {
+        return await _context.TravelPackages.FindAsync(id);
+    }
 }
