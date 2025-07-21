@@ -19,8 +19,12 @@ public class EntitiesMappingDTO : Profile
         CreateMap<RoomType, RoomTypeDTO>();
         CreateMap<Traveler, TravelerDTO>();
         CreateMap<TravelPackage, TravelPackageDTO>();
-        CreateMap<TravelPackageHistory, TravelPackageHistoryDTO>();
         CreateMap<TravelPackage, EditTravelPackageDTO>();
-        CreateMap<EditTravelPackageDTO, TravelPackage>();
+        CreateMap<TravelPackageHistory, TravelPackageHistoryDTO>();
+        CreateMap<EditTravelPackageDTO, TravelPackage>()
+            .ForMember(dest => dest.TravelPackagesId, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now))
+            .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.Now));
+
     }
 }

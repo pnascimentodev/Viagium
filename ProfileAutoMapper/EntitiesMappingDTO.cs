@@ -9,7 +9,8 @@ namespace Viagium.ProfileAutoMapper
         public EntitiesMappingProfile()
         {
             CreateMap<TravelPackage, EditTravelPackageDTO>();
-            CreateMap<EditTravelPackageDTO, TravelPackage>();
+            CreateMap<EditTravelPackageDTO, TravelPackage>()
+                .ForMember(dest => dest.TravelPackagesId, opt => opt.Ignore());
         }
     }
 }

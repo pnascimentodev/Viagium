@@ -57,5 +57,4 @@ public class EditTravelPackageDTO
     public bool IsActive { get; set; } = true;
 
     public DateTime? UpdatedAt { get; set; }
-    public DateTime? DeletedAt { get; set; }
 }

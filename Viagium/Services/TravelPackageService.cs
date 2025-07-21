@@ -1,5 +1,6 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel.DataAnnotations;
+using Viagium.EntitiesDTO;
 using Viagium.Models;
 using Viagium.Repository;
 
@@ -67,20 +68,12 @@ namespace Viagium.Services
             }, "busca todos os pacotes de viagem");
         }
         
-        public async Task<TravelPackage> UpdateAsync(TravelPackage travelPackage)
+        public async Task<EditTravelPackageDTO> UpdateAsync(int id, EditTravelPackageDTO travelPackage)
         {
             return await ExceptionHandler.ExecuteWithHandling(async () =>
             {
-                // Validação de data annotations
-                var validationContext = new ValidationContext(travelPackage);
-                Validator.ValidateObject(travelPackage, validationContext, validateAllProperties: true);
-
-                // Validações customizadas específicas do negócio
-                ValidateCustomRules(travelPackage);
-
-                await _unitOfWork.TravelPackageRepository.UpdateAsync(travelPackage);
-                await _unitOfWork.SaveAsync();
-                return travelPackage;
+                var updated = await _unitOfWork.TravelPackageRepository.UpdateAsync(id, travelPackage);
+                return updated;
             }, "atualização de pacote de viagem");
         }
         
@@ -106,6 +99,17 @@ namespace Viagium.Services
 
                 return travelPackage;
             }, "ativação de pacote de viagem");
+        }
+        
+        public async Task<TravelPackage> ActivePromotionAsync(int id, decimal discountPercentage)
+        {
+            return await ExceptionHandler.ExecuteWithHandling(async () =>
+            {
+                var travelPackage = await _unitOfWork.TravelPackageRepository.ActivePromotionAsync(id, discountPercentage);
+                if (travelPackage == null)
+                    throw new KeyNotFoundException("Pacote de viagem não encontrado para ativação de promoção.");
+                return travelPackage;
+            }, "ativação de promoção de pacote de viagem");
         }
     }
 }

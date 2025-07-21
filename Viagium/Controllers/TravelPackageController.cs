@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Viagium.Services;
 using AutoMapper;
+using Viagium.EntitiesDTO;
 
 namespace Viagium.Controllers;
 
@@ -15,6 +16,8 @@ public class TravelPackageController : ControllerBase
         _service = service;
         _mapper = mapper;
     }
+    
+    //Criar um pacote de viagem
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] Models.TravelPackage travelPackage)
     {
@@ -31,6 +34,7 @@ public class TravelPackageController : ControllerBase
         }
     }
 
+    // Método para buscar pacote de viagem por ID
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -41,6 +45,7 @@ public class TravelPackageController : ControllerBase
     }
 
 
+    // Método para buscar todos os pacotes de viagem
     [HttpGet]
     public async Task<IActionResult> GetAllTravelPackages()
     {
@@ -48,18 +53,15 @@ public class TravelPackageController : ControllerBase
         return Ok(pacotes);
     }
     
+    // Método para atualizar um pacote de viagem
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] EntitiesDTO.EditTravelPackageDTO dto)
+    public async Task<IActionResult> Update(int id, [FromBody] EditTravelPackageDTO dto)
     {
-        // Aqui você pode validar se o id bate com o que está no DTO, se necessário
         try
         {
             ExceptionHandler.ValidateObject(dto, "pacote de viagem");
-            var travelPackage = _mapper.Map<Models.TravelPackage>(dto);
-            travelPackage.TravelPackagesId = id; // Garante que o id da URL será usado
-            var pacoteAtualizado = await _service.UpdateAsync(travelPackage);
-            var dtoAtualizado = _mapper.Map<EntitiesDTO.EditTravelPackageDTO>(pacoteAtualizado);
-            return Ok(dtoAtualizado);
+            var pacoteAtualizado = await _service.UpdateAsync(id, dto);
+            return Ok(pacoteAtualizado);
         }
         catch (Exception ex)
         {
@@ -67,6 +69,7 @@ public class TravelPackageController : ControllerBase
         }
     }
     
+    // Método para desativar um pacote de viagem
     [HttpDelete("{id}")]
     public async Task<IActionResult> Deactivate(int id)
     {
@@ -83,6 +86,7 @@ public class TravelPackageController : ControllerBase
         }
     }
     
+    // Método para ativar um pacote de viagem
     [HttpPost("activate/{id}")]
     public async Task<IActionResult> Activate(int id)
     {
@@ -91,6 +95,22 @@ public class TravelPackageController : ControllerBase
             var pacoteAtivado = await _service.ActivateAsync(id);
             if (pacoteAtivado == null)
                 return NotFound("Pacote de viagem não encontrado para ativação.");
+            return Ok(pacoteAtivado);
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
+    
+    [HttpPost("active-promotion/{id}")]
+    public async Task<IActionResult> ActivePromotion(int id, [FromBody] decimal discountPercentage)
+    {
+        try
+        {
+            var pacoteAtivado = await _service.ActivePromotionAsync(id, discountPercentage);
+            if (pacoteAtivado == null)
+                return NotFound("Pacote de viagem não encontrado para ativação de promoção.");
             return Ok(pacoteAtivado);
         }
         catch (Exception ex)
