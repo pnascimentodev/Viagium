@@ -1,5 +1,7 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using AutoMapper;
+using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel.DataAnnotations;
+using Viagium.EntitiesDTO;
 using Viagium.Models;
 using Viagium.Repository;
 using Viagium.Services.Interfaces;
@@ -9,41 +11,42 @@ namespace Viagium.Services
     public class AddressService : IAddressService
     {
         private readonly IUnitOfWork _unitOfWork;
-        public AddressService(IUnitOfWork unitOfWork)
+        private readonly IMapper _mapper;
+        public AddressService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
-
-        public async Task<Address> AddAsync(Address address)
+        public async Task<AddressDTO> AddAsync(AddressDTO addressDto)
         {
             return await ExceptionHandler.ExecuteWithHandling(async () =>
             {
+                var address = _mapper.Map<Address>(addressDto);
                 // Validação de data annotations
-                var validationContext = new ValidationContext(address);
-                Validator.ValidateObject(address, validationContext, validateAllProperties: true);
+                Validator.ValidateObject(address, new ValidationContext(address), true);
                 // Validações customizadas específicas do negócio
                 ValidateCustomRules(address);
                 await _unitOfWork.AddressRepository.AddAsync(address);
                 await _unitOfWork.SaveAsync();
-                return address;
+                return _mapper.Map<AddressDTO>(address);
             }, "criação de endereço");
         }
 
-        public async Task<IEnumerable<Address>> GetAllAsync()
+        public async Task<IEnumerable<AddressDTO>> GetAllAsync()
         {
             return await ExceptionHandler.ExecuteWithHandling(async () =>
             {
                 var addresses = await _unitOfWork.AddressRepository.GetAllAsync();
-                if (addresses == null || addresses.IsNullOrEmpty())
+                if (addresses == null || !addresses.Any())
                     throw new KeyNotFoundException("Nenhum endereço registrado.");
 
-                return addresses;
+                return _mapper.Map<IEnumerable<AddressDTO>>(addresses);
             }, "busca todos os endereços");
         }
 
 
-        public async Task<Address?> GetByIdAsync(int id)
+        public async Task<AddressDTO?> GetByIdAsync(int id)
         {
             return await ExceptionHandler.ExecuteWithHandling(async () =>
             {
@@ -51,24 +54,24 @@ namespace Viagium.Services
                 if (address == null)
                     throw new KeyNotFoundException("Endereço por id não encontrado.");
 
-                return address;
+                return _mapper.Map<AddressDTO>(address);
             }, "busca de endereço de viagem");
         }
 
 
-        public async Task<Address> UpdateAsync(Address address)
+        public async Task<AddressDTO> UpdateAsync(int id, AddressDTO addressDto)
         {
             return await ExceptionHandler.ExecuteWithHandling(async () =>
             {
+                var address = _mapper.Map<Address>(addressDto);
                 // Validação de data annotations
-                var validationContext = new ValidationContext(address);
-                Validator.ValidateObject(address, validationContext, validateAllProperties: true);
+                Validator.ValidateObject(address, new ValidationContext(address), true);
 
                 // Validações customizadas específicas do negócio
                 ValidateCustomRules(address);
 
                 // Verifica se o endereço existe
-                var existingAddress = await _unitOfWork.AddressRepository.GetByIdAsync(address.AdressId);
+                var existingAddress = await _unitOfWork.AddressRepository.GetByIdAsync(id);
                 if (existingAddress == null)
                     throw new KeyNotFoundException("Endereço para atualização não encontrado.");
 
@@ -86,7 +89,7 @@ namespace Viagium.Services
                 await _unitOfWork.AddressRepository.UpdateAsync(existingAddress);
                 await _unitOfWork.SaveAsync();
 
-                return existingAddress;
+                return _mapper.Map<AddressDTO>(existingAddress);
             }, "atualização de endereço");
         }
 

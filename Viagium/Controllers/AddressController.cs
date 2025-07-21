@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Viagium.EntitiesDTO;
 using Viagium.Services;
 
 namespace Viagium.Controllers
@@ -13,16 +15,17 @@ namespace Viagium.Controllers
         public AddressController(AddressService service)
         {
             _service = service;
+            
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Models.Address address)
+        public async Task<IActionResult> Create([FromBody] AddressDTO addressDto)
         {
             try
             {
-                ExceptionHandler.ValidateObject(address, "endereço");
-                var createdAddress = await _service.AddAsync(address);
-                return CreatedAtAction(nameof(GetById), new { id = createdAddress.AdressId }, createdAddress);
+                ExceptionHandler.ValidateObject(addressDto, "endereço");
+                var createdAddress = await _service.AddAsync(addressDto);
+                return CreatedAtAction(nameof(GetById), new { id = createdAddress.AddressNumber }, createdAddress);
             }
             catch (Exception ex)
             {
@@ -32,33 +35,27 @@ namespace Viagium.Controllers
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
-        {            
+        {
             var address = await _service.GetByIdAsync(id);
             if (address == null)
                 return NotFound("Endereço não encontrado.");
-            return Ok(address);           
+            return Ok(address);
         }
-
 
         [HttpGet]
         public async Task<IActionResult> GetAllAddresses()
-        {            
+        {
             var addresses = await _service.GetAllAsync();
-            return Ok(addresses);           
+            return Ok(addresses);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Models.Address address)
+        public async Task<IActionResult> Update(int id, [FromBody] AddressDTO addressDto)
         {
-            if (id != address.AdressId)
+            if (id != addressDto.AddressNumber)
                 return BadRequest("Id da rota e do corpo não coincidem.");
-
-            var updatedAddress = await _service.UpdateAsync(address);
+            var updatedAddress = await _service.UpdateAsync(id, addressDto);
             return Ok(updatedAddress);
         }
-
-
-
-
     }
 }
