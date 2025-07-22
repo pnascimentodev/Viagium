@@ -39,4 +39,42 @@ public class UserRepository : IUserRepository
         _context.Set<User>().Update(user);
         await _context.SaveChangesAsync();
     }
+    
+    public async Task<bool> EmailExistsAsync(string email, int? excludeUserId = null)
+    {
+        return await _context.Set<User>()
+            .AnyAsync(u => u.Email == email && (!excludeUserId.HasValue || u.UserId != excludeUserId.Value));
+    }
+
+    public async Task<bool> DocumentNumberExistsAsync(string documentNumber, int? excludeUserId = null)
+    {
+        return await _context.Set<User>()
+            .AnyAsync(u => u.DocumentNumber == documentNumber && (!excludeUserId.HasValue || u.UserId != excludeUserId.Value));
+    }
+
+    public async Task<User> DesativateAsync(int id)
+    {
+        var existing = await _context.Set<User>().FindAsync(id);
+        if (existing == null)
+            throw new KeyNotFoundException("Usuário não encontrado para desativação.");
+
+        existing.IsActive = false;
+        existing.DeletedAt = DateTime.Now;
+
+        await _context.SaveChangesAsync();
+        return existing;
+    }
+
+    public async Task<User> ActivateAsync(int id)
+    {
+        var existing = await _context.Set<User>().FindAsync(id);
+        if (existing == null)
+            throw new KeyNotFoundException("Usuário não encontrado para ativação.");
+
+        existing.IsActive = true;
+        existing.DeletedAt = null;
+
+        await _context.SaveChangesAsync();
+        return existing;
+    }
 }

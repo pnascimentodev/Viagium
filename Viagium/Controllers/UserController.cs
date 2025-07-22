@@ -19,17 +19,17 @@ public class UserController : ControllerBase
         _mapper = mapper;
     }
 
+    // cadastra um usuário
     [HttpPost]
-    public async Task<IActionResult> Cadastro([FromBody] User user)
+    public async Task<IActionResult> Cadastro([FromBody] UserCreateDTO userCreateDto)
     {
         try
         {
-            ExceptionHandler.ValidateObject(user, "usuário");
-
-            user.HashPassword = Viagium.Services.PasswordHelper.HashPassword(user.HashPassword);
+            // Mapeia o DTO para User, exceto senha
+            var user = _mapper.Map<User>(userCreateDto);
             user.Role = Role.Client;
-            var createdUser = await _userService.AddAync(user);
-
+            user.IsActive = true;
+            var createdUser = await _userService.AddAync(user, userCreateDto.Password); // Envia senha pura
             return CreatedAtAction(nameof(GetById), new { id = createdUser.UserId }, createdUser);
         }
         catch (Exception ex)
@@ -38,6 +38,7 @@ public class UserController : ControllerBase
         }
     }
 
+    // busca um usuário por id
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -54,6 +55,7 @@ public class UserController : ControllerBase
         }
     }
 
+    // busca todos os usuários
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -68,6 +70,7 @@ public class UserController : ControllerBase
         }
     }
 
+    // atualiza um usuário
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UserUpdateDTO userUpdateDto)
     {
@@ -79,12 +82,45 @@ public class UserController : ControllerBase
 
             // Mapeia os campos do DTO para o usuário existente, exceto DocumentNumber
             _mapper.Map(userUpdateDto, user);
-            user.HashPassword = Viagium.Services.PasswordHelper.HashPassword(userUpdateDto.HashPassword);
             user.UpdatedAt = DateTime.Now;
 
             ExceptionHandler.ValidateObject(user, "usuário");
-            await _userService.UpdateAsync(user);
+            await _userService.UpdateAsync(user, userUpdateDto.Password); // Envia senha em texto puro
             return Ok(user); 
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
+
+    // Desativa um usuário
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Desactivate(int id)
+    {
+        try
+        {
+            var userDisabled = await _userService.DesativateAsync(id);
+            if (userDisabled == null)
+                return NotFound("Usuário não encontrado para desativação.");
+            return Ok(userDisabled);
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
+
+    // ativar um usuário
+    [HttpPost("activate/{id}")]
+    public async Task<IActionResult> Activate(int id)
+    {
+        try
+        {
+            var userActivated = await _userService.ActivateAsync(id);
+            if (userActivated == null)
+                return NotFound("Usuário não encontrado para ativação.");
+            return Ok(userActivated);
         }
         catch (Exception ex)
         {
