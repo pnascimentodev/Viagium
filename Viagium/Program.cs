@@ -7,6 +7,7 @@ using Viagium.Configurations;
 using Viagium.Data;
 using Viagium.EntitiesDTO;
 using Viagium.Repository;
+using Viagium.Repository.Interface;
 using Viagium.Services;
 using Viagium.Services.Auth;
 
@@ -53,12 +54,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Registra os repositórios
 builder.Services.AddScoped<ITravelPackageRepository, TravelPackageRepository>();
+builder.Services.AddScoped<IAddressRepository, AddressRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Registra o UnitOfWork e o serviço TravelPackageService
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<TravelPackageService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<AddressService>();
 
 // Configuração do AuthService
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
