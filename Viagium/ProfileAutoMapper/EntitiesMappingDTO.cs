@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Viagium.Models;
+using Viagium.EntitiesDTO;
 
 namespace Viagium.EntitiesDTO;
 
@@ -28,5 +29,6 @@ public class EntitiesMappingDTO : Profile
             .ForMember(dest => dest.HashPassword, opt => opt.Ignore())
             .ForMember(dest => dest.Role, opt => opt.Ignore())
             .ForMember(dest => dest.IsActive, opt => opt.Ignore());
+        CreateMap<Address, AddressDTO>().ReverseMap();
     }
 }
