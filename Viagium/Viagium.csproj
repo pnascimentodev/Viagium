@@ -24,4 +24,10 @@
     <Folder Include="Migrations\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Migrations\AppDbContextModelSnapshot.cs" />
+    <Compile Remove="Migrations\20250721200305_Initialssssss.cs" />
+    <Compile Remove="Migrations\20250721200305_Initialssssss.Designer.cs" />
+  </ItemGroup>
+
 </Project>
