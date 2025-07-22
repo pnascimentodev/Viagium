@@ -32,10 +32,10 @@ public class AddressDTO
     [Required(ErrorMessage = "O país é obrigatório.")]
     [Display(Name = "País")]
     public string Country { get; set; } = string.Empty;
-    
+
     public int AffiliateId { get; set; }
     public AffiliateDTO? Affiliate { get; set; }
-    
+
     public int HotelId { get; set; }
     public HotelDTO? Hotel { get; set; }
 }
