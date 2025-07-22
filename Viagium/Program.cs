@@ -74,7 +74,8 @@ builder.Services.AddAutoMapper(typeof(EntitiesMappingDTO));
 
 // le as configurações do appsettings.json
 var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
+var jwtKey = jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key não configurada em appsettings.json");
+var key = Encoding.UTF8.GetBytes(jwtKey);
 
 // Configura o esquema de autenticação JWT Bearer
 builder.Services.AddAuthentication(options =>

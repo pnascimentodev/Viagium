@@ -1,13 +1,14 @@
-﻿using Viagium.Models;
+﻿using Viagium.EntitiesDTO.User;
+using Viagium.Models;
 
 namespace Viagium.Services;
 
 public interface IUserService
 {
-    Task<User> AddAync(User user, string password);
-    Task<User?> GetByIdAsync(int id);
-    Task<List<User>> GetAllAsync();
-    Task UpdateAsync(User user, string password);
+    Task<UserDTO> AddAsync(UserCreateDTO userCreateDto, string password);
+    Task<UserDTO?> GetByIdAsync(int id);
+    Task<List<UserDTO>> GetAllAsync();
+    Task UpdateAsync(UserUpdateDto userUpdateDto, string password);
     Task<User> DesativateAsync(int id);
-    Task<User> ActivateAsync(int id);
+    Task<UserDTO> ActivateAsync(int id);
 }

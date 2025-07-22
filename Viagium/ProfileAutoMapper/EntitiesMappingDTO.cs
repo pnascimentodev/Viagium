@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Viagium.Models;
 using Viagium.EntitiesDTO;
+using Viagium.EntitiesDTO.User;
 
 namespace Viagium.EntitiesDTO;
 
@@ -10,7 +11,7 @@ public class EntitiesMappingDTO : Profile
     {
         CreateMap<Address, AddressDTO>();
         CreateMap<Affiliate, AffiliateDTO>();
-        CreateMap<User, UserDTO>();
+        CreateMap<Viagium.Models.User, UserDTO>();
         CreateMap<Hotel, HotelDTO>();
         CreateMap<Payment, PaymentDTO>();
         CreateMap<Reservation, ReservationDTO>();
@@ -21,14 +22,15 @@ public class EntitiesMappingDTO : Profile
         CreateMap<Traveler, TravelerDTO>();
         CreateMap<TravelPackage, TravelPackageDTO>();
         CreateMap<TravelPackageHistory, TravelPackageHistoryDTO>();
-        CreateMap<UserUpdateDTO, User>()
+        CreateMap<UserUpdateDto, Viagium.Models.User>()
             .ForMember(dest => dest.DocumentNumber, opt => opt.Ignore())
             .ForMember(dest => dest.Role, opt => opt.Ignore())
             .ForMember(dest => dest.IsActive, opt => opt.Ignore());
-        CreateMap<UserCreateDTO, User>()
+        CreateMap<UserCreateDTO, Viagium.Models.User>()
             .ForMember(dest => dest.HashPassword, opt => opt.Ignore())
             .ForMember(dest => dest.Role, opt => opt.Ignore())
             .ForMember(dest => dest.IsActive, opt => opt.Ignore());
         CreateMap<Address, AddressDTO>().ReverseMap();
+        CreateMap<UserDTO, UserListDTO>();
     }
 }

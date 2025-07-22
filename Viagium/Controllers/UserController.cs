@@ -2,7 +2,7 @@
 using AutoMapper;
 using Viagium.Models;
 using Viagium.Services;
-using Viagium.EntitiesDTO;
+using Viagium.EntitiesDTO.User;
 
 namespace Viagium.Controllers;
 
@@ -29,7 +29,7 @@ public class UserController : ControllerBase
             var user = _mapper.Map<User>(userCreateDto);
             user.Role = Role.Client;
             user.IsActive = true;
-            var createdUser = await _userService.AddAync(user, userCreateDto.Password); // Envia senha pura
+            var createdUser = await _userService.AddAsync(userCreateDto, userCreateDto.Password); // Corrigido: passa o DTO
             return CreatedAtAction(nameof(GetById), new { id = createdUser.UserId }, createdUser);
         }
         catch (Exception ex)
@@ -47,7 +47,8 @@ public class UserController : ControllerBase
             var user = await _userService.GetByIdAsync(id);
             if (user == null)
                 return NotFound("Id não encontrado.");
-            return Ok(user);
+            var userDto = _mapper.Map<UserListDTO>(user);
+            return Ok(userDto);
         }
         catch (Exception ex)
         {
@@ -72,7 +73,7 @@ public class UserController : ControllerBase
 
     // atualiza um usuário
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] UserUpdateDTO userUpdateDto)
+    public async Task<IActionResult> Update(int id, [FromBody] UserUpdateDto userUpdateDto)
     {
         try
         {
@@ -85,7 +86,7 @@ public class UserController : ControllerBase
             user.UpdatedAt = DateTime.Now;
 
             ExceptionHandler.ValidateObject(user, "usuário");
-            await _userService.UpdateAsync(user, userUpdateDto.Password); // Envia senha em texto puro
+            await _userService.UpdateAsync(userUpdateDto, userUpdateDto.Password); // Corrigido: passa o DTO
             return Ok(user); 
         }
         catch (Exception ex)

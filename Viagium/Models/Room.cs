@@ -11,7 +11,7 @@ public class Room
     [Required]
     [ForeignKey("RoomType")]
     public int RoomTypeId { get; set; }
-    public RoomType RoomType { get; set; }
+    public required RoomType RoomType { get; set; }
 
     [Required]
     public string RoomNumber { get; set; } = string.Empty;
