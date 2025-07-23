@@ -9,14 +9,19 @@ using Viagium.EntitiesDTO;
 using Viagium.Repository;
 using Viagium.Repository.Interface;
 using Viagium.Services;
+using Viagium.Services.Interfaces;
 using Viagium.Services.Auth;
 using Viagium.Services.Interfaces;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
-builder.Services.AddControllers();
+// configura a ignoração de ciclos de referência no JSON
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 //builder.Services.AddSwaggerGen();
@@ -58,9 +63,12 @@ builder.Services.AddScoped<ITravelPackageRepository, TravelPackageRepository>();
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-// Registra o UnitOfWork e o serviço TravelPackageService
+// Registra o UnitOfWork e o serviços
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<TravelPackageService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAffiliateService, AffiliateService>();
+builder.Services.AddScoped<IAffiliateRepository, AffiliateRepository>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AddressService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
@@ -70,6 +78,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Configuração do AuthService
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+
 
 
 //Configura a AutoMapper para mapear as entidades para os DTOs
@@ -105,6 +114,7 @@ builder.Services.AddAuthentication(options =>
 
 // Adiciona autorização (para usar [Authorize] no controller)
 builder.Services.AddAuthorization();
+
 
 var app = builder.Build(); 
 // Configure the HTTP request pipeline.

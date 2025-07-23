@@ -5,6 +5,9 @@ using Viagium.Models;
 using Viagium.Repository;
 using Viagium.Services.Auth;
 using Viagium.Services.Interfaces;
+
+using Viagium.Repository.Interface;
+
 using User = Viagium.Models.User;
 
 namespace Viagium.Services;
