@@ -1,8 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Viagium.EntitiesDTO;
 using Viagium.EntitiesDTO.User;
+using Viagium.EntitiesDTO.Auth;
 using Viagium.Models;
 using Viagium.Repository;
+using Viagium.Services.Auth;
+using Viagium.Services.Interfaces;
+
+using Viagium.Repository.Interface;
+
 using User = Viagium.Models.User;
 
 namespace Viagium.Services;
@@ -10,10 +16,12 @@ namespace Viagium.Services;
 public class UserService : IUserService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IAuthService _authService;
     
-    public UserService(IUnitOfWork unitOfWork)
+    public UserService(IUnitOfWork unitOfWork, IAuthService authService)
     {
         _unitOfWork = unitOfWork;
+        _authService = authService;
     }
 
     public async Task<UserDTO> AddAsync(UserCreateDTO userCreateDto, string password)
@@ -69,7 +77,28 @@ public class UserService : IUserService
         
         
     }
-    
+
+    public async Task<LoginResponseDTO> LoginAsync(LoginRequestDTO loginRequest)
+    {
+        if (string.IsNullOrWhiteSpace(loginRequest.Email) || string.IsNullOrWhiteSpace(loginRequest.Password))
+            throw new ArgumentException("Email e senha são obrigatórios.");
+
+        var user = await _unitOfWork.UserRepository.GetByEmailAsync(loginRequest.Email);
+        if (user == null || !user.IsActive || user.DeletedAt != null)
+            throw new UnauthorizedAccessException("Usuário ou senha inválidos.");
+
+        if (!PasswordHelper.VerifyPassword(loginRequest.Password, user.HashPassword))
+            throw new UnauthorizedAccessException("Usuário ou senha inválidos.");
+
+        var token = _authService.GenerateJwtToken(user);
+        return new LoginResponseDTO
+        {
+            Id = user.UserId.ToString(),
+            Role = user.Role.ToString(),
+            Token = token
+        };
+    }
+
 
     private void ValidadeCustomRules(User user)
     {
@@ -190,5 +219,4 @@ public class UserService : IUserService
         if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
             throw new ArgumentException("A senha precisa possuir pelo menos 8 caracteres.");
     }
-
 }

@@ -32,5 +32,14 @@ public class EntitiesMappingDTO : Profile
             .ForMember(dest => dest.IsActive, opt => opt.Ignore());
         CreateMap<Address, AddressDTO>().ReverseMap();
         CreateMap<UserDTO, UserListDTO>();
+        CreateMap<AdminRegisterDTO, User>()
+            .ForMember(dest => dest.HashPassword, opt => opt.Ignore())
+            .ForMember(dest => dest.Role, opt => opt.Ignore())
+            .ForMember(dest => dest.IsActive, opt => opt.Ignore());
+        CreateMap<AdminUpdateDTO, User>()
+            .ForMember(dest => dest.HashPassword, opt => opt.Ignore())
+            .ForMember(dest => dest.Role, opt => opt.Ignore())
+            .ForMember(dest => dest.IsActive, opt => opt.Ignore());
+        CreateMap<User, AdminDTO>();
     }
 }

@@ -5,7 +5,8 @@ using Viagium.Controllers;
 using Viagium.Models;
 using Viagium.Repository;
 using Viagium.Services;
-using System.Text.Json; // Adicionado para serializa��o
+using System.Text.Json;
+using Viagium.Repository.Interface; // Adicionado para serializa��o
 
 namespace ViagiumTests
 {
