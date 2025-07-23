@@ -46,7 +46,9 @@ public class UserService : IUserService
                 LastName = userCreateDto.LastName,
                 DocumentNumber = userCreateDto.DocumentNumber,
                 BirthDate = userCreateDto.BirthDate,
-                HashPassword = PasswordHelper.HashPassword(password)
+                HashPassword = PasswordHelper.HashPassword(password),
+                Phone = userCreateDto.Phone,
+                Role = (Role)1 // Define a role como 1
             };
 
             //validação se o usuario esta conforme o contrato do DTO
