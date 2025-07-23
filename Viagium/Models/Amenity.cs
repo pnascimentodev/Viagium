@@ -7,6 +7,10 @@ public class Amenity
     
     public string Slug { get; set; } = null!;
     
+    public bool IsCustom { get; set; } = false;
+    
     public ICollection<RoomTypeAmenity> RoomTypeAmenities { get; set; } = new List<RoomTypeAmenity>();
+    public ICollection<HotelTypeAmentity> HotelTypeAmentities { get; set; } = new List<HotelTypeAmentity>();
+
 
 }

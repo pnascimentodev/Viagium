@@ -35,4 +35,7 @@ public class Hotel
     [ForeignKey("Address")]
     public int AddressId { get; set; }
     public Address Address { get; set; } = new Address();
+    
+    public ICollection<HotelTypeAmentity> HotelTypeAmentity { get; set; } = new List<HotelTypeAmentity>();
+
 }
