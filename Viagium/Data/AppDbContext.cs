@@ -147,5 +147,18 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(tp => tp.DestinationAddressId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<RoomTypeAmenity>()
+            .HasKey(rta => new { rta.RoomTypeId, rta.AmenityId });
+
+        modelBuilder.Entity<RoomTypeAmenity>()
+            .HasOne(rta => rta.RoomType)
+            .WithMany(rt => rt.RoomTypeAmenities)
+            .HasForeignKey(rta => rta.RoomTypeId);
+
+        modelBuilder.Entity<RoomTypeAmenity>()
+            .HasOne(rta => rta.Amenity)
+            .WithMany(a => a.RoomTypeAmenities)
+            .HasForeignKey(rta => rta.AmenityId);
     }
 }

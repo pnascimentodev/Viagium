@@ -28,4 +28,6 @@ public class RoomType
     
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public ICollection<Room> Rooms { get; set; } = new List<Room>();
+    public ICollection<RoomTypeAmenity> RoomTypeAmenities { get; set; } = new List<RoomTypeAmenity>();
+
 }
