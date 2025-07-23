@@ -11,7 +11,6 @@ using Viagium.Repository.Interface;
 using Viagium.Services;
 using Viagium.Services.Interfaces;
 using Viagium.Services.Auth;
-using Viagium.Services.Interfaces;
 
 
 var builder = WebApplication.CreateBuilder(args);

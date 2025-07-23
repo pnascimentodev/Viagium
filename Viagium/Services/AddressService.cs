@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using Viagium.EntitiesDTO;
 using Viagium.Models;
 using Viagium.Repository;
+using Viagium.Repository.Interface;
 using Viagium.Services.Interfaces;
 
 namespace Viagium.Services

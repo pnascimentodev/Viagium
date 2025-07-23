@@ -1,12 +1,6 @@
+namespace Viagium.Repository.Interface;
 
-﻿namespace Viagium.Repository.Interface;
-
-﻿using Viagium.Repository.Interface;
-
-namespace Viagium.Repository;
-
-
-public interface IUnitOfWork :  IDisposable
+public interface IUnitOfWork : IDisposable
 {
     ITravelPackageRepository TravelPackageRepository { get; }
     IUserRepository UserRepository { get; }
