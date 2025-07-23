@@ -1,7 +1,7 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel.DataAnnotations;
 using Viagium.Models;
-using Viagium.Repository;
+using Viagium.Repository.Interface;
 
 namespace Viagium.Services
 {
