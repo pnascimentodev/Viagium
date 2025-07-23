@@ -82,7 +82,7 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"))
 
 
 //Configura a AutoMapper para mapear as entidades para os DTOs
-builder.Services.AddAutoMapper(typeof(EntitiesMappingDTO));
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 //Configura do JWT Bearer Authentication
 

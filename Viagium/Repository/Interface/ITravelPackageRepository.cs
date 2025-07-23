@@ -1,4 +1,5 @@
-﻿using Viagium.Models;
+﻿using Viagium.EntitiesDTO;
+using Viagium.Models;
 
 namespace Viagium.Repository
 {
@@ -7,5 +8,9 @@ namespace Viagium.Repository
         Task AddAsync(TravelPackage travel);
         Task<TravelPackage?> GetByIdAsync(int id);
         Task<IEnumerable<TravelPackage>> GetAllAsync();
+        Task<EditTravelPackageDTO> UpdateAsync(int id, EditTravelPackageDTO travelPackage);
+        Task<TravelPackage> DesativateAsync(int id);
+        Task<TravelPackage> ActivateAsync(int id);
+        Task<TravelPackage> ActivePromotionAsync(int id, decimal discountPercentage);
     }
 }

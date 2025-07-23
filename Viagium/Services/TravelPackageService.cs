@@ -1,5 +1,6 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel.DataAnnotations;
+using Viagium.EntitiesDTO;
 using Viagium.Models;
 using Viagium.Repository.Interface;
 
@@ -65,6 +66,50 @@ namespace Viagium.Services
 
                 return travelPackages;
             }, "busca todos os pacotes de viagem");
+        }
+        
+        public async Task<EditTravelPackageDTO> UpdateAsync(int id, EditTravelPackageDTO travelPackage)
+        {
+            return await ExceptionHandler.ExecuteWithHandling(async () =>
+            {
+                var updated = await _unitOfWork.TravelPackageRepository.UpdateAsync(id, travelPackage);
+                return updated;
+            }, "atualização de pacote de viagem");
+        }
+        
+        public async Task<TravelPackage> DesativateAsync(int id)
+        {
+            return await ExceptionHandler.ExecuteWithHandling(async () =>
+            {
+                var travelPackage = await _unitOfWork.TravelPackageRepository.DesativateAsync(id);
+                if (travelPackage == null)
+                    throw new KeyNotFoundException("Pacote de viagem não encontrado para desativação.");
+
+                return travelPackage;
+            }, "desativação de pacote de viagem");
+        }
+        
+        public async Task<TravelPackage> ActivateAsync(int id)
+        {
+            return await ExceptionHandler.ExecuteWithHandling(async () =>
+            {
+                var travelPackage = await _unitOfWork.TravelPackageRepository.ActivateAsync(id);
+                if (travelPackage == null)
+                    throw new KeyNotFoundException("Pacote de viagem não encontrado para ativação.");
+
+                return travelPackage;
+            }, "ativação de pacote de viagem");
+        }
+        
+        public async Task<TravelPackage> ActivePromotionAsync(int id, decimal discountPercentage)
+        {
+            return await ExceptionHandler.ExecuteWithHandling(async () =>
+            {
+                var travelPackage = await _unitOfWork.TravelPackageRepository.ActivePromotionAsync(id, discountPercentage);
+                if (travelPackage == null)
+                    throw new KeyNotFoundException("Pacote de viagem não encontrado para ativação de promoção.");
+                return travelPackage;
+            }, "ativação de promoção de pacote de viagem");
         }
     }
 }

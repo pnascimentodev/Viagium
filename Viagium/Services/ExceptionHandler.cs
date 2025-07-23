@@ -13,6 +13,8 @@ namespace Viagium.Services
         /// <returns>IActionResult com a resposta HTTP apropriada</returns>
         public static IActionResult HandleException(Exception ex)
         {
+            // Log detalhado para depuração
+            Console.WriteLine($"[ExceptionHandler] {DateTime.UtcNow}: {ex.GetType().Name} - {ex.Message}\n{ex.StackTrace}");
             return ex switch
             {
                 ArgumentException argEx => new BadRequestObjectResult(new 
@@ -39,7 +41,7 @@ namespace Viagium.Services
                 DbUpdateException dbEx => new ObjectResult(new 
                 { 
                     error = "Erro de banco de dados", 
-                    message = "Erro ao salvar os dados. Verifique se os dados são válidos.",
+                    message = dbEx.InnerException?.Message ?? dbEx.Message,
                     timestamp = DateTime.UtcNow
                 })
                 { StatusCode = 500 },
@@ -54,7 +56,7 @@ namespace Viagium.Services
                 _ => new ObjectResult(new 
                 { 
                     error = "Erro interno do servidor", 
-                    message = "Ocorreu um erro inesperado. Tente novamente mais tarde.",
+                    message = ex.Message, // Mostra a mensagem real da exceção
                     timestamp = DateTime.UtcNow
                 })
                 { StatusCode = 500 }
