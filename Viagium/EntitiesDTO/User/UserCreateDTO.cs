@@ -26,5 +26,9 @@ namespace Viagium.EntitiesDTO.User
         [Required]
         public required string Password { get; set; }
 
+        [Required]
+        [Phone]
+        public required string Phone { get; set; }
+
     }
 }

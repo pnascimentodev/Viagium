@@ -115,6 +115,16 @@ builder.Services.AddAuthentication(options =>
 // Adiciona autorização (para usar [Authorize] no controller)
 builder.Services.AddAuthorization();
 
+// Configuração de CORS para permitir requisições do frontend
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy => policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
+
 
 var app = builder.Build(); 
 // Configure the HTTP request pipeline.
@@ -128,6 +138,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();         // Habilita o middleware que realiza a autenticação (verifica token na requisição)
 app.UseAuthorization();          // Habilita o middleware que faz a autorização (verifica se o usuário pode acessar o recurso)
+app.UseCors("AllowFrontend");    // Habilita o CORS com a política definida
 
 app.MapControllers();            // Mapeia os controllers para as rotas
 
