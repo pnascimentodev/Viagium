@@ -11,6 +11,7 @@ using Viagium.Repository.Interface;
 using Viagium.Services;
 using Viagium.Services.Interfaces;
 using Viagium.Services.Auth;
+using Viagium.Services.Interfaces;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -70,10 +71,14 @@ builder.Services.AddScoped<IAffiliateService, AffiliateService>();
 builder.Services.AddScoped<IAffiliateRepository, AffiliateRepository>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AddressService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Configuração do AuthService
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
-builder.Services.AddScoped<IAuthService, AuthService>();
+
 
 
 //Configura a AutoMapper para mapear as entidades para os DTOs

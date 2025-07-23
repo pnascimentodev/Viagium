@@ -3,6 +3,7 @@ using AutoMapper;
 using Viagium.Models;
 using Viagium.Services;
 using Viagium.EntitiesDTO;
+using Viagium.EntitiesDTO.Auth;
 
 namespace Viagium.Controllers;
 
@@ -35,6 +36,29 @@ public class UserController : ControllerBase
         catch (Exception ex)
         {
             return ExceptionHandler.HandleException(ex);
+        }
+    }
+
+    // endpoint de login
+    [HttpPost("auth")]
+    public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequest)
+    {
+        try
+        {
+            var response = await _userService.LoginAsync(loginRequest);
+            return Ok(response);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = "Erro interno ao processar a autenticação." });
         }
     }
 
@@ -127,4 +151,6 @@ public class UserController : ControllerBase
             return ExceptionHandler.HandleException(ex);
         }
     }
+
+    
 }

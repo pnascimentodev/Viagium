@@ -21,30 +21,33 @@ public class AuthService : IAuthService
         _jwtSettings = jwtOptions.Value;
     }
 
-    /// Autentica o usuário e gera um token JWT.
-    public async Task<LoginResponseDTO> LoginAsync(LoginRequestDTO loginRequest)
+    /// Realiza o login validando a função do usuário.
+    public async Task<LoginResponseDTO> LoginWithRoleAsync(LoginRequestDTO loginRequest, Role requiredRole)
     {
         if (string.IsNullOrWhiteSpace(loginRequest.Email) || string.IsNullOrWhiteSpace(loginRequest.Password))
             throw new ArgumentException("Email e senha são obrigatórios.");
 
         var user = await _userRepository.GetByEmailAsync(loginRequest.Email);
-        if (user == null)
+        if (user == null || !user.IsActive || user.DeletedAt != null)
             throw new UnauthorizedAccessException("Usuário ou senha inválidos.");
 
         if (!PasswordHelper.VerifyPassword(loginRequest.Password, user.HashPassword))
             throw new UnauthorizedAccessException("Usuário ou senha inválidos.");
 
+        if (user.Role != requiredRole)
+            throw new UnauthorizedAccessException("Acesso não permitido para este tipo de usuário.");
+
         var token = GenerateJwtToken(user);
         return new LoginResponseDTO
         {
-            UserId = user.UserId.ToString(),
+            Id = user.UserId.ToString(),
             Role = user.Role.ToString(),
             Token = token
         };
     }
 
     /// Gera um token JWT para o usuário autenticado.
-    private string GenerateJwtToken(User user)
+    public string GenerateJwtToken(User user)
     {
         var claims = new[]
         {

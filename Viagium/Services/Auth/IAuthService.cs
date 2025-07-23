@@ -1,9 +1,10 @@
 using Viagium.EntitiesDTO.Auth;
+using Viagium.Models;
 
 namespace Viagium.Services.Auth;
 
 public interface IAuthService
 {
-    /// Autentica o usuário e retorna um token JWT se válido.
-    Task<LoginResponseDTO> LoginAsync(LoginRequestDTO loginRequest);
+    Task<LoginResponseDTO> LoginWithRoleAsync(LoginRequestDTO loginRequest, Role requiredRole);
+    string GenerateJwtToken(User user);
 }
