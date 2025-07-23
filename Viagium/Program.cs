@@ -5,13 +5,18 @@ using Microsoft.IdentityModel.Tokens;
 using Viagium.Data;
 using Viagium.EntitiesDTO;
 using Viagium.Repository;
+using Viagium.Repository.Interface;
 using Viagium.Services;
+using Viagium.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
-builder.Services.AddControllers();
+// configura a ignoração de ciclos de referência no JSON
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -22,11 +27,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Registra os repositórios
 builder.Services.AddScoped<ITravelPackageRepository, TravelPackageRepository>();
 
-// Registra o UnitOfWork e o serviço TravelPackageService
+// Registra o UnitOfWork e o serviços
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<TravelPackageService>();
-builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAffiliateService, AffiliateService>();
+builder.Services.AddScoped<IAffiliateRepository, AffiliateRepository>();
 
 //Configura a AutoMapper para mapear as entidades para os DTOs
 builder.Services.AddAutoMapper(typeof(EntitiesMappingDTO));
@@ -61,6 +68,7 @@ builder.Services.AddAuthentication(options =>
 
 // Adiciona autorização (para usar [Authorize] no controller)
 builder.Services.AddAuthorization();
+
 
 var app = builder.Build(); 
 // Configure the HTTP request pipeline.

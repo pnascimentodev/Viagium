@@ -1,4 +1,5 @@
 ﻿using Viagium.Data;
+using Viagium.Repository.Interface;
 using Viagium.Services;
 
 namespace Viagium.Repository;
@@ -8,12 +9,14 @@ public class UnitOfWork: IUnitOfWork
     private readonly AppDbContext _context;
     public ITravelPackageRepository TravelPackageRepository { get; }
     public IUserRepository UserRepository { get; }
-
-    public UnitOfWork(AppDbContext context, ITravelPackageRepository travelPackageRepository, IUserRepository userRepository)
+    public IAffiliateRepository AffiliateRepository { get; }
+    public UnitOfWork(AppDbContext context, ITravelPackageRepository travelPackageRepository, 
+        IUserRepository userRepository, IAffiliateRepository affiliateRepository)
     {
         _context = context;
         TravelPackageRepository = travelPackageRepository;
         UserRepository = userRepository;
+        AffiliateRepository = affiliateRepository;
     }
 
     
@@ -27,6 +30,6 @@ public class UnitOfWork: IUnitOfWork
     
     public void Dispose()
     {
-        _context?.Dispose();
+        _context.Dispose();
     }
 }
