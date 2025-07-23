@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Viagium.Models;
+using Viagium.EntitiesDTO.User;
 
 namespace Viagium.EntitiesDTO;
 
@@ -14,7 +15,7 @@ public class ReservationDTO
     
     public decimal TotalPrice { get; set; }
     
-    public string Status { get; set; }
+    public required string Status { get; set; }
     
     public DateTime CreatedAt { get; set; }
     
