@@ -1,7 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Viagium.EntitiesDTO;
+using Viagium.EntitiesDTO.User;
+using Viagium.EntitiesDTO.Auth;
 using Viagium.Models;
 using Viagium.Repository;
+using Viagium.Services.Auth;
+using Viagium.Services.Interfaces;
+
+using Viagium.Repository.Interface;
+
 using User = Viagium.Models.User;
 
 namespace Viagium.Services;
@@ -9,33 +16,42 @@ namespace Viagium.Services;
 public class UserService : IUserService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IAuthService _authService;
     
-    public UserService(IUnitOfWork unitOfWork)
+    public UserService(IUnitOfWork unitOfWork, IAuthService authService)
     {
         _unitOfWork = unitOfWork;
+        _authService = authService;
     }
 
-    public async Task<User> AddAync(User user, string password)
+    public async Task<UserDTO> AddAsync(UserCreateDTO userCreateDto, string password)
     {
         return await ExceptionHandler.ExecuteWithHandling(async () =>
         {
             // Verifica se já existe usuário com o mesmo e-mail
-            if (await _unitOfWork.UserRepository.EmailExistsAsync(user.Email))
+            if (await _unitOfWork.UserRepository.EmailExistsAsync(userCreateDto.Email))
                 throw new ArgumentException("Já existe um usuário cadastrado com este e-mail.");
 
             // Validação da senha antes do hash
             ValidatePassword(password);
 
             // Verifica se já existe usuário com o mesmo número de documento
-            if (await _unitOfWork.UserRepository.DocumentNumberExistsAsync(user.DocumentNumber))
+            if (await _unitOfWork.UserRepository.DocumentNumberExistsAsync(userCreateDto.DocumentNumber))
                 throw new ArgumentException("Já existe um usuário cadastrado com este número de documento.");
 
-            // Aplica o hash da senha
-            user.HashPassword = Viagium.Services.PasswordHelper.HashPassword(password);
+            var user = new User
+            {
+                Email = userCreateDto.Email,
+                FirstName = userCreateDto.FirstName,
+                LastName = userCreateDto.LastName,
+                DocumentNumber = userCreateDto.DocumentNumber,
+                BirthDate = userCreateDto.BirthDate,
+                HashPassword = PasswordHelper.HashPassword(password)
+            };
 
             //validação se o usuario esta conforme o contrato do DTO
-            var validationContext = new ValidationContext(user);
-            Validator.ValidateObject(user, validationContext, validateAllProperties: true);
+            var validationContext = new ValidationContext(userCreateDto);
+            Validator.ValidateObject(userCreateDto, validationContext, validateAllProperties: true);
 
             // Validações customizadas específicas do negócio
             ValidadeCustomRules(user);
@@ -43,13 +59,46 @@ public class UserService : IUserService
             // usando o UnitOfWork para adicionar o usuário
             await _unitOfWork.UserRepository.AddAsync(user);
             await _unitOfWork.SaveAsync();
-            
-            return user;
+
+            // Mapeamento simples para UserDTO
+            return new UserDTO
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                DocumentNumber = user.DocumentNumber,
+                BirthDate = user.BirthDate,
+                Phone = user.Phone,
+                Role = user.Role.ToString(),
+                IsActive = user.IsActive,
+                HashPassword = user.HashPassword
+            };
         }, "criação de usuário");
         
         
     }
-    
+
+    public async Task<LoginResponseDTO> LoginAsync(LoginRequestDTO loginRequest)
+    {
+        if (string.IsNullOrWhiteSpace(loginRequest.Email) || string.IsNullOrWhiteSpace(loginRequest.Password))
+            throw new ArgumentException("Email e senha são obrigatórios.");
+
+        var user = await _unitOfWork.UserRepository.GetByEmailAsync(loginRequest.Email);
+        if (user == null || !user.IsActive || user.DeletedAt != null)
+            throw new UnauthorizedAccessException("Usuário ou senha inválidos.");
+
+        if (!PasswordHelper.VerifyPassword(loginRequest.Password, user.HashPassword))
+            throw new UnauthorizedAccessException("Usuário ou senha inválidos.");
+
+        var token = _authService.GenerateJwtToken(user);
+        return new LoginResponseDTO
+        {
+            Id = user.UserId.ToString(),
+            Role = user.Role.ToString(),
+            Token = token
+        };
+    }
+
 
     private void ValidadeCustomRules(User user)
     {
@@ -62,39 +111,68 @@ public class UserService : IUserService
             throw new ArgumentException(string.Join("\n", errors));
     }
 
-    public async Task<User?> GetByIdAsync(int id)
+    public async Task<UserDTO?> GetByIdAsync(int id)
     {
         return await ExceptionHandler.ExecuteWithHandling(async () =>
         {
-            return await _unitOfWork.UserRepository.GetByIdAsync(id);
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            if (user == null) return null;
+            return new UserDTO
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                DocumentNumber = user.DocumentNumber,
+                BirthDate = user.BirthDate,
+                Phone = user.Phone,
+                Role = user.Role.ToString(),
+                IsActive = user.IsActive,
+                HashPassword = user.HashPassword
+            };
         }, "buscar usuário por id");
     }
 
-    public async Task<List<User>> GetAllAsync()
+    public async Task<List<UserDTO>> GetAllAsync()
     {
         return await ExceptionHandler.ExecuteWithHandling(async () =>
         {
-            return await _unitOfWork.UserRepository.GetAllAsync();
+            var users = await _unitOfWork.UserRepository.GetAllAsync();
+            return users.Select(user => new UserDTO
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                DocumentNumber = user.DocumentNumber,
+                BirthDate = user.BirthDate,
+                Phone = user.Phone,
+                Role = user.Role.ToString(),
+                IsActive = user.IsActive,
+                HashPassword = user.HashPassword
+            }).ToList();
         }, "buscar todos usuários");
     }
 
-    public async Task UpdateAsync(User user, string password)
+    public async Task UpdateAsync(UserUpdateDto userUpdateDto, string password)
     {
         await ExceptionHandler.ExecuteWithHandling(async () =>
         {
-            // Verifica se já existe outro usuário com o mesmo e-mail
-            if (await _unitOfWork.UserRepository.EmailExistsAsync(user.Email, user.UserId))
+            if (await _unitOfWork.UserRepository.EmailExistsAsync(userUpdateDto.Email, userUpdateDto.UserId))
                 throw new ArgumentException("Já existe outro usuário cadastrado com este e-mail.");
 
-            // Validação da senha antes do hash
             ValidatePassword(password);
 
-            // Aplica o hash da senha
-            user.HashPassword = Viagium.Services.PasswordHelper.HashPassword(password);
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userUpdateDto.UserId);
+            if (user == null)
+                throw new KeyNotFoundException("Usuário não encontrado para atualização.");
 
-            // Validação do usuário
-            var validationContext = new ValidationContext(user);
-            Validator.ValidateObject(user, validationContext, validateAllProperties: true);
+            user.Email = userUpdateDto.Email;
+            user.FirstName = userUpdateDto.FirstName;
+            user.LastName = userUpdateDto.LastName;
+            user.BirthDate = userUpdateDto.BirthDate;
+            user.HashPassword = PasswordHelper.HashPassword(password);
+
+            var validationContext = new ValidationContext(userUpdateDto);
+            Validator.ValidateObject(userUpdateDto, validationContext, validateAllProperties: true);
             ValidadeCustomRules(user);
             await _unitOfWork.UserRepository.UpdateAsync(user);
             await _unitOfWork.SaveAsync();
@@ -113,7 +191,7 @@ public class UserService : IUserService
         }, "desativação de usuário");
     }
 
-    public async Task<User> ActivateAsync(int id)
+    public async Task<UserDTO> ActivateAsync(int id)
     {
         return await ExceptionHandler.ExecuteWithHandling(async () =>
         {
@@ -121,7 +199,18 @@ public class UserService : IUserService
             if (user == null)
                 throw new KeyNotFoundException("Usuário não encontrado para ativação.");
 
-            return user;
+            return new UserDTO
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                DocumentNumber = user.DocumentNumber,
+                BirthDate = user.BirthDate,
+                Phone = user.Phone,
+                Role = user.Role.ToString(),
+                IsActive = user.IsActive,
+                HashPassword = user.HashPassword
+            };
         }, "ativação de usuário");
     }
 
@@ -130,6 +219,4 @@ public class UserService : IUserService
         if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
             throw new ArgumentException("A senha precisa possuir pelo menos 8 caracteres.");
     }
-
 }
-

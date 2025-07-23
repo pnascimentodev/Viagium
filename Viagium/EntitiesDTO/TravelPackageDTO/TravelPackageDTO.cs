@@ -3,6 +3,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Viagium.Models;
+using Viagium.EntitiesDTO.User;
 
 namespace Viagium.EntitiesDTO;
 
@@ -53,7 +54,6 @@ public class TravelPackageDTO
     public decimal Price { get; set; }
 
     public int CreatedBy { get; set; }
-    public UserDTO? User { get; set; }
     
     public DateTime? CreatedAt { get; set; } = DateTime.Now;
     public bool IsActive { get; set; } = true;
