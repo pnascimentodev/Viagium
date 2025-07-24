@@ -10,4 +10,5 @@ public interface IAffiliateRepository
     Task<IEnumerable<Affiliate>> GetAllAsync();
     Task<Affiliate?> GetByCnpjAsync(string cnpj);
     Task<Affiliate?> GetByStateRegistrationAsync(string stateRegistration);
+    Task<IEnumerable<Affiliate>> GetByCityAsync(string city);
 }

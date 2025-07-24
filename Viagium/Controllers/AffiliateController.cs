@@ -2,6 +2,8 @@
 using Viagium.Models;
 using Viagium.Services;
 using Viagium.Services.Interfaces;
+using Viagium.EntitiesDTO;
+using AutoMapper;
 
 namespace Viagium.Controllers;
 
@@ -10,10 +12,12 @@ namespace Viagium.Controllers;
 public class AffiliateController : ControllerBase
 {
     private readonly IAffiliateService _affiliateService;
+    private readonly IMapper _mapper;
 
-    public AffiliateController(IAffiliateService affiliateService)
+    public AffiliateController(IAffiliateService affiliateService, IMapper mapper)
     {
         _affiliateService = affiliateService;
+        _mapper = mapper;
     }
 
     [HttpPost]
@@ -83,6 +87,22 @@ public class AffiliateController : ControllerBase
             if (result)
                 return NoContent();
             return NotFound();
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
+
+
+    [HttpGet("ByCity/{city}")]
+    public async Task<IActionResult> GetByCity(string city)
+    {
+        try
+        {
+            var affiliates = await _affiliateService.GetByCityAsync(city);
+            var result = _mapper.Map<List<AffiliateListDTO>>(affiliates);
+            return Ok(result);
         }
         catch (Exception ex)
         {

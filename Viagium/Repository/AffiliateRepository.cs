@@ -51,4 +51,12 @@ public class AffiliateRepository : IAffiliateRepository
         return _context.Affiliates
             .FirstOrDefaultAsync(affiliate => affiliate.Cnpj == stateRegistration);
     }
+
+    public async Task<IEnumerable<Affiliate>> GetByCityAsync(string city)
+    {
+        return await _context.Affiliates
+            .Include(a => a.Address)
+            .Where(a => a.Address.City == city && a.IsActive)
+            .ToListAsync();
+    }
 }

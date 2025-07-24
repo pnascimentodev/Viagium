@@ -9,5 +9,5 @@ public interface IAffiliateService
     Task<Affiliate> GetByIdAsync(int id);
     Task<IEnumerable<Affiliate>> GetAllAsync();
     Task<bool> DeleteAsync(int id);
-    
+    Task<IEnumerable<Affiliate>> GetByCityAsync(string city);
 }

@@ -92,6 +92,11 @@ public class AffiliateService : IAffiliateService
         }, "exclusão de afiliado");
     }
     
+    public async Task<IEnumerable<Affiliate>> GetByCityAsync(string city)
+    {
+        return await _unitOfWork.AffiliateRepository.GetByCityAsync(city);
+    }
+    
     private void ValidadeCustomRules(Affiliate affiliate)
     {
         

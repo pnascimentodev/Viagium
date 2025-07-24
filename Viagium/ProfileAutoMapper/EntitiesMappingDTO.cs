@@ -41,5 +41,10 @@ public class EntitiesMappingDTO : Profile
             .ForMember(dest => dest.Role, opt => opt.Ignore())
             .ForMember(dest => dest.IsActive, opt => opt.Ignore());
         CreateMap<Viagium.Models.User, AdminDTO>();
+        CreateMap<Affiliate, AffiliateListDTO>()
+            .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+            .ForMember(dest => dest.Hotels, opt => opt.MapFrom(src => src.Hotels));
+        CreateMap<Address, AddressListDTO>();
+        CreateMap<Hotel, HotelDTO>();
     }
 }

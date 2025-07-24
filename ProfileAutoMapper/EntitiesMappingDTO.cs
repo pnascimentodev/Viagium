@@ -21,6 +21,13 @@ namespace Viagium.ProfileAutoMapper
             CreateMap<Address, AddressDTO>()
                 .ForMember(dest => dest.AddressId, opt => opt.MapFrom(src => src.AddressId));
             CreateMap<AddressDTO, Address>();
+
+            CreateMap<Affiliate, AffiliateListDTO>()
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+                .ForMember(dest => dest.Hotels, opt => opt.MapFrom(src => src.Hotels))
+                .ForMember(dest => dest.HashPassword, opt => opt.Ignore());
+            CreateMap<Address, AddressListDTO>();
+            CreateMap<Hotel, HotelDTO>();
         }
     }
 }
