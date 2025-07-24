@@ -30,6 +30,7 @@ namespace Viagium.Models
         public string Country { get; set; } = string.Empty;
         [Display(Name = "Data de Criação")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        
         [ForeignKey("Affiliate")]
         [Display(Name = "Id do Afiliado")]
         public int? AffiliateId { get; set; }

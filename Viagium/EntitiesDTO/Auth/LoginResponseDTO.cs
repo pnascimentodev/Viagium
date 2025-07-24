@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Viagium.EntitiesDTO.Auth;
 
 public class LoginResponseDTO
