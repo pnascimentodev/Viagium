@@ -27,12 +27,17 @@ public class AffiliateRepository : IAffiliateRepository
 
     public async Task<Affiliate?> GetByIdAsync(int id)
     {
-       return await _context.Affiliates.FindAsync(id);
+       return await _context.Affiliates
+           .Include(a => a.Address)
+           .FirstOrDefaultAsync(a => a.AffiliateId == id);
     }
 
     public async Task<IEnumerable<Affiliate>> GetAllAsync()
     {
-        return await _context.Affiliates.Where(affiliate => affiliate.IsActive).ToListAsync();
+        return await _context.Affiliates
+            .Include(a => a.Address)
+            .Where(affiliate => affiliate.IsActive)
+            .ToListAsync();
     }
 
     public Task<Affiliate?> GetByCnpjAsync(string cnpj)
