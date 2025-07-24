@@ -10,3 +10,4 @@ services:
     git:
       repo_clone_url: https://github.com/pnascimentodev/Viagium.git
       branch: developer
+    source_dir: Viagium
