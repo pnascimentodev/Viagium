@@ -46,5 +46,6 @@ public class EntitiesMappingDTO : Profile
             .ForMember(dest => dest.Hotels, opt => opt.MapFrom(src => src.Hotels));
         CreateMap<Address, AddressListDTO>();
         CreateMap<Hotel, HotelDTO>();
+        CreateMap<Models.User, UserEmailDTO>();
     }
 }

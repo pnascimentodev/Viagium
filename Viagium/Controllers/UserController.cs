@@ -153,6 +153,23 @@ public class UserController : ControllerBase
             return ExceptionHandler.HandleException(ex);
         }
     }
+    
+    [HttpGet("by-email")]
+    public async Task<IActionResult> GetByEmail([FromQuery] string email)
+    {
+        try
+        {
+            var user = await _userService.GetByEmailAsync(email, false);
+            if (user == null)
+                return NotFound("Usuário não encontrado com este e-mail.");
+            var userDto = _mapper.Map<UserDTO>(user);
+            return Ok(userDto);
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
 
     
 }

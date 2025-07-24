@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using AutoMapper;
 using Viagium.EntitiesDTO;
 using Viagium.EntitiesDTO.User;
 using Viagium.EntitiesDTO.Auth;
@@ -17,11 +18,13 @@ public class UserService : IUserService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAuthService _authService;
+    private readonly IMapper _mapper;
     
-    public UserService(IUnitOfWork unitOfWork, IAuthService authService)
+    public UserService(IUnitOfWork unitOfWork, IAuthService authService, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _authService = authService;
+        _mapper = mapper;
     }
 
     public async Task<UserDTO> AddAsync(UserCreateDTO userCreateDto, string password)
@@ -220,5 +223,22 @@ public class UserService : IUserService
     {
         if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
             throw new ArgumentException("A senha precisa possuir pelo menos 8 caracteres.");
+    }
+    
+    public async Task<UserDTO?> GetByEmailAsync(string email, bool unused)
+    {
+        return await ExceptionHandler.ExecuteWithHandling(async () =>
+        {
+            var user = await _unitOfWork.UserRepository.GetByEmailAsync(email);
+            if (user == null)
+            {
+                // Validação DataAnnotation para email não encontrado
+                var userEmailDto = new UserEmailDTO { Email = email };
+                var context = new ValidationContext(userEmailDto);
+                Validator.ValidateObject(userEmailDto, context, validateAllProperties: true);
+                return null;
+            }
+            return _mapper.Map<UserDTO>(user);
+        }, "buscar usuário por e-mail");
     }
 }
