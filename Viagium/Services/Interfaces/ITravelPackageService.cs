@@ -12,5 +12,6 @@ namespace Viagium.Services
         Task<TravelPackage> DesativateAsync(int id);
         Task<TravelPackage> ActivateAsync(int id);
         Task<TravelPackage> ActivePromotionAsync(int id, decimal discountPercentage);
+        Task<TravelPackage> GetActiveAsync();
     }
 }

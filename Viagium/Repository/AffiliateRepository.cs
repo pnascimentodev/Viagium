@@ -59,4 +59,23 @@ public class AffiliateRepository : IAffiliateRepository
             .Where(a => a.Address.City == city && a.IsActive)
             .ToListAsync();
     }
+    
+    public async Task<Affiliate?> GetByEmailAsync(string email, bool includeDeleted = false)
+    {
+        return await _context.Set<Affiliate>()
+            .Where(a => a.Email == email && (includeDeleted || a.IsActive))
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<bool> EmailExistsAsync(string email)
+    {
+        return await _context.Affiliates
+            .AnyAsync(a => a.Email == email && a.IsActive);
+    }
+
+    public async Task<bool> CnpjExistsAsync(string cnpj)
+    {
+        return await _context.Affiliates
+            .AnyAsync(a => a.Cnpj == cnpj && a.IsActive);
+    }
 }

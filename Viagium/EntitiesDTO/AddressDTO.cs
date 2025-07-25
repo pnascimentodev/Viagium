@@ -32,6 +32,8 @@ public class AddressDTO
     [Required(ErrorMessage = "O pa�s � obrigat�rio.")]
     [Display(Name = "Pa�s")]
     public string Country { get; set; } = string.Empty;
+    [Display(Name = "Data de Criação")]
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     public int AffiliateId { get; set; }
     public AffiliateDTO? Affiliate { get; set; } = null;
