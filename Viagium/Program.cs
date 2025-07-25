@@ -145,5 +145,5 @@ app.UseCors("AllowFrontend");    // Habilita o CORS com a política definida
 app.MapControllers();            // Mapeia os controllers para as rotas
 
 
-
+app.MapGet("/", () => "API rodando!");
 app.Run();
