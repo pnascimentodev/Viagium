@@ -126,9 +126,10 @@ builder.Services.AddCors(options =>
 });
 
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-app.Urls.Add($"http://*:{port}");
+builder.WebHost.UseUrls($"http://*:{port}");
 
 var app = builder.Build();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
