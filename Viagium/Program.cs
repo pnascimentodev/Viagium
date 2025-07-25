@@ -125,6 +125,9 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod());
 });
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+app.Urls.Add($"http://*:{port}");
+
 
 var app = builder.Build(); 
 // Configure the HTTP request pipeline.
@@ -142,7 +145,6 @@ app.UseCors("AllowFrontend");    // Habilita o CORS com a política definida
 
 app.MapControllers();            // Mapeia os controllers para as rotas
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
-app.Urls.Add($"http://*:{port}");
+
 
 app.Run();
