@@ -40,20 +40,6 @@ public class AffiliateDTO
     [Required]
     public string HashPassword { get; set; } = string.Empty;
     
-    [Required]
-    [Display(Name = "Número do Cadastur")]
-    [StringLength(14)]
-    public string NumberCadastur { get; set; } = string.Empty;
-    
-    [Required]
-    [Display(Name = "Data de Emissão do Cadastur")]
-    [DataType(DataType.Date)]
-    public DateTime ExpirationDate { get; set; }
-
-    [Required]
-    [Display(Name = "Esta Ativo no Cadastur?")]
-    public bool IsActiveCadastur { get; set; } = true;
-
     [Display(Name = "Data de Criação")]
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 

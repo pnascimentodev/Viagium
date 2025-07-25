@@ -67,9 +67,6 @@ public class AffiliateService : IAffiliateService
                 Phone = affiliateCreateDto.Phone,
                 StateRegistration = affiliateCreateDto.StateRegistration,
                 HashPassword = PasswordHelper.HashPassword(password),
-                NumberCadastur = affiliateCreateDto.NumberCadastur,
-                ExpirationDate = affiliateCreateDto.ExpirationDate,
-                IsActiveCadastur = affiliateCreateDto.IsActiveCadastur,
                 CreatedAt = DateTime.Now, // Sempre usar DateTime.Now
                 IsActive = true, // Sempre ativo na criação
                 AddressId = address.AdressId
@@ -93,9 +90,6 @@ public class AffiliateService : IAffiliateService
                 Phone = affiliate.Phone,
                 StateRegistration = affiliate.StateRegistration,
                 HashPassword = affiliate.HashPassword,
-                NumberCadastur = affiliate.NumberCadastur,
-                ExpirationDate = affiliate.ExpirationDate,
-                IsActiveCadastur = affiliate.IsActiveCadastur,
                 CreatedAt = affiliate.CreatedAt,
                 AddressId = affiliate.AddressId,
                 Address = new AddressDTO
