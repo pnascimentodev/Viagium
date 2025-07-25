@@ -147,7 +147,7 @@ public class AffiliateController : ControllerBase
         {
             var affiliate = await _affiliateService.GetByEmailAsync(email, false);
             if (affiliate == null)
-                return NotFound("Afiliado não encontrado com este e-mail.");
+                return NotFound("Email não encontrado.");
             var userDto = _mapper.Map<AffiliateDTO>(affiliate);
             return Ok(userDto);
         }

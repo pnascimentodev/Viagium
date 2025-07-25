@@ -191,7 +191,7 @@ public class AffiliateService : IAffiliateService
         
             // Se não encontrar, simplesmente retorna null (comportamento esperado)
             if (affiliate == null)
-                return null;
+                throw new ArgumentException("Email não encontrado.");
 
             return _mapper.Map<AffiliateDTO>(affiliate);
         }, "buscar usuário por e-mail");
