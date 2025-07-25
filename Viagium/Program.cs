@@ -125,8 +125,8 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod());
 });
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
-builder.WebHost.UseUrls($"http://*:{port}");
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Urls.Add($"http://*:{port}");
 
 var app = builder.Build();
 // Configure the HTTP request pipeline.
