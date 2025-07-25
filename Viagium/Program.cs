@@ -109,12 +109,11 @@ builder.WebHost.UseUrls($"http://*:{port}");
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Viagium V1"); // Endpoint padrão do Swagger
-    c.RoutePrefix = "swagger"; // Interface acessível em /swagger/index.html
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Viagium V1");
+    c.RoutePrefix = "swagger";
 });
 
 
