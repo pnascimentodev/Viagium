@@ -56,7 +56,7 @@ namespace ViagiumTests
             mockMapper.Setup(m => m.Map<AddressDTO>(It.IsAny<Viagium.Models.Address>())).Returns(fakeAddressDto);
 
             var service = new AddressService(mockUoW.Object, mockMapper.Object);
-            var controller = new AddressController(service, mockMapper.Object);
+            var controller = new AddressController(service);
 
             // --- ACT ---
             var result = await controller.Create(fakeAddressDto);

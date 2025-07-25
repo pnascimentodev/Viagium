@@ -7,6 +7,7 @@ using Viagium.Repository;
 using Viagium.Services;
 using System.Text.Json;
 using Viagium.Repository.Interface; // Adicionado para serializa��o
+using AutoMapper; // Adicionado para o IMapper
 
 namespace ViagiumTests
 {
@@ -41,8 +42,9 @@ namespace ViagiumTests
             mockUoW.Setup(u => u.TravelPackageRepository).Returns(mockRepo.Object);
             mockUoW.Setup(u => u.SaveAsync()).ReturnsAsync(1);
 
+            var mockMapper = new Mock<IMapper>();
             var service = new TravelPackageService(mockUoW.Object);
-            var controller = new TravelPackageController(service);
+            var controller = new TravelPackageController(service, mockMapper.Object);
 
             // --- ACT ---
             var result = await controller.Create(fakePackage);
@@ -109,8 +111,9 @@ namespace ViagiumTests
             var mockUoW = new Mock<IUnitOfWork>();
             mockUoW.Setup(u => u.TravelPackageRepository).Returns(mockRepo.Object);
 
+            var mockMapper = new Mock<IMapper>();
             var service = new TravelPackageService(mockUoW.Object);
-            var controller = new TravelPackageController(service);
+            var controller = new TravelPackageController(service, mockMapper.Object);
 
             // --- ACT ---
             var result = await controller.GetAllTravelPackages();
