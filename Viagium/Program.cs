@@ -135,8 +135,8 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Viagium V1");
-    c.RoutePrefix = string.Empty; // Faz o Swagger UI carregar em "/"
+    c.SwaggerEndpoint("/swagger/v1/index.html", "Viagium V1"); // Alterado para buscar index.html
+    c.RoutePrefix = "swagger"; // Permite acessar por /swagger/index.html
 });
 
 
