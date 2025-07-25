@@ -23,14 +23,14 @@ public class AuthAffiliateService : IAuthAffiliateService
     public async Task<AffiliateLoginResponseDTO> LoginAsync(LoginRequestDTO loginRequest)
     {
         if (string.IsNullOrWhiteSpace(loginRequest.Email) || string.IsNullOrWhiteSpace(loginRequest.Password))
-            throw new ArgumentException("Email e senha s�o obrigat�rios.");
+            throw new ArgumentException("Email e senha são obrigatórios.");
 
         var affiliate = await _affiliateRepository.GetByEmailAsync(loginRequest.Email);
         if (affiliate == null || !affiliate.IsActive || affiliate.DeletedAt != null)
-            throw new UnauthorizedAccessException("Usu�rio ou senha inv�lidos.");
+            throw new UnauthorizedAccessException("Usuário ou senha inválidos.");
 
         if (!PasswordHelper.VerifyPassword(loginRequest.Password, affiliate.HashPassword))
-            throw new UnauthorizedAccessException("Usu�rio ou senha inv�lidos.");
+            throw new UnauthorizedAccessException("Usuário ou senha inválidos.");
 
         var token = GenerateToken(affiliate);
         return new AffiliateLoginResponseDTO
