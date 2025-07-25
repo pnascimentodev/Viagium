@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Viagium.EntitiesDTO;
+using Viagium.Services;
 using Viagium.Services.Interfaces;
 
 namespace Viagium.Controllers;
@@ -9,17 +10,34 @@ namespace Viagium.Controllers;
 public class RoomTypeController : ControllerBase
 {
     private readonly IRoomTypeService _roomTypeService;
+    private readonly ImgbbService _imgbbService;
 
-    public RoomTypeController(IRoomTypeService roomTypeService)
+    public RoomTypeController(IRoomTypeService roomTypeService, ImgbbService imgbbService)
     {
         _roomTypeService = roomTypeService;
+        _imgbbService = imgbbService;
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] RoomTypeCreateDTO dto)
+    public async Task<IActionResult> Create([FromForm] RoomTypeCreateFormDTO formDto)
     {
         try
         {
+            var dto = new RoomTypeCreateDTO
+            {
+                HotelId = formDto.HotelId,
+                Name = formDto.Name,
+                Description = formDto.Description,
+                PricePerNight = formDto.PricePerNight,
+                MaxOccupancy = formDto.MaxOccupancy,
+                NumberOfRoomsAvailable = formDto.NumberOfRoomsAvailable,
+                Amenities = formDto.Amenities ?? new List<int>()
+            };
+            if (formDto.Image != null)
+            {
+                var imageUrl = await _imgbbService.UploadImageAsync(formDto.Image);
+                dto.ImageUrl = imageUrl;
+            }
             var result = await _roomTypeService.AddAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = result.RoomTypeId }, result);
         }

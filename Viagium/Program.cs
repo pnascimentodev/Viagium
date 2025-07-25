@@ -142,6 +142,7 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod());
 });
 
+builder.Services.AddHttpClient<ImgbbService>();
 
 var app = builder.Build(); 
 // Configure the HTTP request pipeline.
