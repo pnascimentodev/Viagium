@@ -86,5 +86,10 @@ public class TravelPackageRepository : ITravelPackageRepository
         await _context.SaveChangesAsync();
         return existing;
     }
+    public async Task<TravelPackage> GetActiveAsync()
+    {
+        return await _context.TravelPackages.FirstOrDefaultAsync(tp => tp.IsActive == true);
+
+    }
 
 }

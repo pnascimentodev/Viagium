@@ -111,5 +111,16 @@ namespace Viagium.Services
                 return travelPackage;
             }, "ativação de promoção de pacote de viagem");
         }
+
+        public async Task<TravelPackage> GetActiveAsync()
+        {
+            return await ExceptionHandler.ExecuteWithHandling(async () =>
+            {
+                var travelPackage = await _unitOfWork.TravelPackageRepository.GetActiveAsync();
+                if (travelPackage == null)
+                    throw new KeyNotFoundException("Nenhum pacote de viagem ativo encontrado.");
+                return travelPackage;
+            }, "busca de pacote de viagem ativo");
+        }
     }
 }
