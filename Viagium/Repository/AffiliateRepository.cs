@@ -60,7 +60,7 @@ public class AffiliateRepository : IAffiliateRepository
             .ToListAsync();
     }
     
-    public async Task<Affiliate> GetByEmailAsync(string email, bool includeDeleted = false)
+    public async Task<Affiliate?> GetByEmailAsync(string email, bool includeDeleted = false)
     {
         return await _context.Set<Affiliate>()
             .Where(a => a.Email == email && (includeDeleted || a.IsActive))

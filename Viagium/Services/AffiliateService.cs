@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Data;
+using AutoMapper;
 using Viagium.Models;
 using Viagium.Repository.Interface;
 using Viagium.Services.Interfaces;
@@ -11,10 +12,12 @@ namespace Viagium.Services;
 public class AffiliateService : IAffiliateService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
     
-    public AffiliateService(IUnitOfWork unitOfWork)
+    public AffiliateService(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
     
     // Método principal de criação - ÚNICO método AddAsync
@@ -176,12 +179,30 @@ public class AffiliateService : IAffiliateService
         return await _unitOfWork.AffiliateRepository.GetByCityAsync(city);
     }
     
+    public async Task<AffiliateDTO?> GetByEmailAsync(string email, bool unused)
+    {
+        return await ExceptionHandler.ExecuteWithHandling(async () =>
+        {
+            // Validação básica do parâmetro de entrada
+            if (string.IsNullOrWhiteSpace(email))
+                throw new ArgumentException("Email é obrigatório para busca.");
+
+            var affiliate = await _unitOfWork.AffiliateRepository.GetByEmailAsync(email);
+        
+            // Se não encontrar, simplesmente retorna null (comportamento esperado)
+            if (affiliate == null)
+                return null;
+
+            return _mapper.Map<AffiliateDTO>(affiliate);
+        }, "buscar usuário por e-mail");
+    }
+
     private void ValidatePassword(string password)
     {
         if (string.IsNullOrWhiteSpace(password))
             throw new ArgumentException("A senha é obrigatória.");
 
-        if (password.Length < 6)
+        if (password.Length < 8)
             throw new ArgumentException("A senha deve ter pelo menos 6 caracteres.");
 
         if (password.Length > 100)
