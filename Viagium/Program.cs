@@ -23,35 +23,10 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
-
-// Habilitando o Recebimento do Token de autenticação no Swagger 
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Viagium", Version = "v1" });
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Insira o token JWT no formato: Bearer {seu token}"
-    });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] {}
-        }
-    });
+    // Removida configuração de autenticação para deixar o Swagger livre
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -135,8 +110,8 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger", "Viagium V1"); // Alterado para buscar index.html
-    c.RoutePrefix = "swagger"; // Permite acessar por /swagger/index.html
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Viagium V1"); // Endpoint padrão do Swagger
+    c.RoutePrefix = "swagger"; // Interface acessível em /swagger/index.html
 });
 
 
