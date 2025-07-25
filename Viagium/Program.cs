@@ -12,6 +12,7 @@ using Viagium.Repository.Interface;
 using Viagium.Services;
 using Viagium.Services.Interfaces;
 using Viagium.Services.Auth;
+using AutoMapper;
 using Viagium.Services.Auth.Affiliate;
 
 
@@ -64,6 +65,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<ITravelPackageRepository, TravelPackageRepository>();
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRoomTypeRepository, RoomTypeRepository>();
+builder.Services.AddScoped<IAmenityRepository, AmenityRepository>();
 
 // Registra o UnitOfWork e o serviços
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -74,7 +77,18 @@ builder.Services.AddScoped<IAffiliateRepository, AffiliateRepository>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AddressService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+
+builder.Services.AddScoped<IRoomTypeService, RoomTypeService>(provider =>
+{
+    var roomTypeRepo = provider.GetRequiredService<IRoomTypeRepository>();
+    var amenityRepo = provider.GetRequiredService<IAmenityRepository>();
+    var mapper = provider.GetRequiredService<IMapper>();
+    return new RoomTypeService(roomTypeRepo, amenityRepo, mapper);
+});
+
+
 builder.Services.AddScoped<IAuthAffiliateService, AuthAffiliateService>();
+
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 

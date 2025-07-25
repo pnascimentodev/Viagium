@@ -59,5 +59,13 @@ public class EntitiesMappingDTO : Profile
         // Mapeamentos para Address
         CreateMap<Address, AddressDTO>().ReverseMap();
         CreateMap<Address, AddressListDTO>();
+        CreateMap<Hotel, HotelDTO>();
+        CreateMap<Models.User, UserEmailDTO>();
+        CreateMap<RoomTypeCreateDTO, RoomType>()
+            .ForMember(dest => dest.RoomTypeAmenities, opt => opt.Ignore());
+        CreateMap<RoomTypeUpdateDTO, RoomType>();
+        CreateMap<RoomType, RoomTypeDTO>()
+            .ForMember(dest => dest.Amenities, opt => opt.MapFrom(src => src.RoomTypeAmenities.Select(rta => rta.Amenity)));
+        CreateMap<Amenity, AmenityDTO>();
     }
 }

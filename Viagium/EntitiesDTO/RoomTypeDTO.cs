@@ -6,8 +6,8 @@ namespace Viagium.EntitiesDTO;
 
 public class RoomTypeDTO
 {
+    public int RoomTypeId { get; set; }
     public int HotelId { get; set; }
-    public HotelDTO? Hotel { get; set; }
     
     [Required]
     [Display(Name = "Nome do Tipo de Quarto")]
@@ -35,5 +35,9 @@ public class RoomTypeDTO
     
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     
+    public bool IsActive { get; set; }
+    public DateTime? DeletedAt { get; set; }
+    
     public List<RoomDTO>? Rooms { get; set; }
+    public List<AmenityDTO>? Amenities { get; set; }
 }
