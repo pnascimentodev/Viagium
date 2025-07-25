@@ -133,7 +133,12 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Viagium V1");
+    c.RoutePrefix = string.Empty; // Faz o Swagger UI carregar em "/"
+});
+
 
 
 //app.UseHttpsRedirection();
@@ -145,5 +150,4 @@ app.UseCors("AllowFrontend");    // Habilita o CORS com a política definida
 app.MapControllers();            // Mapeia os controllers para as rotas
 
 
-app.MapGet("/", () => "API rodando!");
 app.Run();

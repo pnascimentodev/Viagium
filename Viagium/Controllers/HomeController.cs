@@ -3,10 +3,9 @@
 namespace Viagium.Controllers;
 
 [ApiController]
-[Route("/")]
+[Route("api/home")] // <- troque a rota
 public class HomeController : ControllerBase
 {
     [HttpGet]
     public IActionResult Get() => Ok("API rodando!");
-    
 }
