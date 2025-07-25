@@ -140,4 +140,21 @@ public class AffiliateController : ControllerBase
             return ExceptionHandler.HandleException(ex);
         }
     }
+    [HttpGet("by-email")]
+    public async Task<IActionResult> GetByEmail([FromQuery] string email)
+    {
+        try
+        {
+            var affiliate = await _affiliateService.GetByEmailAsync(email, false);
+            if (affiliate == null)
+                return NotFound("Afiliado não encontrado com este e-mail.");
+            var userDto = _mapper.Map<AffiliateDTO>(affiliate);
+            return Ok(userDto);
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
+
 }
