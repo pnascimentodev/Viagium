@@ -1,3 +1,6 @@
+// Forçando redeploy: comentário técnico
+// Última alteração: 2025-07-25
+
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
