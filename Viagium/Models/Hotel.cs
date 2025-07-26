@@ -37,5 +37,6 @@ public class Hotel
     public Address Address { get; set; } = new Address();
     
     public ICollection<HotelTypeAmentity> HotelTypeAmentity { get; set; } = new List<HotelTypeAmentity>();
+    public ICollection<AmentityHotel> AmentityHotels { get; set; } = new List<AmentityHotel>();
 
 }

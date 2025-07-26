@@ -26,6 +26,8 @@ public class AppDbContext : DbContext
     public DbSet<Room> Rooms { get; set; }
     public DbSet<HotelTypeAmentity> HotelTypeAmentities { get; set; }
     public DbSet<Amenity> Amenities { get; set; }
+    public DbSet<RoomTypeAmenity> RoomTypeAmenities { get; set; }
+    public DbSet<AmentityHotel> AmentityHotel { get; set; }
 
 
     // Configura o modelo do banco de dados
@@ -163,18 +165,27 @@ public class AppDbContext : DbContext
             .HasOne(rta => rta.Amenity)
             .WithMany(a => a.RoomTypeAmenities)
             .HasForeignKey(rta => rta.AmenityId);
-
+        
+        modelBuilder.Entity<AmentityHotel>()
+            .HasKey(ah => new { ah.HotelId, ah.AmenityId });
+        modelBuilder.Entity<AmentityHotel>()
+            .HasOne(ah => ah.Hotel)
+            .WithMany(h => h.AmentityHotels)
+            .HasForeignKey(ah => ah.HotelId);
+        modelBuilder.Entity<AmentityHotel>()
+            .HasOne(ah => ah.Amenity)
+            .WithMany()
+            .HasForeignKey(ah => ah.AmenityId);
+        
         modelBuilder.Entity<HotelTypeAmentity>()
             .HasKey(hta => new { hta.HotelId, hta.AmenityId });
-
+        
         modelBuilder.Entity<HotelTypeAmentity>()
             .HasOne(hta => hta.Hotel)
             .WithMany(h => h.HotelTypeAmentity)
             .HasForeignKey(hta => hta.HotelId);
+        
 
-        modelBuilder.Entity<HotelTypeAmentity>()
-            .HasOne(hta => hta.Amenity)
-            .WithMany(a => a.HotelTypeAmentities)
-            .HasForeignKey(hta => hta.AmenityId);
+
     }
 }

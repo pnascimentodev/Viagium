@@ -77,6 +77,8 @@ builder.Services.AddScoped<IAffiliateRepository, AffiliateRepository>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AddressService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IAmenityService, AmenityService>();
+
 
 builder.Services.AddScoped<IRoomTypeService, RoomTypeService>(provider =>
 {
@@ -99,6 +101,7 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"))
 
 //Configura a AutoMapper para mapear as entidades para os DTOs
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddAutoMapper(typeof(Viagium.EntitiesDTO.EntitiesMappingDTO));
 
 //Configura do JWT Bearer Authentication
 
