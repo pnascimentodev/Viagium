@@ -4,38 +4,44 @@ namespace Viagium.EntitiesDTO;
 
 public class AddressDTO
 {
-    [Required(ErrorMessage = "O nome da rua é obrigatório.")]
+    [Required(ErrorMessage = "O nome da rua ï¿½ obrigatï¿½rio.")]
     [Display(Name = "Nome da Rua")]
     public string StreetName { get; set; } = string.Empty;
     
-    [Required(ErrorMessage = "O número do endereço é obrigatório.")]
-    [Display(Name = "Número")]
+    [Required(ErrorMessage = "O nï¿½mero do endereï¿½o ï¿½ obrigatï¿½rio.")]
+    [Display(Name = "Nï¿½mero")]
     public int AddressNumber { get; set; }
     
-    [Required(ErrorMessage = "O bairro é obrigatório.")]
+    [Required(ErrorMessage = "O bairro ï¿½ obrigatï¿½rio.")]
     [Display(Name = "Bairro")]
     public string Neighborhood { get; set; } = string.Empty;
     
-    [Required(ErrorMessage = "A cidade é obrigatória.")]
+    [Required(ErrorMessage = "A cidade ï¿½ obrigatï¿½ria.")]
     [Display(Name = "Cidade")]
     public string City { get; set; } = string.Empty;
     
-    [Required(ErrorMessage = "O estado é obrigatório.")]
+    [Required(ErrorMessage = "O estado ï¿½ obrigatï¿½rio.")]
     [Display(Name = "Estado")]
     public string State { get; set; } = string.Empty;
     
-    [Required(ErrorMessage = "O CEP é obrigatório.")]
+    [Required(ErrorMessage = "O CEP ï¿½ obrigatï¿½rio.")]
     [Display(Name = "CEP")]
     [RegularExpression(@"^\d{5}-\d{3}$", ErrorMessage = "O CEP deve estar no formato 00000-000.")]
     public string ZipCode { get; set; } = string.Empty;
     
-    [Required(ErrorMessage = "O país é obrigatório.")]
-    [Display(Name = "País")]
+    [Required(ErrorMessage = "O paï¿½s ï¿½ obrigatï¿½rio.")]
+    [Display(Name = "Paï¿½s")]
     public string Country { get; set; } = string.Empty;
-    
+    [Display(Name = "Data de CriaÃ§Ã£o")]
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+
     public int AffiliateId { get; set; }
-    public AffiliateDTO? Affiliate { get; set; }
-    
+    public AffiliateDTO? Affiliate { get; set; } = null;
+
     public int HotelId { get; set; }
     public HotelDTO? Hotel { get; set; }
+
+    // Adicionando o campo AddressId para garantir que o id do endereÃ§o seja retornado
+    [Display(Name = "Id do EndereÃ§o")]
+    public int AddressId { get; set; }
 }

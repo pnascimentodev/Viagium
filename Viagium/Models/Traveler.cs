@@ -17,17 +17,17 @@ public class Traveler
     [Required]
     [MaxLength(100)]
     [Display(Name = "Primeiro Nome")]
-    public string FirstName { get; set; }
+    public required string FirstName { get; set; }
     
     [Required]
     [MaxLength(100)]
     [Display(Name = "Sobrenome")]
-    public string LastName { get; set; }
+    public required string LastName { get; set; }
     
     [Required]
     [MaxLength(12)]
     [Display(Name = "Número do Documento")]
-    public string DocumentNumber { get; set; }
+    public required string DocumentNumber { get; set; }
     
     [Required]
     [Display(Name ="Data de Nascimento")]

@@ -48,5 +48,7 @@ _ReSharper.Caches/
 
 # Arquivos específicos do projeto
 Viagium/appsettings.json
+Viagium/Migrations
+Viagium/Viagium.csproj
 Viagium/appsettings.Development.json
 global.json

@@ -1,0 +1,13 @@
+﻿name: viagium-backend
+services:
+  - name: api
+    dockerfile_path: Viagium/Dockerfile
+    http_port: 5000
+    envs:
+      - key: ASPNETCORE_URLS
+        value: http://0.0.0.0:5000
+        scope: RUN_TIME
+    git:
+      repo_clone_url: https://github.com/pnascimentodev/Viagium.git
+      branch: developer
+    source_dir: Viagium

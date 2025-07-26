@@ -40,7 +40,7 @@ public class Affiliate
 
     [Required]
     public string HashPassword { get; set; } = string.Empty;
-
+    
     [Display(Name = "Data de Criação")]
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
@@ -58,6 +58,7 @@ public class Affiliate
     // Relacionamento: Um afiliado pode ter um endereço
     [Display(Name = "Id do Endereço")]
     [ForeignKey("Address")]
+    [Required]
     public int AddressId { get; set; }
     public Address Address { get; set; } = new Address();
 }

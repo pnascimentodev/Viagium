@@ -4,6 +4,8 @@ namespace Viagium.EntitiesDTO;
 
 public class AffiliateDTO
 {
+    public int AffiliateId { get; set; }
+
     [Required]
     [StringLength(100)]
     [Display(Name = "Nome Fantasia")]
@@ -37,7 +39,7 @@ public class AffiliateDTO
 
     [Required]
     public string HashPassword { get; set; } = string.Empty;
-
+    
     [Display(Name = "Data de Criação")]
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
@@ -49,9 +51,6 @@ public class AffiliateDTO
 
     [Display(Name = "Data de Exclusão")]
     public DateTime? DeletedAt { get; set; }
-
-    // Relacionamento: Um afiliado pode registrar vários hotéis
-    public List<HotelDTO>? Hotels { get; set; }
     
     // Relacionamento: Um afiliado pode ter um endereço
     [Display(Name = "Id do Endereço")]
