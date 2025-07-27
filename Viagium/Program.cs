@@ -146,6 +146,8 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddHttpClient<ImgbbService>();
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddScoped<IEmailService, Viagium.Services.Email.EmailService>();
 
 var app = builder.Build(); 
 // Configure the HTTP request pipeline.
