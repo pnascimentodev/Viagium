@@ -67,6 +67,7 @@ public class UserService : IUserService
             // usando o UnitOfWork para adicionar o usuário
             await _unitOfWork.UserRepository.AddAsync(user);
             await _unitOfWork.SaveAsync();
+
             // Envia e-mail de boas-vindas
             var htmlBody = File.ReadAllText("EmailTemplates/WelcomeClient.html");
             var emailDto = new SendEmailDTO
