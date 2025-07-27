@@ -8,7 +8,7 @@ public class Amenity
     public string IconName { get; set; } = string.Empty;
     
     public ICollection<RoomTypeAmenity> RoomTypeAmenities { get; set; } = new List<RoomTypeAmenity>();
-    public ICollection<HotelTypeAmentity> HotelTypeAmentities { get; set; } = new List<HotelTypeAmentity>();
+    public ICollection<HotelAmentity> HotelTypeAmentities { get; set; } = new List<HotelAmentity>();
 
 
 }
