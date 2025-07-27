@@ -24,7 +24,7 @@ public class HotelCreateFormDTO
     [Required]
     public int AffiliateId { get; set; }
     [Required]
-    public int AddressId { get; set; }
+    public AddressDTO Address { get; set; } = new AddressDTO();
     public IFormFile Image { get; set; }
     public string? ImageUrl { get; set; }
 }

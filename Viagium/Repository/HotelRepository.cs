@@ -23,7 +23,15 @@ public class HotelRepository : IHotelRepository
     
     public async Task<HotelWithAddressDTO> AddAsync(HotelCreateFormDTO hotelCreateFormDTO)
     {
-        bool exists = await _context.Hotels.AnyAsync(h => h.Name == hotelCreateFormDTO.Name && h.AddressId == hotelCreateFormDTO.AddressId);
+        bool exists = await _context.Hotels.Include(h => h.Address)
+            .AnyAsync(h => h.Name == hotelCreateFormDTO.Name &&
+                h.Address.StreetName == hotelCreateFormDTO.Address.StreetName &&
+                h.Address.AddressNumber == hotelCreateFormDTO.Address.AddressNumber &&
+                h.Address.Neighborhood == hotelCreateFormDTO.Address.Neighborhood &&
+                h.Address.City == hotelCreateFormDTO.Address.City &&
+                h.Address.State == hotelCreateFormDTO.Address.State &&
+                h.Address.ZipCode == hotelCreateFormDTO.Address.ZipCode &&
+                h.Address.Country == hotelCreateFormDTO.Address.Country);
         if (exists)
         {
             throw new InvalidOperationException("Já existe um hotel com este nome neste endereço.");
@@ -34,10 +42,24 @@ public class HotelRepository : IHotelRepository
             imageUrl = await _imgbbService.UploadImageAsync(hotelCreateFormDTO.Image);
         }
 
+        // Mapeia o endereço do DTO para entidade Address
+        var address = _mapper.Map<Address>(hotelCreateFormDTO.Address);
+        await _context.Addresses.AddAsync(address);
+        await _context.SaveChangesAsync();
+        var addressId = address.AdressId;
+
+        // Mapeia o hotel SEM criar novo Address
         var hotel = _mapper.Map<Hotel>(hotelCreateFormDTO);
         hotel.ImageUrl = imageUrl;
+        hotel.AddressId = addressId;
+        hotel.Address = null; // Garante que não será criado novo endereço
 
         await _context.Hotels.AddAsync(hotel);
+        await _context.SaveChangesAsync();
+
+        // Atualiza o Address com o HotelId recém-criado
+        address.HotelId = hotel.HotelId;
+        _context.Addresses.Update(address);
         await _context.SaveChangesAsync();
 
         // Buscar o hotel criado com Address
