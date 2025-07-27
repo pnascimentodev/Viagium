@@ -17,7 +17,7 @@ public class Hotel
     [Display(Name = "Descrição do Hotel")]
     public string Description { get; set; } = string.Empty;
     
-    [Required(ErrorMessage = "A URL da imagem do hotel é obrigatória.")]
+    
     [Display(Name = "URL da Imagem do Hotel")]
     public string ImageUrl { get; set; } = string.Empty;
     
@@ -61,6 +61,6 @@ public class Hotel
     public int AddressId { get; set; }
     public Address Address { get; set; } = new Address();
     
-    public ICollection<HotelAmentity> HotelTypeAmentity { get; set; } = new List<HotelAmentity>();
+    public ICollection<HotelAmenity> HotelAmenity { get; set; } = new List<HotelAmenity>();
 
 }

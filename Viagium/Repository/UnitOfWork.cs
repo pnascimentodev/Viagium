@@ -12,8 +12,9 @@ public class UnitOfWork: IUnitOfWork
     public IAffiliateRepository AffiliateRepository { get; }
     public IAddressRepository AddressRepository { get; }
     public IAmenityRepository AmenityRepository { get; }
+    public IHotelRepository HotelRepository { get; }
 
-    public UnitOfWork(AppDbContext context, ITravelPackageRepository travelPackageRepository, IUserRepository userRepository, IAffiliateRepository affiliateRepository, IAddressRepository addressRepository, IAmenityRepository amenityRepository)
+    public UnitOfWork(AppDbContext context, ITravelPackageRepository travelPackageRepository, IUserRepository userRepository, IAffiliateRepository affiliateRepository, IAddressRepository addressRepository, IAmenityRepository amenityRepository, IHotelRepository hotelRepository)
     {
         _context = context;
         TravelPackageRepository = travelPackageRepository;
@@ -21,6 +22,7 @@ public class UnitOfWork: IUnitOfWork
         AffiliateRepository = affiliateRepository;
         AddressRepository = addressRepository;
         AmenityRepository = amenityRepository;
+        HotelRepository = hotelRepository;
     }
 
     

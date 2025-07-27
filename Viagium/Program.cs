@@ -67,6 +67,7 @@ builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoomTypeRepository, RoomTypeRepository>();
 builder.Services.AddScoped<IAmenityRepository, AmenityRepository>();
+builder.Services.AddScoped<IHotelRepository, HotelRepository>();
 
 // Registra o UnitOfWork e o serviços
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -78,6 +79,7 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AddressService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IAmenityService, AmenityService>();
+builder.Services.AddScoped<IHotelService, HotelService>();
 
 
 builder.Services.AddScoped<IRoomTypeService, RoomTypeService>(provider =>
@@ -101,7 +103,7 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"))
 
 //Configura a AutoMapper para mapear as entidades para os DTOs
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-builder.Services.AddAutoMapper(typeof(Viagium.EntitiesDTO.EntitiesMappingDTO));
+builder.Services.AddAutoMapper(typeof(Viagium.ProfileAutoMapper.EntitiesMappingProfile));
 
 //Configura do JWT Bearer Authentication
 
