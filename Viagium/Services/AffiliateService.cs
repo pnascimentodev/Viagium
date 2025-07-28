@@ -69,7 +69,8 @@ public class AffiliateService : IAffiliateService
                 HashPassword = PasswordHelper.HashPassword(password),
                 CreatedAt = DateTime.Now, // Sempre usar DateTime.Now
                 IsActive = true, // Sempre ativo na criação
-                AddressId = address.AdressId
+                AddressId = address.AdressId,
+                Address = null // Garante que não será criado novo Address
             };
 
             // Validações customizadas específicas do negócio
@@ -77,6 +78,11 @@ public class AffiliateService : IAffiliateService
 
             // Adiciona o afiliado
             await _unitOfWork.AffiliateRepository.AddAsync(affiliate);
+            await _unitOfWork.SaveAsync();
+
+            // Atualiza o endereço com o AffiliateId gerado
+            address.AffiliateId = affiliate.AffiliateId;
+            await _unitOfWork.AddressRepository.UpdateAsync(address);
             await _unitOfWork.SaveAsync();
             
             // Mapeamento para AffiliateDTO
