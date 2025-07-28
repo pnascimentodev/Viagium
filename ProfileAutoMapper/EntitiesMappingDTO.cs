@@ -28,6 +28,7 @@ namespace Viagium.ProfileAutoMapper
                 .ForMember(dest => dest.HashPassword, opt => opt.Ignore());
             CreateMap<Address, AddressListDTO>();
             CreateMap<Hotel, HotelDTO>();
+            CreateMap<Hotel, HotelWithAddressDTO>();
         }
     }
 }
