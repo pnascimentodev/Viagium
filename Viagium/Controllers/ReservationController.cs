@@ -16,8 +16,10 @@ namespace Viagium.Controllers
             _service = service;
         }
 
-
-
+        /// <summary>
+        /// Cria uma nova reserva.
+        /// </summary>
+        /// <remarks>Exemplo: POST /api/reservation</remarks>
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateReservationDTO createReservationDto)
         {
@@ -35,7 +37,10 @@ namespace Viagium.Controllers
             }
         }
 
-
+        /// <summary>
+        /// Busca uma reserva pelo ID.
+        /// </summary>
+        /// <remarks>Exemplo: GET /api/reservation/1</remarks>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -45,6 +50,10 @@ namespace Viagium.Controllers
             return Ok(reservation);
         }
 
+        /// <summary>
+        /// Lista todas as reservas cadastradas.
+        /// </summary>
+        /// <remarks>Exemplo: GET /api/reservation</remarks>
         [HttpGet]
         public async Task<IActionResult> GetAllReservations()
         {
@@ -53,7 +62,10 @@ namespace Viagium.Controllers
         }
 
 
-        //Checa e atualiza o status do pagamento caso o pagamento não tenha sido realizado
+        /// <summary>
+        /// Checa e atualiza o status do pagamento da reserva.
+        /// </summary>
+        /// <remarks>Exemplo: GET /api/reservation/1/check-payment-status</remarks>
         [HttpGet("{id}/check-payment-status")]
         public async Task<IActionResult> CheckAndUpdatePaymentStatus(int id)
         {
@@ -68,6 +80,10 @@ namespace Viagium.Controllers
             }
         }
 
+        /// <summary>
+        /// Desativa uma reserva.
+        /// </summary>
+        /// <remarks>Exemplo: DELETE /api/reservation/1</remarks>
         [HttpDelete("{id}")]
         public async Task<IActionResult> Deactivate(int id)
         {

@@ -18,6 +18,10 @@ public class RoomTypeController : ControllerBase
         _imgbbService = imgbbService;
     }
 
+    /// <summary>
+    /// Cria um novo tipo de quarto.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/roomtype</remarks>
     [HttpPost]
     public async Task<IActionResult> Create([FromForm] RoomTypeCreateFormDTO formDto)
     {
@@ -47,6 +51,10 @@ public class RoomTypeController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Busca um tipo de quarto pelo ID.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/roomtype/1</remarks>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -56,6 +64,10 @@ public class RoomTypeController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Lista todos os tipos de quarto cadastrados.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/roomtype</remarks>
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -63,6 +75,10 @@ public class RoomTypeController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Lista tipos de quarto por amenidades.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/roomtype/amenities?amenityIds=1&amenityIds=2</remarks>
     [HttpGet("amenities")]
     public async Task<IActionResult> GetByAmenityId([FromQuery] List<int> amenityIds)
     {
@@ -70,6 +86,10 @@ public class RoomTypeController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Atualiza um tipo de quarto.
+    /// </summary>
+    /// <remarks>Exemplo: PUT /api/roomtype</remarks>
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] RoomTypeUpdateDTO dto)
     {
@@ -84,6 +104,10 @@ public class RoomTypeController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Desativa um tipo de quarto.
+    /// </summary>
+    /// <remarks>Exemplo: DELETE /api/roomtype/1</remarks>
     [HttpDelete("{id}")]
     public async Task<IActionResult> Desativate(int id)
     {
@@ -98,6 +122,10 @@ public class RoomTypeController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Ativa um tipo de quarto.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/roomtype/1/activate</remarks>
     [HttpPost("{id}/activate")]
     public async Task<IActionResult> Activate(int id)
     {

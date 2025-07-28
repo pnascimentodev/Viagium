@@ -15,6 +15,10 @@ public class AmenityController : ControllerBase
         _amenityService = amenityService;
     }
 
+    /// <summary>
+    /// Lista todos os adicionais disponíveis.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/amenity</remarks>
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -29,6 +33,10 @@ public class AmenityController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Lista os adicionais disponíveis para tipos de quarto.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/amenity/TypeRoom</remarks>
     [HttpGet("TypeRoom")]
     public async Task<IActionResult> GetRoomTypeAmenities()
     {
@@ -43,6 +51,10 @@ public class AmenityController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Lista os adicionais disponíveis para hotéis.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/amenity/Hotel</remarks>
     [HttpGet("Hotel")]
     public async Task<IActionResult> GetHotelAmenities()
     {
