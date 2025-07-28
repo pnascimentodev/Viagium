@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Viagium.Models;
 using Viagium.Models.ENUM;
 
+namespace Viagium.Models;
 public class Payment
 {
     [Key]
