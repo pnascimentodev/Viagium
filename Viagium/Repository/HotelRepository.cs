@@ -159,6 +159,60 @@ public class HotelRepository : IHotelRepository
         return true;
     }
     
-    
-    
+    public async Task<IEnumerable<HotelWithAddressDTO>> GetByAmenityAsync(int amenityId)
+    {
+        var hotels = await _context.Hotels
+            .Include(h => h.Address)
+            .Include(h => h.HotelAmenity)
+                .ThenInclude(ha => ha.Amenity)
+            .Where(h => h.HotelAmenity.Any(ha => ha.AmenityId == amenityId))
+            .ToListAsync();
+        return hotels.Select(h => {
+            var dto = _mapper.Map<HotelWithAddressDTO>(h);
+            dto.Amenities = h.HotelAmenity.Select(ha => new AmenityDTO {
+                AmenityId = ha.Amenity.AmenityId,
+                Name = ha.Amenity.Name,
+                IconName = ha.Amenity.IconName
+            }).ToList();
+            return dto;
+        });
+    }
+
+    public async Task<IEnumerable<HotelWithAddressDTO>> GetByCityAsync(string city)
+    {
+        var hotels = await _context.Hotels
+            .Include(h => h.Address)
+            .Include(h => h.HotelAmenity)
+                .ThenInclude(ha => ha.Amenity)
+            .Where(h => h.Address.City.ToLower() == city.ToLower())
+            .ToListAsync();
+        return hotels.Select(h => {
+            var dto = _mapper.Map<HotelWithAddressDTO>(h);
+            dto.Amenities = h.HotelAmenity.Select(ha => new AmenityDTO {
+                AmenityId = ha.Amenity.AmenityId,
+                Name = ha.Amenity.Name,
+                IconName = ha.Amenity.IconName
+            }).ToList();
+            return dto;
+        });
+    }
+
+    public async Task<IEnumerable<HotelWithAddressDTO>> GetByAmenitiesAsync(List<int> amenityIds)
+    {
+        var hotels = await _context.Hotels
+            .Include(h => h.Address)
+            .Include(h => h.HotelAmenity)
+                .ThenInclude(ha => ha.Amenity)
+            .Where(h => amenityIds.All(id => h.HotelAmenity.Any(ha => ha.AmenityId == id)))
+            .ToListAsync();
+        return hotels.Select(h => {
+            var dto = _mapper.Map<HotelWithAddressDTO>(h);
+            dto.Amenities = h.HotelAmenity.Select(ha => new AmenityDTO {
+                AmenityId = ha.Amenity.AmenityId,
+                Name = ha.Amenity.Name,
+                IconName = ha.Amenity.IconName
+            }).ToList();
+            return dto;
+        });
+    }
 }

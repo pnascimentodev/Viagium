@@ -41,38 +41,7 @@ public class HotelController : ControllerBase
             return StatusCode(500, $"Erro ao criar hotel: {ex.Message}");
         }
     }
-
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id)
-    {
-        try
-        {
-            var hotel = await _hotelService.GetByIdAsync(id);
-            if (hotel == null)
-                return NotFound("Hotel não encontrado.");
-            return Ok(hotel);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Erro ao buscar hotel: {ex.Message}");
-        }
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
-    {
-        try
-        {
-            var hotels = await _hotelService.GetAllAsync();
-            if (hotels == null || !hotels.Any())
-                return NotFound("Nenhum hotel encontrado.");
-            return Ok(hotels);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Erro ao buscar hotéis: {ex.Message}");
-        }
-    }
+    
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] HotelWithAddressDTO hotelWithAddressDTO)
@@ -121,5 +90,51 @@ public class HotelController : ControllerBase
         {
             return StatusCode(500, $"Erro ao ativar hotel: {ex.Message}");
         }
+    }
+    
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        try
+        {
+            var hotel = await _hotelService.GetByIdAsync(id);
+            if (hotel == null)
+                return NotFound("Hotel não encontrado.");
+            return Ok(hotel);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro ao buscar hotel: {ex.Message}");
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        try
+        {
+            var hotels = await _hotelService.GetAllAsync();
+            if (hotels == null || !hotels.Any())
+                return NotFound("Nenhum hotel encontrado.");
+            return Ok(hotels);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro ao buscar hotéis: {ex.Message}");
+        }
+    }
+    
+    [HttpGet("by-city/{city}")]
+    public async Task<IActionResult> GetByCity(string city)
+    {
+        var hotels = await _hotelService.GetByCityAsync(city);
+        return Ok(hotels);
+    }
+
+    [HttpGet("by-amenities")]
+    public async Task<IActionResult> GetByAmenities([FromQuery] List<int> amenityIds)
+    {
+        var hotels = await _hotelService.GetByAmenitiesAsync(amenityIds);
+        return Ok(hotels);
     }
 }

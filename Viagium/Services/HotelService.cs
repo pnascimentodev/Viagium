@@ -97,5 +97,21 @@ public class HotelService : IHotelService
         }, "ativação de hotel");
     }
     
+    public async Task<IEnumerable<HotelWithAddressDTO>> GetByAmenityAsync(int amenityId)
+    {
+        var hotels = await _unitOfWork.HotelRepository.GetByAmenityAsync(amenityId);
+        return hotels;
+    }
+
+    public async Task<IEnumerable<HotelWithAddressDTO>> GetByCityAsync(string city)
+    {
+        var hotels = await _unitOfWork.HotelRepository.GetByCityAsync(city);
+        return hotels;
+    }
     
+    public async Task<IEnumerable<HotelWithAddressDTO>> GetByAmenitiesAsync(List<int> amenityIds)
+    {
+        var hotels = await _unitOfWork.HotelRepository.GetByAmenitiesAsync(amenityIds);
+        return hotels;
+    }
 }
