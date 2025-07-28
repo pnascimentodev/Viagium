@@ -118,6 +118,8 @@ public class HotelRepository : IHotelRepository
     {
         var hotels = await _context.Hotels
             .Include(h => h.Address)
+            .Include(h => h.HotelAmenity)
+                .ThenInclude(ha => ha.Amenity)
             .ToListAsync();
 
         return _mapper.Map<IEnumerable<HotelWithAddressDTO>>(hotels);

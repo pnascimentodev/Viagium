@@ -104,7 +104,6 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"))
 
 
 //Configura a AutoMapper para mapear as entidades para os DTOs
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddAutoMapper(typeof(Viagium.ProfileAutoMapper.EntitiesMappingProfile));
 
 //Configura do JWT Bearer Authentication

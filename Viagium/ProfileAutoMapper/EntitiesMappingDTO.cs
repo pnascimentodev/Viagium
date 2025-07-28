@@ -44,7 +44,8 @@ namespace Viagium.ProfileAutoMapper
             CreateMap<Viagium.Models.User, AdminDTO>();
             
             CreateMap<Hotel, HotelWithAddressDTO>()
-                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address));
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+                .ForMember(dest => dest.Amenities, opt => opt.MapFrom(src => src.HotelAmenity.Select(ha => ha.Amenity)));
             CreateMap<HotelWithAddressDTO, Hotel>()
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address));
             CreateMap<HotelCreateFormDTO, Hotel>()
