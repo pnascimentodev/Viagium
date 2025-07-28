@@ -7,6 +7,7 @@ using Viagium.Models;
 using Viagium.Repository;
 using Viagium.Services.Auth;
 using Viagium.Services.Interfaces;
+using Viagium.EntitiesDTO.Email;
 
 using Viagium.Repository.Interface;
 
@@ -19,12 +20,14 @@ public class UserService : IUserService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAuthService _authService;
     private readonly IMapper _mapper;
+    private readonly IEmailService _emailService;
     
-    public UserService(IUnitOfWork unitOfWork, IAuthService authService, IMapper mapper)
+    public UserService(IUnitOfWork unitOfWork, IAuthService authService, IEmailService emailService)
     {
         _unitOfWork = unitOfWork;
         _authService = authService;
-        _mapper = mapper;
+        _emailService = emailService;
+
     }
 
     public async Task<UserDTO> AddAsync(UserCreateDTO userCreateDto, string password)
@@ -65,18 +68,29 @@ public class UserService : IUserService
             await _unitOfWork.UserRepository.AddAsync(user);
             await _unitOfWork.SaveAsync();
 
-            // Mapeamento simples para UserDTO
+            // Envia e-mail de boas-vindas
+            var htmlBody = File.ReadAllText("EmailTemplates/WelcomeClient.html");
+            var emailDto = new SendEmailDTO
+            {
+                To = user.Email,
+                Subject = "Bem-vindo ao Viagium!",
+                HtmlBody = htmlBody.Replace("{NOME}", user.FirstName)
+            };
+            await _emailService.SendEmailAsync(emailDto);
+            // Retorno manual do DTO
             return new UserDTO
             {
+                UserId = user.UserId,
+                Email = user.Email,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                Email = user.Email,
                 DocumentNumber = user.DocumentNumber,
                 BirthDate = user.BirthDate,
                 Phone = user.Phone,
                 Role = user.Role.ToString(),
                 IsActive = user.IsActive,
-                HashPassword = user.HashPassword
+                HashPassword = user.HashPassword,
+                UpdatedAt = user.UpdatedAt ?? DateTime.Now
             };
         }, "criação de usuário");
         
