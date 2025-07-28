@@ -84,8 +84,8 @@ builder.Services.AddScoped<AddressService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IAmenityService, AmenityService>();
-builder.Services.AddScoped<IHotelService, HotelService>();
-
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<PaymentService>();
 
 builder.Services.AddScoped<IRoomTypeService, RoomTypeService>(provider =>
 {
