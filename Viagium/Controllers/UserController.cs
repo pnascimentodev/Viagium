@@ -119,6 +119,23 @@ public class UserController : ControllerBase
             return ExceptionHandler.HandleException(ex);
         }
     }
+    
+    //Alterar a senha de um usuário
+    [HttpPut("{id}/password")]
+    public async Task<IActionResult> UpdatePassword(int id, [FromBody] UpdatePasswordDto dto)
+    {
+        try
+        {
+            var user = await _userService.UpdatePasswordAsync(id, dto);
+            if (user == null)
+                return NotFound("Usuário não encontrado para atualização de senha.");
+            return Ok(user);
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
 
     // Desativa um usuário
     [HttpDelete("{id}")]

@@ -255,4 +255,37 @@ public class UserService : IUserService
             return _mapper.Map<UserDTO>(user);
         }, "buscar usuário por e-mail");
     }
+    
+    public async Task<UserDTO> UpdatePasswordAsync(int id, UpdatePasswordDto dto)
+    {
+        return await ExceptionHandler.ExecuteWithHandling(async () =>
+        {
+            ValidatePassword(dto.NewPassword);
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            if (user == null)
+                throw new KeyNotFoundException("Usuário não encontrado para atualização de senha.");
+
+            // Verifica se a senha antiga está correta
+            if (!PasswordHelper.VerifyPassword(dto.OldPassword, user.HashPassword))
+                throw new UnauthorizedAccessException("Senha atual incorreta.");
+
+            user.HashPassword = PasswordHelper.HashPassword(dto.NewPassword);
+            await _unitOfWork.UserRepository.UpdateAsync(user);
+            await _unitOfWork.SaveAsync();
+
+            return new UserDTO
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                DocumentNumber = user.DocumentNumber,
+                BirthDate = user.BirthDate,
+                Phone = user.Phone,
+                Role = user.Role.ToString(),
+                IsActive = user.IsActive,
+                HashPassword = user.HashPassword
+            };
+        }, "atualização de senha do usuário");
+    }
 }

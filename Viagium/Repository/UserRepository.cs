@@ -84,4 +84,15 @@ public class UserRepository : IUserRepository
             .Where(u => u.Email == email && (includeDeleted || u.IsActive))
             .FirstOrDefaultAsync();
     }
+    
+    public async Task<User> UpdatePasswordAsync(int id, string newPassword)
+    {
+        var user = await _context.Set<User>().FindAsync(id);
+        if (user == null)
+            throw new KeyNotFoundException("Usuário não encontrado para atualização de senha.");
+
+        user.HashPassword = newPassword;
+        await _context.SaveChangesAsync();
+        return user;
+    }
 }

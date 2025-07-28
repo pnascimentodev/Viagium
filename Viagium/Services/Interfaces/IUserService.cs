@@ -15,4 +15,5 @@ public interface IUserService
     Task<User> DesativateAsync(int id);
     Task<UserDTO> ActivateAsync(int id);
     Task<UserDTO?> GetByEmailAsync(string email, bool includeDeleted = false);
+    Task<UserDTO> UpdatePasswordAsync(int id, UpdatePasswordDto dto);
 }
