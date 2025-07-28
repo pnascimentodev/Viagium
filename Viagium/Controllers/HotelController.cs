@@ -137,4 +137,5 @@ public class HotelController : ControllerBase
         var hotels = await _hotelService.GetByAmenitiesAsync(amenityIds);
         return Ok(hotels);
     }
+    
 }
