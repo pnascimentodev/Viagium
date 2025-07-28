@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -11,6 +12,8 @@ using Viagium.Repository.Interface;
 using Viagium.Services;
 using Viagium.Services.Interfaces;
 using Viagium.Services.Auth;
+using AutoMapper;
+using Viagium.Services.Auth.Affiliate;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +24,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
 });
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 //builder.Services.AddSwaggerGen();
@@ -62,6 +66,9 @@ builder.Services.AddScoped<ITravelPackageRepository, TravelPackageRepository>();
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+builder.Services.AddScoped<IRoomTypeRepository, RoomTypeRepository>();
+builder.Services.AddScoped<IAmenityRepository, AmenityRepository>();
+builder.Services.AddScoped<IHotelRepository, HotelRepository>();
 
 // Registra o UnitOfWork e o serviços
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -73,6 +80,20 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AddressService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
+builder.Services.AddScoped<IAmenityService, AmenityService>();
+builder.Services.AddScoped<IHotelService, HotelService>();
+
+
+builder.Services.AddScoped<IRoomTypeService, RoomTypeService>(provider =>
+{
+    var roomTypeRepo = provider.GetRequiredService<IRoomTypeRepository>();
+    var amenityRepo = provider.GetRequiredService<IAmenityRepository>();
+    var mapper = provider.GetRequiredService<IMapper>();
+    return new RoomTypeService(roomTypeRepo, amenityRepo, mapper);
+});
+
+
+builder.Services.AddScoped<IAuthAffiliateService, AuthAffiliateService>();
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -84,6 +105,7 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"))
 
 //Configura a AutoMapper para mapear as entidades para os DTOs
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddAutoMapper(typeof(Viagium.ProfileAutoMapper.EntitiesMappingProfile));
 
 //Configura do JWT Bearer Authentication
 
@@ -127,6 +149,9 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod());
 });
 
+builder.Services.AddHttpClient<ImgbbService>();
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddScoped<IEmailService, Viagium.Services.Email.EmailService>();
 
 var app = builder.Build(); 
 // Configure the HTTP request pipeline.
@@ -137,10 +162,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors("AllowFrontend");
 app.UseAuthentication();         // Habilita o middleware que realiza a autenticação (verifica token na requisição)
-app.UseAuthorization();          // Habilita o middleware que faz a autorização (verifica se o usuário pode acessar o recurso)
-app.UseCors("AllowFrontend");    // Habilita o CORS com a política definida
+app.UseAuthorization();          // Habilita o middleware que faz a autorização (verifica se o usuário pode acessar o recurso)// Habilita o CORS com a política definida
 
 app.MapControllers();            // Mapeia os controllers para as rotas
 

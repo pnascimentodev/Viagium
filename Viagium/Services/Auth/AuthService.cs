@@ -21,21 +21,21 @@ public class AuthService : IAuthService
         _jwtSettings = jwtOptions.Value;
     }
 
-    /// Realiza o login validando a função do usuário.
+    /// Realiza o login validando a funï¿½ï¿½o do usuï¿½rio.
     public async Task<LoginResponseDTO> LoginWithRoleAsync(LoginRequestDTO loginRequest, Role requiredRole)
     {
         if (string.IsNullOrWhiteSpace(loginRequest.Email) || string.IsNullOrWhiteSpace(loginRequest.Password))
-            throw new ArgumentException("Email e senha são obrigatórios.");
+            throw new ArgumentException("Email e senha sÃ£o obrigatÃ³rios.");
 
         var user = await _userRepository.GetByEmailAsync(loginRequest.Email);
         if (user == null || !user.IsActive || user.DeletedAt != null)
-            throw new UnauthorizedAccessException("Usuário ou senha inválidos.");
+            throw new UnauthorizedAccessException("UsuÃ¡rio ou senha invÃ¡lidos.");
 
         if (!PasswordHelper.VerifyPassword(loginRequest.Password, user.HashPassword))
-            throw new UnauthorizedAccessException("Usuário ou senha inválidos.");
+            throw new UnauthorizedAccessException("UsuÃ¡rio ou senha invÃ¡lidos.");
 
         if (user.Role != requiredRole)
-            throw new UnauthorizedAccessException("Acesso não permitido para este tipo de usuário.");
+            throw new UnauthorizedAccessException("Acesso nÃ£o permitido para este tipo de usuÃ¡rio.");
 
         var token = GenerateJwtToken(user);
         return new LoginResponseDTO
@@ -46,7 +46,7 @@ public class AuthService : IAuthService
         };
     }
 
-    /// Gera um token JWT para o usuário autenticado.
+    /// Gera um token JWT para o usuï¿½rio autenticado.
     public string GenerateJwtToken(User user)
     {
         var claims = new[]

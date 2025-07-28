@@ -13,4 +13,5 @@ public interface IUserRepository
     Task<bool> DocumentNumberExistsAsync(string documentNumber, int? excludeUserId = null);
     Task<User> DesativateAsync(int id);
     Task<User> ActivateAsync(int id);
+    Task<User>GetByEmailAsync(string email, bool includeDeleted = false);
 }

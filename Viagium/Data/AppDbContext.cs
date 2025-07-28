@@ -24,6 +24,10 @@ public class AppDbContext : DbContext
     public DbSet<Affiliate> Affiliates { get; set; }
     public DbSet<Address> Addresses { get; set; }
     public DbSet<Room> Rooms { get; set; }
+    public DbSet<Amenity> Amenities { get; set; }
+    public DbSet<RoomTypeAmenity> RoomTypeAmenities { get; set; }
+    public DbSet<HotelAmenity> HotelAmenities { get; set; }
+
 
     // Configura o modelo do banco de dados
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -147,5 +151,31 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(tp => tp.DestinationAddressId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<RoomTypeAmenity>()
+            .HasKey(rta => new { rta.RoomTypeId, rta.AmenityId });
+
+        modelBuilder.Entity<RoomTypeAmenity>()
+            .HasOne(rta => rta.RoomType)
+            .WithMany(rt => rt.RoomTypeAmenities)
+            .HasForeignKey(rta => rta.RoomTypeId);
+
+        modelBuilder.Entity<RoomTypeAmenity>()
+            .HasOne(rta => rta.Amenity)
+            .WithMany(a => a.RoomTypeAmenities)
+            .HasForeignKey(rta => rta.AmenityId);
+        
+        modelBuilder.Entity<HotelAmenity>()
+            .HasKey(ha => new { ha.HotelId, ha.AmenityId });
+
+        modelBuilder.Entity<HotelAmenity>()
+            .HasOne(ha => ha.Hotel)
+            .WithMany(h => h.HotelAmenity)
+            .HasForeignKey(ha => ha.HotelId);
+
+        modelBuilder.Entity<HotelAmenity>()
+            .HasOne(ha => ha.Amenity)
+            .WithMany(a => a.HotelAmenity)
+            .HasForeignKey(ha => ha.AmenityId);
     }
 }

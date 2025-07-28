@@ -27,12 +27,17 @@ public class AffiliateRepository : IAffiliateRepository
 
     public async Task<Affiliate?> GetByIdAsync(int id)
     {
-       return await _context.Affiliates.FindAsync(id);
+       return await _context.Affiliates
+           .Include(a => a.Address)
+           .FirstOrDefaultAsync(a => a.AffiliateId == id);
     }
 
     public async Task<IEnumerable<Affiliate>> GetAllAsync()
     {
-        return await _context.Affiliates.Where(affiliate => affiliate.IsActive).ToListAsync();
+        return await _context.Affiliates
+            .Include(a => a.Address)
+            .Where(affiliate => affiliate.IsActive)
+            .ToListAsync();
     }
 
     public Task<Affiliate?> GetByCnpjAsync(string cnpj)
@@ -45,5 +50,32 @@ public class AffiliateRepository : IAffiliateRepository
     {
         return _context.Affiliates
             .FirstOrDefaultAsync(affiliate => affiliate.Cnpj == stateRegistration);
+    }
+
+    public async Task<IEnumerable<Affiliate>> GetByCityAsync(string city)
+    {
+        return await _context.Affiliates
+            .Include(a => a.Address)
+            .Where(a => a.Address.City == city && a.IsActive)
+            .ToListAsync();
+    }
+    
+    public async Task<Affiliate?> GetByEmailAsync(string email, bool includeDeleted = false)
+    {
+        return await _context.Set<Affiliate>()
+            .Where(a => a.Email == email && (includeDeleted || a.IsActive))
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<bool> EmailExistsAsync(string email)
+    {
+        return await _context.Affiliates
+            .AnyAsync(a => a.Email == email && a.IsActive);
+    }
+
+    public async Task<bool> CnpjExistsAsync(string cnpj)
+    {
+        return await _context.Affiliates
+            .AnyAsync(a => a.Cnpj == cnpj && a.IsActive);
     }
 }

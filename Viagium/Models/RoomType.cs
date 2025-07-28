@@ -27,5 +27,12 @@ public class RoomType
     public int NumberOfRoomsAvailable { get; set; }
     
     public DateTime CreatedAt { get; set; } = DateTime.Now;
+    
+    public bool IsActive { get; set; } = true;
+    
+    public DateTime? DeletedAt { get; set; }
+    
     public ICollection<Room> Rooms { get; set; } = new List<Room>();
+    public ICollection<RoomTypeAmenity> RoomTypeAmenities { get; set; } = new List<RoomTypeAmenity>();
+
 }

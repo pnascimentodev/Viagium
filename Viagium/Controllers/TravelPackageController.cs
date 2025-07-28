@@ -102,7 +102,7 @@ public class TravelPackageController : ControllerBase
             return ExceptionHandler.HandleException(ex);
         }
     }
-    
+
     [HttpPost("active-promotion/{id}")]
     public async Task<IActionResult> ActivePromotion(int id, [FromBody] decimal discountPercentage)
     {
@@ -112,6 +112,20 @@ public class TravelPackageController : ControllerBase
             if (pacoteAtivado == null)
                 return NotFound("Pacote de viagem não encontrado para ativação de promoção.");
             return Ok(pacoteAtivado);
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
+
+    [HttpGet("active-package")]
+    public async Task<IActionResult> GetActivePackage()
+    {
+        try
+        {
+            var pacoteAtivo = await _service.GetActiveAsync();
+            return Ok(pacoteAtivo);
         }
         catch (Exception ex)
         {

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using AutoMapper;
 using Viagium.EntitiesDTO;
 using Viagium.EntitiesDTO.User;
 using Viagium.EntitiesDTO.Auth;
@@ -6,6 +7,7 @@ using Viagium.Models;
 using Viagium.Repository;
 using Viagium.Services.Auth;
 using Viagium.Services.Interfaces;
+using Viagium.EntitiesDTO.Email;
 
 using Viagium.Repository.Interface;
 
@@ -17,11 +19,15 @@ public class UserService : IUserService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAuthService _authService;
+    private readonly IMapper _mapper;
+    private readonly IEmailService _emailService;
     
-    public UserService(IUnitOfWork unitOfWork, IAuthService authService)
+    public UserService(IUnitOfWork unitOfWork, IAuthService authService, IEmailService emailService)
     {
         _unitOfWork = unitOfWork;
         _authService = authService;
+        _emailService = emailService;
+
     }
 
     public async Task<UserDTO> AddAsync(UserCreateDTO userCreateDto, string password)
@@ -46,7 +52,9 @@ public class UserService : IUserService
                 LastName = userCreateDto.LastName,
                 DocumentNumber = userCreateDto.DocumentNumber,
                 BirthDate = userCreateDto.BirthDate,
-                HashPassword = PasswordHelper.HashPassword(password)
+                HashPassword = PasswordHelper.HashPassword(password),
+                Phone = userCreateDto.Phone,
+                Role = (Role)1 // Define a role como 1
             };
 
             //validação se o usuario esta conforme o contrato do DTO
@@ -60,18 +68,29 @@ public class UserService : IUserService
             await _unitOfWork.UserRepository.AddAsync(user);
             await _unitOfWork.SaveAsync();
 
-            // Mapeamento simples para UserDTO
+            // Envia e-mail de boas-vindas
+            var htmlBody = File.ReadAllText("EmailTemplates/WelcomeClient.html");
+            var emailDto = new SendEmailDTO
+            {
+                To = user.Email,
+                Subject = "Bem-vindo ao Viagium!",
+                HtmlBody = htmlBody.Replace("{NOME}", user.FirstName)
+            };
+            await _emailService.SendEmailAsync(emailDto);
+            // Retorno manual do DTO
             return new UserDTO
             {
+                UserId = user.UserId,
+                Email = user.Email,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                Email = user.Email,
                 DocumentNumber = user.DocumentNumber,
                 BirthDate = user.BirthDate,
                 Phone = user.Phone,
                 Role = user.Role.ToString(),
                 IsActive = user.IsActive,
-                HashPassword = user.HashPassword
+                HashPassword = user.HashPassword,
+                UpdatedAt = user.UpdatedAt ?? DateTime.Now
             };
         }, "criação de usuário");
         
@@ -218,5 +237,22 @@ public class UserService : IUserService
     {
         if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
             throw new ArgumentException("A senha precisa possuir pelo menos 8 caracteres.");
+    }
+    
+    public async Task<UserDTO?> GetByEmailAsync(string email, bool unused)
+    {
+        return await ExceptionHandler.ExecuteWithHandling(async () =>
+        {
+            var user = await _unitOfWork.UserRepository.GetByEmailAsync(email);
+            if (user == null)
+            {
+                // Validação DataAnnotation para email não encontrado
+                var userEmailDto = new UserEmailDTO { Email = email };
+                var context = new ValidationContext(userEmailDto);
+                Validator.ValidateObject(userEmailDto, context, validateAllProperties: true);
+                return null;
+            }
+            return _mapper.Map<UserDTO>(user);
+        }, "buscar usuário por e-mail");
     }
 }

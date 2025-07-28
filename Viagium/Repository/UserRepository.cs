@@ -77,4 +77,11 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync();
         return existing;
     }
+    
+    public async Task<User> GetByEmailAsync(string email, bool includeDeleted = false)
+    {
+        return await _context.Set<User>()
+            .Where(u => u.Email == email && (includeDeleted || u.IsActive))
+            .FirstOrDefaultAsync();
+    }
 }

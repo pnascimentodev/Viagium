@@ -14,4 +14,5 @@ public interface IUserService
     Task<LoginResponseDTO> LoginAsync(LoginRequestDTO loginRequest);
     Task<User> DesativateAsync(int id);
     Task<UserDTO> ActivateAsync(int id);
+    Task<UserDTO?> GetByEmailAsync(string email, bool includeDeleted = false);
 }
