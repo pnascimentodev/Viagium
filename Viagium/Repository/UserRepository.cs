@@ -95,4 +95,15 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync();
         return user;
     }
+    
+    public async Task<User> ForgotPasswordAsync(int id, string newPassword)
+    {
+        var user = await _context.Set<User>().FindAsync(id);
+        if (user == null)
+            throw new KeyNotFoundException("Usuário não encontrado para recuperação de senha.");
+
+        user.HashPassword = newPassword;
+        await _context.SaveChangesAsync();
+        return user;
+    }
 }

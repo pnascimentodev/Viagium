@@ -288,4 +288,33 @@ public class UserService : IUserService
             };
         }, "atualização de senha do usuário");
     }
+    
+    public async Task<UserDTO> ForgotPasswordAsync(int id, string newPassword)
+    {
+        return await ExceptionHandler.ExecuteWithHandling(async () =>
+        {
+            ValidatePassword(newPassword);
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            if (user == null)
+                throw new KeyNotFoundException("Usuário não encontrado para recuperação de senha.");
+
+            user.HashPassword = PasswordHelper.HashPassword(newPassword);
+            await _unitOfWork.UserRepository.UpdateAsync(user);
+            await _unitOfWork.SaveAsync();
+
+            return new UserDTO
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                DocumentNumber = user.DocumentNumber,
+                BirthDate = user.BirthDate,
+                Phone = user.Phone,
+                Role = user.Role.ToString(),
+                IsActive = user.IsActive,
+                HashPassword = user.HashPassword
+            };
+        }, "recuperação de senha do usuário");
+    }
 }
