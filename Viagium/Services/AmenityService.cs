@@ -21,4 +21,18 @@ public class AmenityService : IAmenityService
         var amenities = await _unitOfWork.AmenityRepository.GetAllAsync();
         return _mapper.Map<IEnumerable<AmenityDTO>>(amenities);
     }
+
+    public async Task<IEnumerable<AmenityDTO>> GetHotelAmenitiesAsync()
+    {
+        var amenities = await _unitOfWork.AmenityRepository.GetAllAsync();
+        var hotelAmenities = amenities.Where(a => a.AmenityScope == "Hotel" || a.AmenityScope == "hotel" ||a.AmenityScope == "Ambos");
+        return _mapper.Map<IEnumerable<AmenityDTO>>(hotelAmenities);
+    }
+
+    public async Task<IEnumerable<AmenityDTO>> GetRoomTypeAmenitiesAsync()
+    {
+        var amenities = await _unitOfWork.AmenityRepository.GetAllAsync();
+        var roomTypeAmenities = amenities.Where(a => a.AmenityScope == "Quarto" || a.AmenityScope == "quarto" ||a.AmenityScope == "Ambos");
+        return _mapper.Map<IEnumerable<AmenityDTO>>(roomTypeAmenities);
+    }
 }
