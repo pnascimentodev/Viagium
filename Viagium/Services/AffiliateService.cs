@@ -69,7 +69,8 @@ public class AffiliateService : IAffiliateService
                 HashPassword = PasswordHelper.HashPassword(password),
                 CreatedAt = DateTime.Now, // Sempre usar DateTime.Now
                 IsActive = true, // Sempre ativo na criação
-                AddressId = address.AdressId
+                AddressId = address.AdressId,
+                Address = null // Garante que não será criado novo Address
             };
 
             // Validações customizadas específicas do negócio
@@ -77,6 +78,11 @@ public class AffiliateService : IAffiliateService
 
             // Adiciona o afiliado
             await _unitOfWork.AffiliateRepository.AddAsync(affiliate);
+            await _unitOfWork.SaveAsync();
+
+            // Atualiza o endereço com o AffiliateId gerado
+            address.AffiliateId = affiliate.AffiliateId;
+            await _unitOfWork.AddressRepository.UpdateAsync(address);
             await _unitOfWork.SaveAsync();
             
             // Mapeamento para AffiliateDTO
@@ -126,25 +132,23 @@ public class AffiliateService : IAffiliateService
     }
 
 
-    public Task<Affiliate> GetByIdAsync(int id)
+    public async Task<AffiliateDTO> GetByIdAsync(int id)
     {
-        return ExceptionHandler.ExecuteWithHandling(async () =>
+        return await ExceptionHandler.ExecuteWithHandling(async () =>
         {
             var affiliate = await _unitOfWork.AffiliateRepository.GetByIdAsync(id);
             if (affiliate == null)
                 throw new KeyNotFoundException("Afiliado não encontrado.");
-            
-            return affiliate;
+            return _mapper.Map<AffiliateDTO>(affiliate);
         }, "busca de afiliado");
     }
 
-    public Task<IEnumerable<Affiliate>> GetAllAsync()
+    public async Task<IEnumerable<AffiliateDTO>> GetAllAsync()
     {
-        return ExceptionHandler.ExecuteWithHandling(async () =>
+        return await ExceptionHandler.ExecuteWithHandling(async () =>
         {
             var affiliates = await _unitOfWork.AffiliateRepository.GetAllAsync();
-            
-            return affiliates;
+            return _mapper.Map<IEnumerable<AffiliateDTO>>(affiliates);
         }, "busca de afiliados");
     }
 
@@ -173,17 +177,13 @@ public class AffiliateService : IAffiliateService
         return await _unitOfWork.AffiliateRepository.GetByCityAsync(city);
     }
     
-    public async Task<AffiliateDTO?> GetByEmailAsync(string email, bool unused)
+    public async Task<AffiliateDTO> GetByEmailAsync(string email, bool includeDeleted = false)
     {
         return await ExceptionHandler.ExecuteWithHandling(async () =>
         {
-            // Validação básica do parâmetro de entrada
             if (string.IsNullOrWhiteSpace(email))
                 throw new ArgumentException("Email é obrigatório para busca.");
-
             var affiliate = await _unitOfWork.AffiliateRepository.GetByEmailAsync(email);
-        
-            // Se não encontrar, simplesmente retorna null (comportamento esperado)
             if (affiliate == null)
                 throw new ArgumentException("Email não encontrado.");
 

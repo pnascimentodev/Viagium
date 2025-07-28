@@ -49,4 +49,6 @@ public class AffiliateDTO
     [Display(Name = "Id do Endereço")]
     public int AddressId { get; set; }
     public AddressDTO? Address { get; set; }
+
+    public List<HotelWithAddressDTO>? Hotels { get; set; }
 }
