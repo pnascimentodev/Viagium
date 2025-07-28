@@ -14,7 +14,7 @@ public class EntitiesMappingDTO : Profile
         CreateMap<Viagium.Models.User, UserDTO>();
         CreateMap<Hotel, HotelDTO>();
         CreateMap<Payment, PaymentDTO>();
-        CreateMap<Reservation, ReservationDTO>();
+        CreateMap<Viagium.Models.Reservation, ReservationDTO>();
         CreateMap<ReservationRoom, ReservationRoomDTO>();
         CreateMap<Review, ReviewDTO>();
         CreateMap<Room, RoomDTO>();

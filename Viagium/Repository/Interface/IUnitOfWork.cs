@@ -6,5 +6,6 @@ public interface IUnitOfWork : IDisposable
     IUserRepository UserRepository { get; }
     IAffiliateRepository AffiliateRepository { get; }
     IAddressRepository AddressRepository { get; }
+    IReservationRepository ReservationRepository { get; }
     Task<int> SaveAsync();
 }

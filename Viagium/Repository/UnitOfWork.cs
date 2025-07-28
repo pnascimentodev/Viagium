@@ -11,14 +11,16 @@ public class UnitOfWork: IUnitOfWork
     public IUserRepository UserRepository { get; }
     public IAffiliateRepository AffiliateRepository { get; }
     public IAddressRepository AddressRepository { get; }
+    public IReservationRepository ReservationRepository { get; }
 
-    public UnitOfWork(AppDbContext context, ITravelPackageRepository travelPackageRepository, IUserRepository userRepository, IAffiliateRepository affiliateRepository, IAddressRepository addressRepository)
+    public UnitOfWork(AppDbContext context, ITravelPackageRepository travelPackageRepository, IUserRepository userRepository, IAffiliateRepository affiliateRepository, IAddressRepository addressRepository, IReservationRepository reservationRepository)
     {
         _context = context;
         TravelPackageRepository = travelPackageRepository;
         UserRepository = userRepository;
         AffiliateRepository = affiliateRepository;
         AddressRepository = addressRepository;
+        ReservationRepository = reservationRepository;
     }
 
     
