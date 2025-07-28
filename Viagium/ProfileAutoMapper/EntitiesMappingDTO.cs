@@ -11,9 +11,19 @@ namespace Viagium.ProfileAutoMapper
         public EntitiesMappingProfile() : base()
         {
             CreateMap<Address, AddressDTO>();
-            CreateMap<Affiliate, AffiliateDTO>();
+            CreateMap<Hotel, HotelWithAddressDTO>()
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+                .ForMember(dest => dest.Amenities, opt => opt.MapFrom(src => src.HotelAmenity.Select(ha => new AmenityDTO
+                {
+                    AmenityId = ha.Amenity.AmenityId,
+                    Name = ha.Amenity.Name,
+                    IconName = ha.Amenity.IconName
+                })));
+            CreateMap<Affiliate, AffiliateDTO>()
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+                .ForMember(dest => dest.Hotels, opt => opt.MapFrom(src => src.Hotels));
             CreateMap<Viagium.Models.User, UserDTO>();
-            CreateMap<Hotel, HotelDTO>();
+
             CreateMap<Payment, PaymentDTO>();
             CreateMap<Viagium.Models.Reservation, ReservationDTO>();
             CreateMap<ReservationRoom, ReservationRoomDTO>();
@@ -45,7 +55,12 @@ namespace Viagium.ProfileAutoMapper
             
             CreateMap<Hotel, HotelWithAddressDTO>()
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
-                .ForMember(dest => dest.Amenities, opt => opt.MapFrom(src => src.HotelAmenity.Select(ha => ha.Amenity)));
+                .ForMember(dest => dest.Amenities, opt => opt.MapFrom(src => src.HotelAmenity.Select(ha => new AmenityDTO
+                {
+                    AmenityId = ha.Amenity.AmenityId,
+                    Name = ha.Amenity.Name,
+                    IconName = ha.Amenity.IconName
+                })));
             CreateMap<HotelWithAddressDTO, Hotel>()
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address));
             CreateMap<HotelCreateFormDTO, Hotel>()
@@ -58,7 +73,8 @@ namespace Viagium.ProfileAutoMapper
             CreateMap<AffiliateCreateDto, Models.Affiliate>()
                 .ForMember(dest => dest.HashPassword, opt => opt.Ignore())
                 .ForMember(dest => dest.AffiliateId, opt => opt.Ignore());
-            CreateMap<Models.Affiliate, AffiliateDTO>();
+            CreateMap<Models.Affiliate, AffiliateDTO>()
+                .ForMember(dest => dest.Hotels, opt => opt.MapFrom(src => src.Hotels));
             CreateMap<Models.Affiliate, AffiliateListDTO>()
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
                 .ForMember(dest => dest.Hotels, opt => opt.MapFrom(src => src.Hotels));

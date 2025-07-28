@@ -29,6 +29,11 @@ public class AffiliateRepository : IAffiliateRepository
     {
        return await _context.Affiliates
            .Include(a => a.Address)
+           .Include(a => a.Hotels)
+               .ThenInclude(h => h.Address)
+           .Include(a => a.Hotels)
+               .ThenInclude(h => h.HotelAmenity)
+                   .ThenInclude(ha => ha.Amenity)
            .FirstOrDefaultAsync(a => a.AffiliateId == id);
     }
 
@@ -36,6 +41,11 @@ public class AffiliateRepository : IAffiliateRepository
     {
         return await _context.Affiliates
             .Include(a => a.Address)
+            .Include(a => a.Hotels)
+                .ThenInclude(h => h.Address)
+            .Include(a => a.Hotels)
+                .ThenInclude(h => h.HotelAmenity)
+                    .ThenInclude(ha => ha.Amenity)
             .Where(affiliate => affiliate.IsActive)
             .ToListAsync();
     }
@@ -63,6 +73,8 @@ public class AffiliateRepository : IAffiliateRepository
     public async Task<Affiliate?> GetByEmailAsync(string email, bool includeDeleted = false)
     {
         return await _context.Set<Affiliate>()
+            .Include(a => a.Address)
+            .Include(a => a.Hotels)
             .Where(a => a.Email == email && (includeDeleted || a.IsActive))
             .FirstOrDefaultAsync();
     }
