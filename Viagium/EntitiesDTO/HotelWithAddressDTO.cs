@@ -13,5 +13,5 @@ public class HotelWithAddressDTO
     public DateTime CadasturExpiration { get; set; }
     public string ImageUrl { get; set; } = string.Empty;
     public AddressDTO Address { get; set; } = new AddressDTO();
+    public List<AmenityDTO> Amenities { get; set; } = new();
 }
-

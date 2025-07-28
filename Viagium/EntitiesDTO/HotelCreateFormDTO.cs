@@ -27,4 +27,5 @@ public class HotelCreateFormDTO
     public AddressDTO Address { get; set; } = new AddressDTO();
     public IFormFile Image { get; set; }
     public string? ImageUrl { get; set; }
+    public List<int> Amenities { get; set; } = new();
 }

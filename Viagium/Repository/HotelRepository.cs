@@ -62,19 +62,56 @@ public class HotelRepository : IHotelRepository
         _context.Addresses.Update(address);
         await _context.SaveChangesAsync();
 
-        // Buscar o hotel criado com Address
-        var createdHotel = await _context.Hotels.Include(h => h.Address)
-            .FirstOrDefaultAsync(h => h.Name == hotel.Name && h.AddressId == hotel.AddressId);
-        return _mapper.Map<HotelWithAddressDTO>(createdHotel);
+        // Vincula os amenities ao hotel
+        if (hotelCreateFormDTO.Amenities != null && hotelCreateFormDTO.Amenities.Any())
+        {
+            var amenities = await _context.Amenities.Where(a => hotelCreateFormDTO.Amenities.Contains(a.AmenityId)).ToListAsync();
+            foreach (var amenity in amenities)
+            {
+                var hotelAmenity = new HotelAmenity
+                {
+                    HotelId = hotel.HotelId,
+                    AmenityId = amenity.AmenityId
+                };
+                await _context.HotelAmenities.AddAsync(hotelAmenity);
+            }
+            await _context.SaveChangesAsync();
+        }
+
+        // Buscar o hotel criado com Address e Amenities
+        var createdHotel = await _context.Hotels
+            .Include(h => h.Address)
+            .Include(h => h.HotelAmenity)
+                .ThenInclude(ha => ha.Amenity)
+            .FirstOrDefaultAsync(h => h.HotelId == hotel.HotelId);
+        var dto = _mapper.Map<HotelWithAddressDTO>(createdHotel);
+        dto.Amenities = createdHotel.HotelAmenity
+            .Select(ha => new AmenityDTO {
+                AmenityId = ha.Amenity.AmenityId,
+                Name = ha.Amenity.Name,
+                IconName = ha.Amenity.IconName
+            }).ToList();
+        return dto;
     }
     
     public async Task<HotelWithAddressDTO?> GetByIdAsync(int hotelId)
     {
         var hotel = await _context.Hotels
             .Include(h => h.Address)
+            .Include(h => h.HotelAmenity)
+                .ThenInclude(ha => ha.Amenity)
             .FirstOrDefaultAsync(h => h.HotelId == hotelId);
 
-        return hotel != null ? _mapper.Map<HotelWithAddressDTO>(hotel) : null;
+        if (hotel == null) return null;
+
+        var dto = _mapper.Map<HotelWithAddressDTO>(hotel);
+        dto.Amenities = hotel.HotelAmenity
+            .Select(ha => new AmenityDTO {
+                AmenityId = ha.Amenity.AmenityId,
+                Name = ha.Amenity.Name,
+                IconName = ha.Amenity.IconName
+            }).ToList();
+        return dto;
     }
     
     public async Task<IEnumerable<HotelWithAddressDTO>> GetAllAsync()
