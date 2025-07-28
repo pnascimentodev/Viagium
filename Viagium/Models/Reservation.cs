@@ -24,8 +24,8 @@ public class Reservation
  
     [Required]
     public decimal TotalPrice { get; set; }
- 
-    public string Status { get; set; } = "Pending";
+
+    public string Status { get; set; } = "Pending"; //reserva p c canc f 
  
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     
@@ -35,4 +35,7 @@ public class Reservation
     public int PaymentId { get; set; }
     public Payment? Payment { get; set; }
     public required ICollection<ReservationRoom> ReservationRooms { get; set; }
+
+    //desativar a reserva cancelamento
+    public bool IsActive { get; internal set; }
 }
