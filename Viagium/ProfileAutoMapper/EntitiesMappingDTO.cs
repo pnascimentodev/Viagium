@@ -8,50 +8,14 @@ namespace Viagium.ProfileAutoMapper
 {
     public class EntitiesMappingProfile : Profile
     {
-        CreateMap<Address, AddressDTO>();
-        CreateMap<Affiliate, AffiliateDTO>();
-        CreateMap<Viagium.Models.User, UserDTO>();
-        CreateMap<Hotel, HotelDTO>();
-        CreateMap<Payment, PaymentDTO>();
-        CreateMap<Viagium.Models.Reservation, ReservationDTO>();
-        CreateMap<ReservationRoom, ReservationRoomDTO>();
-        CreateMap<Review, ReviewDTO>();
-        CreateMap<Room, RoomDTO>();
-        CreateMap<RoomType, RoomTypeDTO>();
-        CreateMap<Traveler, TravelerDTO>();
-        CreateMap<TravelPackage, TravelPackageDTO>();
-        CreateMap<TravelPackageHistory, TravelPackageHistoryDTO>();
-        CreateMap<UserUpdateDto, Viagium.Models.User>()
-            .ForMember(dest => dest.DocumentNumber, opt => opt.Ignore())
-            .ForMember(dest => dest.Role, opt => opt.Ignore())
-            .ForMember(dest => dest.IsActive, opt => opt.Ignore());
-        CreateMap<UserCreateDTO, Viagium.Models.User>()
-            .ForMember(dest => dest.HashPassword, opt => opt.Ignore())
-            .ForMember(dest => dest.Role, opt => opt.Ignore())
-            .ForMember(dest => dest.IsActive, opt => opt.Ignore());
-        CreateMap<Address, AddressDTO>().ReverseMap();
-        CreateMap<UserDTO, UserListDTO>();
-        CreateMap<AdminRegisterDTO, Viagium.Models.User>()
-            .ForMember(dest => dest.HashPassword, opt => opt.Ignore())
-            .ForMember(dest => dest.Role, opt => opt.Ignore())
-            .ForMember(dest => dest.IsActive, opt => opt.Ignore());
-        CreateMap<AdminUpdateDTO, Viagium.Models.User>()
-            .ForMember(dest => dest.HashPassword, opt => opt.Ignore())
-            .ForMember(dest => dest.Role, opt => opt.Ignore())
-            .ForMember(dest => dest.IsActive, opt => opt.Ignore());
-        CreateMap<Viagium.Models.User, AdminDTO>();
-        public EntitiesMappingProfile()
+        public EntitiesMappingProfile() : base()
         {
             CreateMap<Address, AddressDTO>();
-            CreateMap<Models.Affiliate, AffiliateDTO>();
+            CreateMap<Affiliate, AffiliateDTO>();
             CreateMap<Viagium.Models.User, UserDTO>();
             CreateMap<Hotel, HotelDTO>();
-            CreateMap<Hotel, HotelWithAddressDTO>()
-                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address));
-            CreateMap<HotelWithAddressDTO, Hotel>()
-                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address));
             CreateMap<Payment, PaymentDTO>();
-            CreateMap<Reservation, ReservationDTO>();
+            CreateMap<Viagium.Models.Reservation, ReservationDTO>();
             CreateMap<ReservationRoom, ReservationRoomDTO>();
             CreateMap<Review, ReviewDTO>();
             CreateMap<Room, RoomDTO>();
@@ -59,6 +23,30 @@ namespace Viagium.ProfileAutoMapper
             CreateMap<Traveler, TravelerDTO>();
             CreateMap<TravelPackage, TravelPackageDTO>();
             CreateMap<TravelPackageHistory, TravelPackageHistoryDTO>();
+            CreateMap<UserUpdateDto, Viagium.Models.User>()
+                .ForMember(dest => dest.DocumentNumber, opt => opt.Ignore())
+                .ForMember(dest => dest.Role, opt => opt.Ignore())
+                .ForMember(dest => dest.IsActive, opt => opt.Ignore());
+            CreateMap<UserCreateDTO, Viagium.Models.User>()
+                .ForMember(dest => dest.HashPassword, opt => opt.Ignore())
+                .ForMember(dest => dest.Role, opt => opt.Ignore())
+                .ForMember(dest => dest.IsActive, opt => opt.Ignore());
+            CreateMap<Address, AddressDTO>().ReverseMap();
+            CreateMap<UserDTO, UserListDTO>();
+            CreateMap<AdminRegisterDTO, Viagium.Models.User>()
+                .ForMember(dest => dest.HashPassword, opt => opt.Ignore())
+                .ForMember(dest => dest.Role, opt => opt.Ignore())
+                .ForMember(dest => dest.IsActive, opt => opt.Ignore());
+            CreateMap<AdminUpdateDTO, Viagium.Models.User>()
+                .ForMember(dest => dest.HashPassword, opt => opt.Ignore())
+                .ForMember(dest => dest.Role, opt => opt.Ignore())
+                .ForMember(dest => dest.IsActive, opt => opt.Ignore());
+            CreateMap<Viagium.Models.User, AdminDTO>();
+            
+            CreateMap<Hotel, HotelWithAddressDTO>()
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address));
+            CreateMap<HotelWithAddressDTO, Hotel>()
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address));
             CreateMap<HotelCreateFormDTO, Hotel>()
                 .ForMember(dest => dest.ImageUrl, opt => opt.Ignore()) // será preenchido após upload
                 .ForMember(dest => dest.HotelId, opt => opt.Ignore()) // gerado pelo banco

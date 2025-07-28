@@ -13,11 +13,21 @@ public class UnitOfWork: IUnitOfWork
     public IAddressRepository AddressRepository { get; }
     public IReservationRepository ReservationRepository { get; }
 
-    public UnitOfWork(AppDbContext context, ITravelPackageRepository travelPackageRepository, IUserRepository userRepository, IAffiliateRepository affiliateRepository, IAddressRepository addressRepository, IReservationRepository reservationRepository)
-    public IAmenityRepository AmenityRepository { get; }
-    public IHotelRepository HotelRepository { get; }
+    public UnitOfWork(AppDbContext context, ITravelPackageRepository travelPackageRepository,
+        IUserRepository userRepository, IAffiliateRepository affiliateRepository, IAddressRepository addressRepository,
+        IReservationRepository reservationRepository)
+    {
+        _context = context;
+        TravelPackageRepository = travelPackageRepository;
+        UserRepository = userRepository;
+        AffiliateRepository = affiliateRepository;
+        AddressRepository = addressRepository;
+        ReservationRepository = reservationRepository;
+    }
+    public IAmenityRepository? AmenityRepository { get; }
+    public IHotelRepository? HotelRepository { get; }
 
-    public UnitOfWork(AppDbContext context, ITravelPackageRepository travelPackageRepository, IUserRepository userRepository, IAffiliateRepository affiliateRepository, IAddressRepository addressRepository, IAmenityRepository amenityRepository, IHotelRepository hotelRepository)
+    public UnitOfWork(AppDbContext context, ITravelPackageRepository travelPackageRepository, IUserRepository userRepository, IAffiliateRepository affiliateRepository, IAddressRepository addressRepository, IReservationRepository reservationRepository, IAmenityRepository amenityRepository, IHotelRepository hotelRepository)
     {
         _context = context;
         TravelPackageRepository = travelPackageRepository;

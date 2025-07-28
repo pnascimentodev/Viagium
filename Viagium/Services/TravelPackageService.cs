@@ -61,7 +61,7 @@ namespace Viagium.Services
             return await ExceptionHandler.ExecuteWithHandling(async () =>
             {
                 var travelPackages= await _unitOfWork.TravelPackageRepository.GetAllAsync();
-                if (travelPackages == null || travelPackages.IsNullOrEmpty())
+                if (travelPackages == null || !travelPackages.Any())
                     throw new KeyNotFoundException("Nenhum pacote de viagem registrado.");
 
                 return travelPackages;

@@ -14,4 +14,5 @@ public class HotelWithAddressDTO
     public string ImageUrl { get; set; } = string.Empty;
     public AddressDTO Address { get; set; } = new AddressDTO();
     public List<AmenityDTO> Amenities { get; set; } = new();
+    public AffiliateDTO AffiliateId { get; set; }
 }
