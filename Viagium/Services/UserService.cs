@@ -306,6 +306,19 @@ public class UserService : IUserService
             await _unitOfWork.UserRepository.UpdateAsync(user);
             await _unitOfWork.SaveAsync();
 
+            // Envia e-mail de sucesso de alteração de senha
+            var htmlBody = File.ReadAllText("EmailTemplates/SucessPasswordClient.html");
+            htmlBody = htmlBody.Replace("{NOME}", user.FirstName);
+            htmlBody = htmlBody.Replace("{DATA}", DateTime.Now.ToString("dd/MM/yyyy"));
+            htmlBody = htmlBody.Replace("{HORA}", DateTime.Now.ToString("HH:mm"));
+            var emailDto = new SendEmailDTO
+            {
+                To = user.Email,
+                Subject = "Senha alterada com sucesso - Viagium",
+                HtmlBody = htmlBody
+            };
+            await _emailService.SendEmailAsync(emailDto);
+
             return new UserDTO
             {
                 UserId = user.UserId,
@@ -331,9 +344,7 @@ public class UserService : IUserService
         // Lê o template do e-mail
         var htmlBody = File.ReadAllText("EmailTemplates/ForgotPasswordClient.html");
         htmlBody = htmlBody.Replace("{NOME}", user.FirstName);
-        // Substitui o link pelo link com o id do usuário
-        var resetLink = $"https://viagium.app/reset-password?id={user.UserId}";
-        htmlBody = htmlBody.Replace("https://viagium.app/reset-password", resetLink);
+        htmlBody = htmlBody.Replace("{ID}", user.UserId.ToString());
 
         var emailDto = new SendEmailDTO
         {
