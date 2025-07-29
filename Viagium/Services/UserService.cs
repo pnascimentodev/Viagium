@@ -22,12 +22,12 @@ public class UserService : IUserService
     private readonly IMapper _mapper;
     private readonly IEmailService _emailService;
     
-    public UserService(IUnitOfWork unitOfWork, IAuthService authService, IEmailService emailService)
+    public UserService(IUnitOfWork unitOfWork, IAuthService authService, IEmailService emailService, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _authService = authService;
         _emailService = emailService;
-
+        _mapper = mapper;
     }
 
     public async Task<UserDTO> AddAsync(UserCreateDTO userCreateDto, string password)
