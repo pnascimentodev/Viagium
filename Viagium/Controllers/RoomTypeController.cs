@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Viagium.EntitiesDTO;
 using Viagium.Services;
 using Viagium.Services.Interfaces;
@@ -35,8 +35,10 @@ public class RoomTypeController : ControllerBase
                 PricePerNight = formDto.PricePerNight,
                 MaxOccupancy = formDto.MaxOccupancy,
                 NumberOfRoomsAvailable = formDto.NumberOfRoomsAvailable,
-                Amenities = formDto.Amenities ?? new List<int>()
+                Amenities = formDto.Amenities ?? new List<int>(),
+                RoomsNumber = formDto.RoomsNumber ?? new List<string>()
             };
+
             if (formDto.Image != null)
             {
                 var imageUrl = await _imgbbService.UploadImageAsync(formDto.Image);
