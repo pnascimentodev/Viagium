@@ -1,5 +1,7 @@
+using System.Globalization;
 using System.Text;
 using System.Text.Json.Serialization;
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -10,10 +12,9 @@ using Viagium.EntitiesDTO;
 using Viagium.Repository;
 using Viagium.Repository.Interface;
 using Viagium.Services;
-using Viagium.Services.Interfaces;
 using Viagium.Services.Auth;
-using AutoMapper;
 using Viagium.Services.Auth.Affiliate;
+using Viagium.Services.Interfaces;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -156,6 +157,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddHttpClient<ImgbbService>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddScoped<IEmailService, Viagium.Services.Email.EmailService>();
+
+var cultureInfo = new CultureInfo("pt-BR");
+CultureInfo.CurrentUICulture = cultureInfo;
+CultureInfo.CurrentCulture = cultureInfo;
 
 var app = builder.Build(); 
 // Configure the HTTP request pipeline.

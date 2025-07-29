@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Globalization;
+using Microsoft.AspNetCore.Mvc;
 using Viagium.EntitiesDTO;
 using Viagium.Services;
 using Viagium.Services.Interfaces;
@@ -27,12 +28,23 @@ public class RoomTypeController : ControllerBase
     {
         try
         {
+            //  Converter preço com cultura correta
+            if (!decimal.TryParse(formDto.PricePerNight,
+                NumberStyles.Number,
+                CultureInfo.InvariantCulture,
+                out decimal pricePerNight))
+            {
+                return BadRequest(new { error = "Formato de preço inválido" });
+            }
+
+            Console.WriteLine($"Preço convertido corretamente: {pricePerNight}");
+
             var dto = new RoomTypeCreateDTO
             {
                 HotelId = formDto.HotelId,
                 Name = formDto.Name,
                 Description = formDto.Description,
-                PricePerNight = formDto.PricePerNight,
+                PricePerNight = pricePerNight, 
                 MaxOccupancy = formDto.MaxOccupancy,
                 NumberOfRoomsAvailable = formDto.NumberOfRoomsAvailable,
                 Amenities = formDto.Amenities ?? new List<int>(),

@@ -1,0 +1,38 @@
+# Este workflow marca e fecha issues e PRs inativos após um período de tempo.
+name: Mark stale issues and pull requests
+
+on:
+  schedule:
+    - cron: '15 0 * * *' # Executa todos os dias às 00:15 UTC
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Configurar o .NET Core SDK
+        uses: actions/setup-dotnet@v3.4.2
+        with:
+          dotnet-version: '6.0.x'
+      
+      - name: Restaurar dependências
+        run: dotnet restore
+
+      - name: Build do projeto
+        run: dotnet build --configuration Release
+
+      - name: Testar o projeto
+        run: dotnet test --no-build --verbosity normal
+      - uses: actions/stale@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          stale-issue-message: 'Este issue está inativo e será fechado em breve por falta de atividade.'
+          stale-pr-message: 'Este pull request está inativo e será fechado em breve por falta de atividade.'
+          stale-issue-label: 'no-issue-activity'
+          stale-pr-label: 'no-pr-activity'

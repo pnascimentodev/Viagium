@@ -13,7 +13,7 @@ public class RoomTypeCreateFormDTO
     [Required]
     public string Description { get; set; } = string.Empty;
     [Required]
-    public decimal PricePerNight { get; set; }
+    public string PricePerNight { get; set; }
     [Required]
     public int MaxOccupancy { get; set; }
     [Required]
