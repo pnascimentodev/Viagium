@@ -3,6 +3,7 @@ using Viagium.Models;
 using Viagium.EntitiesDTO;
 using Viagium.EntitiesDTO.User;
 using Viagium.EntitiesDTO.Affiliate;
+using Viagium.EntitiesDTO.ApiDTO;
 
 namespace Viagium.ProfileAutoMapper
 {
@@ -26,6 +27,7 @@ namespace Viagium.ProfileAutoMapper
 
             CreateMap<Payment, PaymentDTO>();
             CreateMap<Viagium.Models.Reservation, ReservationDTO>();
+            CreateMap<UserCreateDTO, AsaasUserDTO>();
             CreateMap<ReservationRoom, ReservationRoomDTO>();
             CreateMap<Review, ReviewDTO>();
             CreateMap<Room, RoomDTO>();
