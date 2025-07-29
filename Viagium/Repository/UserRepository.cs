@@ -106,4 +106,11 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync();
         return user;
     }
+    
+    public async Task<User> GetEmailByForgotPasswordAsync(string email, bool includeDeleted = false)
+    {
+        return await _context.Set<User>()
+            .Where(u => u.Email == email && (includeDeleted || u.IsActive))
+            .FirstOrDefaultAsync();
+    }
 }

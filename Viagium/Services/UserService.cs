@@ -321,4 +321,26 @@ public class UserService : IUserService
             };
         }, "recuperação de senha do usuário");
     }
+    
+    public async Task SendForgotPasswordEmailAsync(string email)
+    {
+        var user = await _unitOfWork.UserRepository.GetEmailByForgotPasswordAsync(email);
+        if (user == null)
+            throw new KeyNotFoundException("Usuário não encontrado para recuperação de senha.");
+
+        // Lê o template do e-mail
+        var htmlBody = File.ReadAllText("EmailTemplates/ForgotPasswordClient.html");
+        htmlBody = htmlBody.Replace("{NOME}", user.FirstName);
+        // Substitui o link pelo link com o id do usuário
+        var resetLink = $"https://viagium.app/reset-password?id={user.UserId}";
+        htmlBody = htmlBody.Replace("https://viagium.app/reset-password", resetLink);
+
+        var emailDto = new SendEmailDTO
+        {
+            To = user.Email,
+            Subject = "Recuperação de senha - Viagium",
+            HtmlBody = htmlBody
+        };
+        await _emailService.SendEmailAsync(emailDto);
+    }
 }
