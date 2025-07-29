@@ -17,6 +17,10 @@ public class TravelPackageController : ControllerBase
         _mapper = mapper;
     }
     
+    /// <summary>
+    /// Cria um novo pacote de viagem.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/travelpackage</remarks>
     //Criar um pacote de viagem
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] Models.TravelPackage travelPackage)
@@ -34,6 +38,10 @@ public class TravelPackageController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Busca um pacote de viagem pelo ID.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/travelpackage/1</remarks>
     // Método para buscar pacote de viagem por ID
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
@@ -45,6 +53,10 @@ public class TravelPackageController : ControllerBase
     }
 
 
+    /// <summary>
+    /// Lista todos os pacotes de viagem cadastrados.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/travelpackage</remarks>
     // Método para buscar todos os pacotes de viagem
     [HttpGet]
     public async Task<IActionResult> GetAllTravelPackages()
@@ -53,6 +65,10 @@ public class TravelPackageController : ControllerBase
         return Ok(pacotes);
     }
     
+    /// <summary>
+    /// Atualiza um pacote de viagem.
+    /// </summary>
+    /// <remarks>Exemplo: PUT /api/travelpackage/1</remarks>
     // Método para atualizar um pacote de viagem
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] EditTravelPackageDTO dto)
@@ -69,6 +85,10 @@ public class TravelPackageController : ControllerBase
         }
     }
     
+    /// <summary>
+    /// Desativa um pacote de viagem.
+    /// </summary>
+    /// <remarks>Exemplo: DELETE /api/travelpackage/1</remarks>
     // Método para desativar um pacote de viagem
     [HttpDelete("{id}")]
     public async Task<IActionResult> Deactivate(int id)
@@ -86,6 +106,10 @@ public class TravelPackageController : ControllerBase
         }
     }
     
+    /// <summary>
+    /// Ativa um pacote de viagem.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/travelpackage/activate/1</remarks>
     // Método para ativar um pacote de viagem
     [HttpPost("activate/{id}")]
     public async Task<IActionResult> Activate(int id)
@@ -103,6 +127,10 @@ public class TravelPackageController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Ativa uma promoção em um pacote de viagem.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/travelpackage/active-promotion/1</remarks>
     [HttpPost("active-promotion/{id}")]
     public async Task<IActionResult> ActivePromotion(int id, [FromBody] decimal discountPercentage)
     {
@@ -119,6 +147,10 @@ public class TravelPackageController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Lista os pacotes de viagem ativos.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/travelpackage/active-package</remarks>
     [HttpGet("active-package")]
     public async Task<IActionResult> GetActivePackage()
     {

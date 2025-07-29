@@ -18,6 +18,10 @@ public class HotelController : ControllerBase
         _imgbbService = imgbbService;
     }
     
+    /// <summary>
+    /// Cria um novo hotel.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/hotel/create</remarks>
     [HttpPost ("create")]
     public async Task<IActionResult> Create([FromForm] HotelCreateFormDTO hotelCreateFormDTO)
     {
@@ -43,6 +47,10 @@ public class HotelController : ControllerBase
     }
     
 
+    /// <summary>
+    /// Atualiza os dados de um hotel existente.
+    /// </summary>
+    /// <remarks>Exemplo: PUT /api/hotel/1</remarks>
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] HotelWithAddressDTO hotelWithAddressDTO)
     {
@@ -60,6 +68,10 @@ public class HotelController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Desativa um hotel pelo ID.
+    /// </summary>
+    /// <remarks>Exemplo: DELETE /api/hotel/1/desactivate</remarks>
     [HttpDelete("{id}/desactivate")]
     public async Task<IActionResult> Desactivate(int id)
     {
@@ -76,6 +88,10 @@ public class HotelController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Ativa um hotel pelo ID.
+    /// </summary>
+    /// <remarks>Exemplo: PUT /api/hotel/1/activate</remarks>
     [HttpPut("{id}/activate")]
     public async Task<IActionResult> Activate(int id)
     {
@@ -92,6 +108,10 @@ public class HotelController : ControllerBase
         }
     }
     
+    /// <summary>
+    /// Busca um hotel pelo ID.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/hotel/1</remarks>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -108,6 +128,10 @@ public class HotelController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Lista todos os hotéis cadastrados.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/hotel</remarks>
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -124,6 +148,10 @@ public class HotelController : ControllerBase
         }
     }
     
+    /// <summary>
+    /// Busca hotéis por cidade.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/hotel/by-city/SaoPaulo</remarks>
     [HttpGet("by-city/{city}")]
     public async Task<IActionResult> GetByCity(string city)
     {
@@ -131,6 +159,10 @@ public class HotelController : ControllerBase
         return Ok(hotels);
     }
 
+    /// <summary>
+    /// Busca hotéis por adcionais.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/hotel/by-amenities?amenityIds=1&amenityIds=2</remarks>
     [HttpGet("by-amenities")]
     public async Task<IActionResult> GetByAmenities([FromQuery] List<int> amenityIds)
     {

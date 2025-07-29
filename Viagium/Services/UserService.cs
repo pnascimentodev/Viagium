@@ -1,10 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using AutoMapper;
-using Viagium.EntitiesDTO;
+using Viagium.EntitiesDTO.ApiDTO;
 using Viagium.EntitiesDTO.User;
 using Viagium.EntitiesDTO.Auth;
 using Viagium.Models;
-using Viagium.Repository;
 using Viagium.Services.Auth;
 using Viagium.Services.Interfaces;
 using Viagium.EntitiesDTO.Email;
@@ -20,13 +19,17 @@ public class UserService : IUserService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAuthService _authService;
     private readonly IMapper _mapper;
+    private readonly PaymentService _paymentService;
     private readonly IEmailService _emailService;
     
-    public UserService(IUnitOfWork unitOfWork, IAuthService authService, IEmailService emailService, IMapper mapper)
+
+    public UserService(IUnitOfWork unitOfWork, IAuthService authService, IEmailService emailService, PaymentService paymentService, IMapper mapper)
+
     {
         _unitOfWork = unitOfWork;
         _authService = authService;
         _emailService = emailService;
+        _paymentService = paymentService;
         _mapper = mapper;
     }
 
@@ -44,13 +47,16 @@ public class UserService : IUserService
             // Verifica se já existe usuário com o mesmo número de documento
             if (await _unitOfWork.UserRepository.DocumentNumberExistsAsync(userCreateDto.DocumentNumber))
                 throw new ArgumentException("Já existe um usuário cadastrado com este número de documento.");
-
+            
+            var asaasUser = _mapper.Map<AsaasUserDTO>(userCreateDto);
+            var apiId = await _paymentService.CreateUserAsync(asaasUser);
             var user = new User
             {
                 Email = userCreateDto.Email,
                 FirstName = userCreateDto.FirstName,
                 LastName = userCreateDto.LastName,
                 DocumentNumber = userCreateDto.DocumentNumber,
+                AsaasApiId = apiId,
                 BirthDate = userCreateDto.BirthDate,
                 HashPassword = PasswordHelper.HashPassword(password),
                 Phone = userCreateDto.Phone,
@@ -92,9 +98,7 @@ public class UserService : IUserService
                 HashPassword = user.HashPassword,
                 UpdatedAt = user.UpdatedAt ?? DateTime.Now
             };
-        }, "criação de usuário");
-        
-        
+        }, "criação de usuário");    
     }
 
     public async Task<LoginResponseDTO> LoginAsync(LoginRequestDTO loginRequest)

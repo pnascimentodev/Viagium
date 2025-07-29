@@ -3,6 +3,7 @@ using Viagium.Models;
 using Viagium.EntitiesDTO;
 using Viagium.EntitiesDTO.User;
 using Viagium.EntitiesDTO.Affiliate;
+using Viagium.EntitiesDTO.ApiDTO;
 
 namespace Viagium.ProfileAutoMapper
 {
@@ -26,6 +27,7 @@ namespace Viagium.ProfileAutoMapper
 
             CreateMap<Payment, PaymentDTO>();
             CreateMap<Viagium.Models.Reservation, ReservationDTO>();
+            CreateMap<UserCreateDTO, AsaasUserDTO>();
             CreateMap<ReservationRoom, ReservationRoomDTO>();
             CreateMap<Review, ReviewDTO>();
             CreateMap<Room, RoomDTO>();
@@ -108,7 +110,14 @@ namespace Viagium.ProfileAutoMapper
             CreateMap<Hotel, HotelDTO>();
             CreateMap<Models.User, UserEmailDTO>();
             CreateMap<RoomTypeCreateDTO, RoomType>()
-                .ForMember(dest => dest.RoomTypeAmenities, opt => opt.Ignore());
+                    //.ForMember(dest => dest.RoomTypeAmenities, opt => opt.Ignore());   verificar com priscilla
+                    .ForMember(dest => dest.RoomTypeAmenities, opt => opt.Ignore()) // Preenchido manualmente no service
+                    .ForMember(dest => dest.Rooms, opt => opt.Ignore()) //  ADICIONAR - Preenchido manualmente no service
+                    .ForMember(dest => dest.RoomTypeId, opt => opt.Ignore()) // Gerado pelo banco
+                    .ForMember(dest => dest.CreatedAt, opt => opt.Ignore()) // Será definido automaticamente
+                    .ForMember(dest => dest.IsActive, opt => opt.Ignore()) // Será definido manualmente
+                    .ForMember(dest => dest.DeletedAt, opt => opt.Ignore()) // Não deve ser mapeado
+                    .ForMember(dest => dest.Hotel, opt => opt.Ignore()); // Navegação será resolvida pelo EF
             CreateMap<RoomTypeUpdateDTO, RoomType>();
             CreateMap<RoomType, RoomTypeDTO>()
                 .ForMember(dest => dest.Amenities, opt => opt.MapFrom(src => src.RoomTypeAmenities.Select(rta => rta.Amenity)));

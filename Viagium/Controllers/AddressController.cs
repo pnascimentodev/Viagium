@@ -18,6 +18,10 @@ namespace Viagium.Controllers
             
         }
 
+        /// <summary>
+        /// Cria um novo endereço.
+        /// </summary>
+        /// <remarks>Exemplo: POST /api/address</remarks>
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] AddressDTO addressDto)
         {
@@ -33,6 +37,10 @@ namespace Viagium.Controllers
             }
         }
 
+        /// <summary>
+        /// Busca um endereço pelo ID.
+        /// </summary>
+        /// <remarks>Exemplo: GET /api/address/1</remarks>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -42,6 +50,10 @@ namespace Viagium.Controllers
             return Ok(address);
         }
 
+        /// <summary>
+        /// Lista todos os endereços cadastrados.
+        /// </summary>
+        /// <remarks>Exemplo: GET /api/address</remarks>
         [HttpGet]
         public async Task<IActionResult> GetAllAddresses()
         {
@@ -49,6 +61,10 @@ namespace Viagium.Controllers
             return Ok(addresses);
         }
 
+        /// <summary>
+        /// Atualiza um endereço existente.
+        /// </summary>
+        /// <remarks>Exemplo: PUT /api/address/1</remarks>
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] AddressDTO addressDto)
         {

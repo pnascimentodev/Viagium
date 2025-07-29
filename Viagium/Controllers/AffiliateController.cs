@@ -26,6 +26,10 @@ public class AffiliateController : ControllerBase
     }
     
 
+    /// <summary>
+    /// Cria um novo afiliado.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/affiliate/create</remarks>
     [HttpPost("create")]
     public async Task<IActionResult> CreateAffiliate([FromBody] AffiliateCreateDto affiliateCreateDto)
     {
@@ -43,6 +47,10 @@ public class AffiliateController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Edita um afiliado existente.
+    /// </summary>
+    /// <remarks>Exemplo: PUT /api/affiliate/1</remarks>
     [HttpPut("{id}")]
     public async Task<IActionResult> Editar(int id, [FromBody] Affiliate affiliate)
     {
@@ -58,6 +66,10 @@ public class AffiliateController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Busca um afiliado pelo ID.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/affiliate/1</remarks>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -72,6 +84,10 @@ public class AffiliateController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Lista todos os afiliados cadastrados.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/affiliate</remarks>
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -86,6 +102,10 @@ public class AffiliateController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Exclui um afiliado pelo ID.
+    /// </summary>
+    /// <remarks>Exemplo: DELETE /api/affiliate/1</remarks>
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {

@@ -21,6 +21,10 @@ public class UserController : ControllerBase
         _mapper = mapper;
     }
 
+    /// <summary>
+    /// Cadastra um novo usuário.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/user</remarks>
     // cadastra um usuário
     [HttpPost]
     public async Task<IActionResult> Cadastro([FromBody] UserCreateDTO userCreateDto)
@@ -40,6 +44,10 @@ public class UserController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Realiza o login do usuário.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/user/auth</remarks>
     // endpoint de login
     [HttpPost("auth")]
     public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequest)
@@ -63,6 +71,10 @@ public class UserController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Busca um usuário pelo ID.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/user/1</remarks>
     // busca um usuário por id
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
@@ -81,6 +93,10 @@ public class UserController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Lista todos os usuários cadastrados.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/user</remarks>
     // busca todos os usuários
     [HttpGet]
     public async Task<IActionResult> GetAll()
@@ -96,6 +112,10 @@ public class UserController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Atualiza os dados de um usuário.
+    /// </summary>
+    /// <remarks>Exemplo: PUT /api/user/1</remarks>
     // atualiza um usuário
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] UserUpdateDto userUpdateDto)
@@ -120,6 +140,10 @@ public class UserController : ControllerBase
         }
     }
     
+    /// <summary>
+    /// Altera a senha de um usuário.
+    /// </summary>
+    /// <remarks>Exemplo: PUT /api/user/1/password</remarks>
     //Alterar a senha de um usuário
     [HttpPut("{id}/password")]
     public async Task<IActionResult> UpdatePassword(int id, [FromBody] UpdatePasswordDto dto)
@@ -137,6 +161,10 @@ public class UserController : ControllerBase
         }
     }
     
+    /// <summary>
+    /// Recupera a senha de um usuário.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/user/1/forgot-password</remarks>
     // Recuperar senha de um usuário
     [HttpPost("{id}/forgot-password")]
     public async Task<IActionResult> ForgotPassword(int id, [FromBody] ForgotPasswordDto dto)
@@ -154,6 +182,10 @@ public class UserController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Desativa um usuário.
+    /// </summary>
+    /// <remarks>Exemplo: DELETE /api/user/1</remarks>
     // Desativa um usuário
     [HttpDelete("{id}")]
     public async Task<IActionResult> Desactivate(int id)
@@ -171,6 +203,10 @@ public class UserController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Ativa um usuário.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/user/activate/1</remarks>
     // ativar um usuário
     [HttpPost("activate/{id}")]
     public async Task<IActionResult> Activate(int id)
@@ -188,6 +224,10 @@ public class UserController : ControllerBase
         }
     }
     
+    /// <summary>
+    /// Busca um usuário pelo e-mail.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/user/by-email?email=exemplo@teste.com</remarks>
     [HttpGet("by-email")]
     public async Task<IActionResult> GetByEmail([FromQuery] string email)
     {
