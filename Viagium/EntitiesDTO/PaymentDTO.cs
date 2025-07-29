@@ -6,8 +6,6 @@ namespace Viagium.EntitiesDTO;
 
 public class PaymentDTO
 {
-    
-    
     public ReservationDTO? Reservation { get; set; }
     
     [Required]

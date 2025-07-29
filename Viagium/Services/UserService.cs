@@ -22,14 +22,15 @@ public class UserService : IUserService
     private readonly PaymentService _paymentService;
     private readonly IEmailService _emailService;
     
+
     public UserService(IUnitOfWork unitOfWork, IAuthService authService, IEmailService emailService, PaymentService paymentService, IMapper mapper)
+
     {
         _unitOfWork = unitOfWork;
         _authService = authService;
         _emailService = emailService;
         _paymentService = paymentService;
         _mapper = mapper;
-
     }
 
     public async Task<UserDTO> AddAsync(UserCreateDTO userCreateDto, string password)
@@ -97,9 +98,7 @@ public class UserService : IUserService
                 HashPassword = user.HashPassword,
                 UpdatedAt = user.UpdatedAt ?? DateTime.Now
             };
-        }, "criação de usuário");
-        
-        
+        }, "criação de usuário");    
     }
 
     public async Task<LoginResponseDTO> LoginAsync(LoginRequestDTO loginRequest)
