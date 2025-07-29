@@ -7,11 +7,6 @@ namespace Viagium.Models
         {
             [Key]
             public int TravelPackagesId { get; set; }
-            
-            [Required]
-            [ForeignKey("Hotel")]
-            public int HotelId { get; set; }
-            public Hotel? Hotel { get; set; }
 
             [Required]
             [StringLength(100)]
@@ -49,18 +44,42 @@ namespace Viagium.Models
             [Required]
             [DataType(DataType.Currency)]
             [Range(0.01, double.MaxValue, ErrorMessage = "Preço deve ser maior que zero")]
-            public decimal Price { get; set; }
+            public decimal OriginalPrice { get; set; }
+            
+            [DataType(DataType.Currency)]
+            [Range(0.01, double.MaxValue, ErrorMessage = "Preço deve ser maior que zero")]
+            public decimal Price { get; set; } = 0;
+            
+            [Range(0.01, double.MaxValue, ErrorMessage = "Taxa de serviço deve ser maior que zero")]
+            public decimal PackageTax { get; set; }
+            
+            public string CupomDiscount { get; set; } = string.Empty;
+            
+            public decimal DiscountValue { get; set; } = 0;
 
             [Required]
             [ForeignKey("User")]
             public int CreatedBy { get; set; }
             public User? User { get; set; }
 
+
             public DateTime? CreatedAt { get; set; } = DateTime.Now;
             public DateTime? UpdatedAt { get; set; }
-
             public DateTime? DeletedAt { get; set; }
-
             public bool IsActive { get; set; } = true;
+            
+        public virtual ICollection<Reservation>? Reservations { get; set; }
+
+        [NotMapped]
+        public string OccupancyInfo {
+            get {
+                if (Reservations == null)
+                    return $"0/{MaxPeople}";
+                var ocupantes = Reservations
+                    .Where(r => r.IsActive)
+                    .Sum(r => r.Travelers?.Count ?? 0);
+                return $"{ocupantes}/{MaxPeople}";
+            }
         }
     }
+}

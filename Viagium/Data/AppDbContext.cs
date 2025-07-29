@@ -87,13 +87,6 @@ public class AppDbContext : DbContext
             .HasForeignKey(rr => rr.ReservationId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Relacionamento TravelPackage - Hotel (N:1)
-        modelBuilder.Entity<TravelPackage>()
-            .HasOne(tp => tp.Hotel)
-            .WithMany()
-            .HasForeignKey(tp => tp.HotelId)
-            .OnDelete(DeleteBehavior.Restrict);
-
         // Relacionamento Affiliate - Hotel (1:N)
         modelBuilder.Entity<Hotel>()
             .HasOne(h => h.Affiliate)
