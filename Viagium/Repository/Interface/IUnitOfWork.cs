@@ -10,5 +10,6 @@ public interface IUnitOfWork : IDisposable
     IAmenityRepository AmenityRepository { get; }
     IHotelRepository HotelRepository { get; }
     IPaymentRepository PaymentRepository { get; }
+    IReviewRepository ReviewRepository { get; }
     Task<int> SaveAsync();
 }
