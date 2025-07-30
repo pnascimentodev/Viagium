@@ -30,7 +30,7 @@ public class TravelPackageController : ControllerBase
             ExceptionHandler.ValidateObject(travelPackage, "pacote de viagem");
             var createdPackage = await _service.AddAsync(travelPackage);
             var dto = _mapper.Map<EntitiesDTO.TravelPackageDTO>(createdPackage);
-            return CreatedAtAction(nameof(GetById), new { id = createdPackage.TravelPackagesId }, dto);
+            return CreatedAtAction(nameof(GetById), new { id = createdPackage.TravelPackageId }, dto);
         }
         catch (Exception ex)
         {

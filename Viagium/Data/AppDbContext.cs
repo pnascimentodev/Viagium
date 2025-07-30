@@ -62,7 +62,7 @@ public class AppDbContext : DbContext
         // Configura o Review entity
         modelBuilder.Entity<Reservation>() // Configura o Reservation entity
             .HasOne(r => r.TravelPackage) // Configura a relação entre Reservation e TravelPackage
-            .WithMany() // Um TravelPackage pode ter várias Reservations
+            .WithMany(tp => tp.Reservations) // Corrigido: define o lado "muitos" explicitamente
             .HasForeignKey(r => r.TravelPackageId) // Chave estrangeira TravelPackageId na Reservation
             .OnDelete(DeleteBehavior.Restrict); // Impede a exclusão de TravelPackage se houver Reservations associadas
 
