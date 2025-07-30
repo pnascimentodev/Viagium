@@ -6,6 +6,8 @@ using Viagium.Repository.Interface;
 using Viagium.Services.Interfaces;
 using Viagium.EntitiesDTO;
 using Viagium.EntitiesDTO.Affiliate;
+using Viagium.EntitiesDTO.Email;
+using Viagium.EntitiesDTO.User;
 
 namespace Viagium.Services;
 
@@ -13,11 +15,13 @@ public class AffiliateService : IAffiliateService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IEmailService _emailService;
     
-    public AffiliateService(IUnitOfWork unitOfWork, IMapper mapper)
+    public AffiliateService(IUnitOfWork unitOfWork, IMapper mapper, IEmailService emailService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _emailService = emailService;
     }
     
     // Método principal de criação - ÚNICO método AddAsync
@@ -84,6 +88,17 @@ public class AffiliateService : IAffiliateService
             address.AffiliateId = affiliate.AffiliateId;
             await _unitOfWork.AddressRepository.UpdateAsync(address);
             await _unitOfWork.SaveAsync();
+
+            // Envia e-mail de boas-vindas para o afiliado
+            var htmlBody = File.ReadAllText("EmailTemplates/Affiliate/WelcomeAffiliate.html");
+            htmlBody = htmlBody.Replace("{NOME}", affiliate.Name);
+            var emailDto = new SendEmailDTO
+            {
+                To = affiliate.Email,
+                Subject = "Bem-vindo ao Viagium!",
+                HtmlBody = htmlBody
+            };
+            await _emailService.SendEmailAsync(emailDto);
             
             // Mapeamento para AffiliateDTO
             return new AffiliateDTO
@@ -240,5 +255,74 @@ public class AffiliateService : IAffiliateService
         if (string.IsNullOrEmpty(updated.HashPassword)) return true;
         // Campos de datas e coleções normalmente não são atualizados manualmente
         return false;
+    }
+    
+    public async Task SendForgotPasswordEmailAsync(string email)
+    {
+        var affiliate = await _unitOfWork.AffiliateRepository.GetEmailByForgotPasswordAsync(email);
+        if (affiliate == null)
+            throw new ArgumentException("Não foi encontrado nenhum afiliado com este e-mail. Valide seus dados.");
+        
+        var htmlBody = File.ReadAllText("EmailTemplates/Affiliate/ForgorPasswordAffiliate.html");
+        htmlBody = htmlBody.Replace("{NOME}", affiliate.Name)
+            .Replace("{ID}", affiliate.AffiliateId.ToString());
+        
+        var emailDto = new SendEmailDTO
+        {
+            To = affiliate.Email,
+            Subject = "Recuperação de senha de Afiliado- Viagium",
+            HtmlBody = htmlBody
+        };
+        await _emailService.SendEmailAsync(emailDto);
+    }
+    
+    public async Task<AffiliateDTO> UpdatePasswordAsync(int id, UpdatePasswordDto dto)
+    {
+        var affiliate = await _unitOfWork.AffiliateRepository.UpdatePasswordAsync(id, dto.NewPassword);
+        if (affiliate == null)
+            throw new KeyNotFoundException("Afiliado não encontrado para troca de senha.");
+        // Envia e-mail de confirmação de alteração de senha
+        var htmlBody = File.ReadAllText("EmailTemplates/Affiliate/SucessPasswordAffiliate.html");
+        htmlBody = htmlBody.Replace("{NOME}", affiliate.Name);
+        htmlBody = htmlBody.Replace("{DATA}", DateTime.Now.ToString("dd/MM/yyyy"));
+        htmlBody = htmlBody.Replace("{HORA}", DateTime.Now.ToString("HH:mm"));
+        var emailDto = new SendEmailDTO
+        {
+            To = affiliate.Email,
+            Subject = "Senha alterada com sucesso - Viagium",
+            HtmlBody = htmlBody
+        };
+        await _emailService.SendEmailAsync(emailDto);
+        return _mapper.Map<AffiliateDTO>(affiliate);
+    }
+    
+    public async Task<AffiliateDTO> ForgotPasswordAsync(int id, string newPassword)
+    {
+        // Valida a senha
+        ValidatePassword(newPassword);
+        var affiliate = await _unitOfWork.AffiliateRepository.GetByIdAsync(id);
+        if (affiliate == null)
+            throw new KeyNotFoundException("Afiliado não encontrado para recuperação de senha.");
+
+        // Faz o hash da nova senha
+        affiliate.HashPassword = PasswordHelper.HashPassword(newPassword);
+        await _unitOfWork.AffiliateRepository.UpdateAsync(affiliate);
+        await _unitOfWork.SaveAsync();
+
+        // Envia e-mail de sucesso de alteração de senha
+        var htmlBody = File.ReadAllText("EmailTemplates/Affiliate/SucessPasswordAffiliate.html");
+        htmlBody = htmlBody.Replace("{NOME_AFILIADO}", affiliate.Name)
+                           .Replace("{NOME}", affiliate.Name)
+                           .Replace("{DATA}", DateTime.Now.ToString("dd/MM/yyyy"))
+                           .Replace("{HORA}", DateTime.Now.ToString("HH:mm"));
+        var emailDto = new SendEmailDTO
+        {
+            To = affiliate.Email,
+            Subject = "Senha alterada com sucesso - Viagium",
+            HtmlBody = htmlBody
+        };
+        await _emailService.SendEmailAsync(emailDto);
+
+        return _mapper.Map<AffiliateDTO>(affiliate);
     }
 }

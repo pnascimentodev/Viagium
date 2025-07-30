@@ -245,5 +245,21 @@ public class UserController : ControllerBase
         }
     }
 
-    
+    /// <summary>
+    /// Envia e-mail de recuperação de senha para o usuário.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/user/forgot-password-email</remarks>
+    [HttpPost("forgot-password-email")]
+    public async Task<IActionResult> ForgotPasswordEmail([FromBody] string email)
+    {
+        try
+        {
+            await _userService.SendForgotPasswordEmailAsync(email);
+            return Ok("Se o e-mail existir, uma mensagem foi enviada com instruções para redefinir a senha.");
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
 }
