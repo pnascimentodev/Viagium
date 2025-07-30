@@ -122,6 +122,13 @@ namespace Viagium.ProfileAutoMapper
             CreateMap<RoomType, RoomTypeDTO>()
                 .ForMember(dest => dest.Amenities, opt => opt.MapFrom(src => src.RoomTypeAmenities.Select(rta => rta.Amenity)));
             CreateMap<Amenity, AmenityDTO>();
+
+            // Mapeamentos para Review
+            CreateMap<Review, ReviewDTO>()
+                .ForMember(dest => dest.Reservation, opt => opt.MapFrom(src => src.Reservation))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+                .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.Rating))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
         }
     }
 }
