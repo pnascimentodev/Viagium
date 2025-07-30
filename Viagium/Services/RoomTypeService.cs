@@ -104,4 +104,28 @@ public class RoomTypeService : IRoomTypeService
             throw new KeyNotFoundException("Tipo de quarto não encontrado para ativação.");
         return _mapper.Map<RoomTypeDTO>(roomType);
     }
+
+    /// Retorna todos os tipos de quarto com quartos disponíveis e seus números
+    public async Task<List<RoomTypeAvailableDTO>> GetAvailableRoomTypes()
+    {
+        // Busca todos os tipos de quarto ativos
+        var roomTypes = await _roomTypeRepository.GetAllAsync();
+        var result = new List<RoomTypeAvailableDTO>();
+        foreach (var rt in roomTypes)
+        {
+            // Filtra apenas quartos disponíveis 
+            var availableRooms = rt.Rooms?.Where(r => r.IsAvailable).Select(r => r.RoomNumber).ToList() ?? new List<string>();
+            if (availableRooms.Any() && rt.NumberOfRoomsAvailable > 0)
+            {
+                result.Add(new RoomTypeAvailableDTO
+                {
+                    RoomTypeId = rt.RoomTypeId,
+                    Name = rt.Name,
+                    NumberOfRoomsAvailable = rt.NumberOfRoomsAvailable,
+                    AvailableRoomNumbers = availableRooms
+                });
+            }
+        }
+        return result;
+    }
 }

@@ -12,11 +12,13 @@ namespace Viagium.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IRoomTypeRepository _roomTypeRepository; // teste, provalvemente vou ter que usar o unit mas não coloquei o RoomTypeRepository no UnitOfWork ainda
 
-        public ReservationService(IUnitOfWork unitOfWork, IMapper mapper)
+        public ReservationService(IUnitOfWork unitOfWork, IMapper mapper, IRoomTypeRepository roomTypeRepository)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _roomTypeRepository = roomTypeRepository;
         }
 
 
@@ -24,9 +26,28 @@ namespace Viagium.Services
         {
             return await ExceptionHandler.ExecuteWithHandling(async () =>
             {
-                //Mapeou o que vem de DTO pra model Reservation
+                // Mapeia o DTO para a entidade Reservation
                 var reservation = _mapper.Map<Reservation>(createReservationDto);
                 Validator.ValidateObject(reservation, new ValidationContext(reservation), true);
+
+                // Validação: só permite ocupar quartos se status for Confirmada
+                if (reservation.Status == "Confirmada")
+                {
+                    foreach (var reservationRoom in reservation.ReservationRooms)
+                    {
+                        // Busca o tipo de quarto
+                        var roomType = await _roomTypeRepository.GetByIdAsync(reservationRoom.RoomTypeId);
+                        if (roomType == null)
+                            throw new ArgumentException($"Tipo de quarto {reservationRoom.RoomTypeId} não encontrado.");
+                        // Valida se há quartos disponíveis
+                        if (roomType.NumberOfRoomsAvailable < reservationRoom.NumberOfRooms)
+                            throw new InvalidOperationException($"Não há quartos suficientes disponíveis para o tipo {roomType.Name}.");
+                        // Reduz a quantidade de quartos disponíveis
+                        roomType.NumberOfRoomsAvailable -= reservationRoom.NumberOfRooms;
+                        await _roomTypeRepository.UpdateAsync(roomType);
+                    }
+                }
+
                 // Validações customizadas específicas do negócio
                 ValidateCustomRules(reservation);
                 await _unitOfWork.ReservationRepository.AddAsync(reservation);

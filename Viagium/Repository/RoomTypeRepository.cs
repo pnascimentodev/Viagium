@@ -24,6 +24,7 @@ public class RoomTypeRepository : IRoomTypeRepository
         return await _context.RoomTypes
             .Include(rt => rt.RoomTypeAmenities)
             .ThenInclude(rta => rta.Amenity)
+            .Include(rt => rt.Rooms)    // agora retorna tambem a lista de numeros de quartos associados a esse tipo de quarto
             .FirstOrDefaultAsync(rt => rt.RoomTypeId == id && rt.IsActive);
     }
 
@@ -32,6 +33,7 @@ public class RoomTypeRepository : IRoomTypeRepository
         return await _context.RoomTypes
             .Include(rt => rt.RoomTypeAmenities)
             .ThenInclude(rta => rta.Amenity)
+            .Include(rt => rt.Rooms)     // agora retorna tambem a lista de numeros de quartos associados a esse tipo de quarto
             .Where(rt => rt.IsActive)
             .ToListAsync();
     }

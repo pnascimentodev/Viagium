@@ -153,4 +153,15 @@ public class RoomTypeController : ControllerBase
             return BadRequest(new { error = ex.Message });
         }
     }
+
+    /// <summary>
+    /// Lista tipos de quarto com quartos disponíveis e seus números.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/roomtype/available</remarks>
+    [HttpGet("available")]
+    public async Task<IActionResult> GetAvailableRoomTypes()
+    {
+        var result = await _roomTypeService.GetAvailableRoomTypes();
+        return Ok(result);
+    }
 }
