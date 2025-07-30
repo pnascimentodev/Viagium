@@ -6,7 +6,7 @@ namespace Viagium.Models
     public class TravelPackage
         {
             [Key]
-            public int TravelPackagesId { get; set; }
+            public int TravelPackageId { get; set; }
 
             [Required]
             [StringLength(100)]
