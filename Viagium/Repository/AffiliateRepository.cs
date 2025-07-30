@@ -90,4 +90,31 @@ public class AffiliateRepository : IAffiliateRepository
         return await _context.Affiliates
             .AnyAsync(a => a.Cnpj == cnpj && a.IsActive);
     }
+    
+    public async Task<Affiliate?> GetEmailByForgotPasswordAsync(string email, bool includeDeleted = false)
+    {
+        return await _context.Set<Affiliate>()
+            .Where(a => a.Email == email && (includeDeleted || a.IsActive))
+            .FirstOrDefaultAsync();
+    }
+    
+    public async Task<Affiliate> UpdatePasswordAsync(int id, string newPassword)
+    {
+        var affiliate = await _context.Affiliates.FindAsync(id);
+    
+        affiliate.HashPassword = newPassword; 
+        await _context.SaveChangesAsync();
+        return affiliate;
+    }
+    
+    public async Task<Affiliate?> ForgotPasswordAsync(int id, string newPassword)
+    {
+        var affiliate = await _context.Affiliates.FindAsync(id);
+        if (affiliate == null)
+            throw new KeyNotFoundException("Afiliado não encontrado para recuperação de senha.");
+
+        affiliate.HashPassword = newPassword; 
+        await _context.SaveChangesAsync();
+        return affiliate;
+    }
 }

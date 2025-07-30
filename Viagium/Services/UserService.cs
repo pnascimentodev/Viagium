@@ -339,7 +339,7 @@ public class UserService : IUserService
     {
         var user = await _unitOfWork.UserRepository.GetEmailByForgotPasswordAsync(email);
         if (user == null)
-            throw new KeyNotFoundException("Usuário não encontrado para recuperação de senha.");
+            throw new KeyNotFoundException("Não foi encontrado nenhum usuário com este e-mail. Valide seus dados");
 
         // Lê o template do e-mail
         var htmlBody = File.ReadAllText("EmailTemplates/ForgotPasswordClient.html");
