@@ -28,7 +28,7 @@ public class UnitOfWork: IUnitOfWork
         AddressRepository = addressRepository;
         ReservationRepository = reservationRepository;
         AmenityRepository = amenityRepository;
-        HotelRepository = hotelRepository
+        HotelRepository = hotelRepository;
         PaymentRepository = paymentRepository;
         ReviewRepository = reviewRepository;
     }

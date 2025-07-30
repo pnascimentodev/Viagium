@@ -55,6 +55,7 @@ namespace Viagium.Models
             
             public string CupomDiscount { get; set; } = string.Empty;
             
+            [Range(0, 100, ErrorMessage = "O valor do desconto deve ser entre 0 e 100")]
             public decimal DiscountValue { get; set; } = 0;
 
             [Required]
@@ -69,6 +70,7 @@ namespace Viagium.Models
             public bool IsActive { get; set; } = true;
             
         public virtual ICollection<Reservation>? Reservations { get; set; }
+        public virtual ICollection<PackageSchedule>? PackageSchedules { get; set; }
 
         [NotMapped]
         public string OccupancyInfo {

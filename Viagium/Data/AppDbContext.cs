@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     
     public DbSet<User> Users { get; set; }
     public DbSet<TravelPackage> TravelPackages { get; set; }
+    public DbSet<PackageSchedule> PackageSchedules { get; set; }
     public DbSet<Traveler> Travelers { get; set; }
     public DbSet<TravelPackageHistory> TravelPackageHistory { get; set; }
     public DbSet<Review> Reviews { get; set; }
@@ -170,5 +171,12 @@ public class AppDbContext : DbContext
             .HasOne(ha => ha.Amenity)
             .WithMany(a => a.HotelAmenity)
             .HasForeignKey(ha => ha.AmenityId);
+
+        // Relacionamento TravelPackage - PackageSchedule (1:N)
+        modelBuilder.Entity<PackageSchedule>()
+            .HasOne(ps => ps.TravelPackage)
+            .WithMany(tp => tp.PackageSchedules)
+            .HasForeignKey(ps => ps.TravelPackageId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
