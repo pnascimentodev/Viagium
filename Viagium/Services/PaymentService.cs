@@ -220,7 +220,9 @@ public class PaymentService : IPaymentService
         var boletoUrl = paymentsData[0].GetProperty("bankSlipUrl").GetString();
         if (string.IsNullOrEmpty(boletoUrl))
             throw new Exception("Não foi possível obter o link do boleto para download.");
+        
         return boletoUrl;
+
     }
 
     public async Task SincronizarPagamentos()
@@ -251,6 +253,17 @@ public class PaymentService : IPaymentService
                     pagamentoLocal.Status = status!;
                     pagamentoLocal.Amount = valor;
                     await _unitOfWork.PaymentRepository.FinalizePaymentAsync(pagamentoLocal);
+
+                    // Se o pagamento foi confirmado, atualizar a reserva para Confirmado
+                    if (status == "RECEIVED")
+                    {
+                        var reserva = await _unitOfWork.ReservationRepository.GetByIdAsync(pagamentoLocal.ReservationId);
+                        if (reserva != null)
+                        {
+                            reserva.Status = "Confirmado";
+                            await _unitOfWork.ReservationRepository.UpdateAsync(reserva);
+                        }
+                    }
                 }
             }
             await _unitOfWork.SaveAsync();
