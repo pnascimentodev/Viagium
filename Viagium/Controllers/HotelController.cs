@@ -160,9 +160,9 @@ public class HotelController : ControllerBase
     }
 
     /// <summary>
-    /// Busca hotéis por adcionais.
+    /// Busca hotéis por adicionais.
     /// </summary>
-    /// <remarks>Exemplo: GET /api/hotel/by-amenities?amenityIds=1&amenityIds=2</remarks>
+    /// <remarks>Exemplo: GET /api/hotel/by-amenities?amenityIds=1&amp;amenityIds=2</remarks>
     [HttpGet("by-amenities")]
     public async Task<IActionResult> GetByAmenities([FromQuery] List<int> amenityIds)
     {

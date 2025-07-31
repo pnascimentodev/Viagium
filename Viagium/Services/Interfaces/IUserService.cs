@@ -17,4 +17,5 @@ public interface IUserService
     Task<UserDTO?> GetByEmailAsync(string email, bool includeDeleted = false);
     Task<UserDTO> UpdatePasswordAsync(int id, UpdatePasswordDto dto);
     Task<UserDTO> ForgotPasswordAsync(int id, string newPassword);
+    Task SendForgotPasswordEmailAsync(string email);
 }

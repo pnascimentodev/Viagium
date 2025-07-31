@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     
     public DbSet<User> Users { get; set; }
     public DbSet<TravelPackage> TravelPackages { get; set; }
+    public DbSet<PackageSchedule> PackageSchedules { get; set; }
     public DbSet<Traveler> Travelers { get; set; }
     public DbSet<TravelPackageHistory> TravelPackageHistory { get; set; }
     public DbSet<Review> Reviews { get; set; }
@@ -27,6 +28,7 @@ public class AppDbContext : DbContext
     public DbSet<Amenity> Amenities { get; set; }
     public DbSet<RoomTypeAmenity> RoomTypeAmenities { get; set; }
     public DbSet<HotelAmenity> HotelAmenities { get; set; }
+    public DbSet<PackageHotel> PackageHotels { get; set; }
 
 
     // Configura o modelo do banco de dados
@@ -62,7 +64,7 @@ public class AppDbContext : DbContext
         // Configura o Review entity
         modelBuilder.Entity<Reservation>() // Configura o Reservation entity
             .HasOne(r => r.TravelPackage) // Configura a relação entre Reservation e TravelPackage
-            .WithMany() // Um TravelPackage pode ter várias Reservations
+            .WithMany(tp => tp.Reservations) // Corrigido: define o lado "muitos" explicitamente
             .HasForeignKey(r => r.TravelPackageId) // Chave estrangeira TravelPackageId na Reservation
             .OnDelete(DeleteBehavior.Restrict); // Impede a exclusão de TravelPackage se houver Reservations associadas
 
@@ -85,13 +87,6 @@ public class AppDbContext : DbContext
             .HasOne(rr => rr.Reservation)
             .WithMany(r => r.ReservationRooms)
             .HasForeignKey(rr => rr.ReservationId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // Relacionamento TravelPackage - Hotel (N:1)
-        modelBuilder.Entity<TravelPackage>()
-            .HasOne(tp => tp.Hotel)
-            .WithMany()
-            .HasForeignKey(tp => tp.HotelId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Relacionamento Affiliate - Hotel (1:N)
@@ -177,5 +172,30 @@ public class AppDbContext : DbContext
             .HasOne(ha => ha.Amenity)
             .WithMany(a => a.HotelAmenity)
             .HasForeignKey(ha => ha.AmenityId);
+
+        // Relacionamento TravelPackage - PackageSchedule (1:N)
+        modelBuilder.Entity<PackageSchedule>()
+            .HasOne(ps => ps.TravelPackage)
+            .WithMany(tp => tp.PackageSchedules)
+            .HasForeignKey(ps => ps.TravelPackageId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Chave composta para PackageHotel (TravelPackageId + HotelId)
+        modelBuilder.Entity<PackageHotel>()
+            .HasKey(ph => new { ph.TravelPackageId, ph.HotelId });
+
+        // Configura precisão dos campos decimais em TravelPackage
+        modelBuilder.Entity<TravelPackage>()
+            .Property(tp => tp.OriginalPrice)
+            .HasPrecision(18, 2);
+        modelBuilder.Entity<TravelPackage>()
+            .Property(tp => tp.PackageTax)
+            .HasPrecision(18, 2);
+        modelBuilder.Entity<TravelPackage>()
+            .Property(tp => tp.DiscountValue)
+            .HasPrecision(18, 2);
+        modelBuilder.Entity<TravelPackage>()
+            .Property(tp => tp.ManualDiscountValue)
+            .HasPrecision(18, 2);
     }
 }

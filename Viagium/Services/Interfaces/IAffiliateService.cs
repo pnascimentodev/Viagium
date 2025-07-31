@@ -1,6 +1,7 @@
 ﻿using Viagium.Models;
 using Viagium.EntitiesDTO;
 using Viagium.EntitiesDTO.Affiliate;
+using Viagium.EntitiesDTO.User;
 
 namespace Viagium.Services.Interfaces;
 
@@ -14,4 +15,8 @@ public interface IAffiliateService
     Task<bool> DeleteAsync(int id);
     Task<IEnumerable<Affiliate>> GetByCityAsync(string city);
     Task<AffiliateDTO> GetByEmailAsync(string email, bool includeDeleted = false);
+    Task SendForgotPasswordEmailAsync(string email);
+    Task<AffiliateDTO> UpdatePasswordAsync(int id, UpdatePasswordDto dto);
+    Task<AffiliateDTO> ForgotPasswordAsync(int id, string newPassword);
+
 }

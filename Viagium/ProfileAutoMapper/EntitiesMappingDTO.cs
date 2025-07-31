@@ -4,6 +4,7 @@ using Viagium.EntitiesDTO;
 using Viagium.EntitiesDTO.User;
 using Viagium.EntitiesDTO.Affiliate;
 using Viagium.EntitiesDTO.ApiDTO;
+using Viagium.EntitiesDTO.TravelPackageDTO;
 
 namespace Viagium.ProfileAutoMapper
 {
@@ -34,6 +35,12 @@ namespace Viagium.ProfileAutoMapper
             CreateMap<RoomType, RoomTypeDTO>();
             CreateMap<Traveler, TravelerDTO>();
             CreateMap<TravelPackage, TravelPackageDTO>();
+            CreateMap<TravelPackageDTO, TravelPackage>();
+            CreateMap<TravelPackage, CreateTravelPackageDTO>();
+            CreateMap<CreateTravelPackageDTO, TravelPackage>()
+                .ForMember(dest => dest.OriginAddress, opt => opt.MapFrom(src => src.OriginAddress))
+                .ForMember(dest => dest.DestinationAddress, opt => opt.MapFrom(src => src.DestinationAddress))
+                .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.UserId));
             CreateMap<TravelPackageHistory, TravelPackageHistoryDTO>();
             CreateMap<UserUpdateDto, Viagium.Models.User>()
                 .ForMember(dest => dest.DocumentNumber, opt => opt.Ignore())
@@ -110,11 +117,40 @@ namespace Viagium.ProfileAutoMapper
             CreateMap<Hotel, HotelDTO>();
             CreateMap<Models.User, UserEmailDTO>();
             CreateMap<RoomTypeCreateDTO, RoomType>()
-                .ForMember(dest => dest.RoomTypeAmenities, opt => opt.Ignore());
+                    //.ForMember(dest => dest.RoomTypeAmenities, opt => opt.Ignore());   verificar com priscilla
+                    .ForMember(dest => dest.RoomTypeAmenities, opt => opt.Ignore()) // Preenchido manualmente no service
+                    .ForMember(dest => dest.Rooms, opt => opt.Ignore()) //  ADICIONAR - Preenchido manualmente no service
+                    .ForMember(dest => dest.RoomTypeId, opt => opt.Ignore()) // Gerado pelo banco
+                    .ForMember(dest => dest.CreatedAt, opt => opt.Ignore()) // Será definido automaticamente
+                    .ForMember(dest => dest.IsActive, opt => opt.Ignore()) // Será definido manualmente
+                    .ForMember(dest => dest.DeletedAt, opt => opt.Ignore()) // Não deve ser mapeado
+                    .ForMember(dest => dest.Hotel, opt => opt.Ignore()); // Navegação será resolvida pelo EF
             CreateMap<RoomTypeUpdateDTO, RoomType>();
             CreateMap<RoomType, RoomTypeDTO>()
                 .ForMember(dest => dest.Amenities, opt => opt.MapFrom(src => src.RoomTypeAmenities.Select(rta => rta.Amenity)));
             CreateMap<Amenity, AmenityDTO>();
+
+            // Mapeamentos para Review
+            CreateMap<Review, ReviewDTO>()
+                .ForMember(dest => dest.Reservation, opt => opt.MapFrom(src => src.Reservation))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+                .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.Rating))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
+            CreateMap<AddressPackageDTO, Address>()
+                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City))
+                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt));
+            CreateMap<Address, AddressPackageDTO>()
+                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City))
+                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt));
+            CreateMap<CreateTravelPackageDTO, TravelPackage>()
+                .ForMember(dest => dest.OriginAddress, opt => opt.MapFrom(src => src.OriginAddress))
+                .ForMember(dest => dest.DestinationAddress, opt => opt.MapFrom(src => src.DestinationAddress))
+                .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.UserId));
+            CreateMap<PackageSchedule, PackageScheduleDTO>();
+            
+            
         }
     }
 }

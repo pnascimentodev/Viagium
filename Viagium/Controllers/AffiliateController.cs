@@ -7,6 +7,7 @@ using AutoMapper;
 using Viagium.EntitiesDTO.Auth;
 using Viagium.Services.Auth.Affiliate;
 using Viagium.EntitiesDTO.Affiliate;
+using Viagium.EntitiesDTO.User;
 
 namespace Viagium.Controllers;
 
@@ -123,6 +124,10 @@ public class AffiliateController : ControllerBase
     }
 
 
+    /// <summary>
+    /// Busca afiliados por cidade.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/affiliate/ByCity/SaoPaulo</remarks>
     [HttpGet("ByCity/{city}")]
     public async Task<IActionResult> GetByCity(string city)
     {
@@ -138,7 +143,10 @@ public class AffiliateController : ControllerBase
         }
     }
     
-    // endpoint de login
+    /// <summary>
+    /// Realiza login do afiliado.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/affiliate/login</remarks>
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequest)
     {
@@ -160,6 +168,11 @@ public class AffiliateController : ControllerBase
             return ExceptionHandler.HandleException(ex);
         }
     }
+
+    /// <summary>
+    /// Busca afiliado pelo e-mail.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/affiliate/by-email?email=exemplo@email.com</remarks>
     [HttpGet("by-email")]
     public async Task<IActionResult> GetByEmail([FromQuery] string email)
     {
@@ -170,6 +183,62 @@ public class AffiliateController : ControllerBase
                 return NotFound("Email não encontrado.");
             var userDto = _mapper.Map<AffiliateDTO>(affiliate);
             return Ok(userDto);
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+
+    }
+    /// <summary>
+    /// Envia e-mail de recuperação de senha para o afiliado.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/affiliate/forgot-password</remarks>
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> SendForgotPasswordEmailAsync([FromBody] string email)
+    {
+        try
+        {
+            await _affiliateService.SendForgotPasswordEmailAsync(email);
+            return Ok(new { message = "Uma mensagem foi enviada com instruções para redefinir a senha." });
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
+
+    /// <summary>
+    /// Atualiza a senha do afiliado.
+    /// </summary>
+    /// <remarks>Exemplo: PUT /api/affiliate/update-password/1</remarks>
+    [HttpPut("update-password/{id}")]
+   public async Task<IActionResult> UpdatePassword(int id, [FromBody] UpdatePasswordDto dto)
+    {
+        try
+        {
+            var updatedAffiliate = await _affiliateService.UpdatePasswordAsync(id, dto);
+            return Ok("Senha atualizada com sucesso.");
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
+
+    /// <summary>
+    /// Redefine a senha do afiliado.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/affiliate/forgot-password/1</remarks>
+    [HttpPost("forgot-password/{id}")]
+    public async Task<IActionResult> ForgotPassword(int id, [FromBody] ForgotPasswordDto dto)
+    {
+        try
+        {
+            var user = await _affiliateService.ForgotPasswordAsync(id, dto.NewPassword);
+            if (user == null)
+                return NotFound("Usuário não encontrado para recuperação de senha.");
+            return Ok(user);
         }
         catch (Exception ex)
         {

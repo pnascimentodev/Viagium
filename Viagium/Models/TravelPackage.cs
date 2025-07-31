@@ -6,12 +6,7 @@ namespace Viagium.Models
     public class TravelPackage
         {
             [Key]
-            public int TravelPackagesId { get; set; }
-            
-            [Required]
-            [ForeignKey("Hotel")]
-            public int HotelId { get; set; }
-            public Hotel? Hotel { get; set; }
+            public int TravelPackageId { get; set; }
 
             [Required]
             [StringLength(100)]
@@ -49,18 +44,48 @@ namespace Viagium.Models
             [Required]
             [DataType(DataType.Currency)]
             [Range(0.01, double.MaxValue, ErrorMessage = "Preço deve ser maior que zero")]
-            public decimal Price { get; set; }
+            public decimal OriginalPrice { get; set; }
+            
+            [DataType(DataType.Currency)]
+            [Range(0.01, double.MaxValue, ErrorMessage = "Preço deve ser maior que zero")]
+            public decimal Price { get; set; } = 0;
+            
+            [Range(0.01, double.MaxValue, ErrorMessage = "Taxa de serviço deve ser maior que zero")]
+            public decimal PackageTax { get; set; }
+            
+            public string CupomDiscount { get; set; } = string.Empty;
+            
+            [Range(0, 100, ErrorMessage = "O valor do desconto deve ser entre 0 e 100")]
+            public decimal DiscountValue { get; set; } = 0;
+
+            [Range(0, 100, ErrorMessage = "O valor do desconto manual deve ser entre 0 e 100")]
+            public decimal ManualDiscountValue { get; set; } = 0;
 
             [Required]
             [ForeignKey("User")]
             public int CreatedBy { get; set; }
             public User? User { get; set; }
 
+
             public DateTime? CreatedAt { get; set; } = DateTime.Now;
             public DateTime? UpdatedAt { get; set; }
-
             public DateTime? DeletedAt { get; set; }
-
             public bool IsActive { get; set; } = true;
+            
+        public virtual ICollection<Reservation>? Reservations { get; set; }
+        public virtual ICollection<PackageSchedule>? PackageSchedules { get; set; }
+        public virtual ICollection<PackageHotel> PackageHotels { get; set; } = new List<PackageHotel>();
+
+        [NotMapped]
+        public string OccupancyInfo {
+            get {
+                if (Reservations == null)
+                    return $"0/{MaxPeople}";
+                var ocupantes = Reservations
+                    .Where(r => r.IsActive)
+                    .Sum(r => r.Travelers?.Count ?? 0);
+                return $"{ocupantes}/{MaxPeople}";
+            }
         }
     }
+}

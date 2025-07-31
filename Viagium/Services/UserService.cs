@@ -22,14 +22,15 @@ public class UserService : IUserService
     private readonly PaymentService _paymentService;
     private readonly IEmailService _emailService;
     
+
     public UserService(IUnitOfWork unitOfWork, IAuthService authService, IEmailService emailService, PaymentService paymentService, IMapper mapper)
+
     {
         _unitOfWork = unitOfWork;
         _authService = authService;
         _emailService = emailService;
         _paymentService = paymentService;
         _mapper = mapper;
-
     }
 
     public async Task<UserDTO> AddAsync(UserCreateDTO userCreateDto, string password)
@@ -97,9 +98,7 @@ public class UserService : IUserService
                 HashPassword = user.HashPassword,
                 UpdatedAt = user.UpdatedAt ?? DateTime.Now
             };
-        }, "criação de usuário");
-        
-        
+        }, "criação de usuário");    
     }
 
     public async Task<LoginResponseDTO> LoginAsync(LoginRequestDTO loginRequest)
@@ -307,6 +306,19 @@ public class UserService : IUserService
             await _unitOfWork.UserRepository.UpdateAsync(user);
             await _unitOfWork.SaveAsync();
 
+            // Envia e-mail de sucesso de alteração de senha
+            var htmlBody = File.ReadAllText("EmailTemplates/SucessPasswordClient.html");
+            htmlBody = htmlBody.Replace("{NOME}", user.FirstName);
+            htmlBody = htmlBody.Replace("{DATA}", DateTime.Now.ToString("dd/MM/yyyy"));
+            htmlBody = htmlBody.Replace("{HORA}", DateTime.Now.ToString("HH:mm"));
+            var emailDto = new SendEmailDTO
+            {
+                To = user.Email,
+                Subject = "Senha alterada com sucesso - Viagium",
+                HtmlBody = htmlBody
+            };
+            await _emailService.SendEmailAsync(emailDto);
+
             return new UserDTO
             {
                 UserId = user.UserId,
@@ -321,5 +333,25 @@ public class UserService : IUserService
                 HashPassword = user.HashPassword
             };
         }, "recuperação de senha do usuário");
+    }
+    
+    public async Task SendForgotPasswordEmailAsync(string email)
+    {
+        var user = await _unitOfWork.UserRepository.GetEmailByForgotPasswordAsync(email);
+        if (user == null)
+            throw new KeyNotFoundException("Não foi encontrado nenhum usuário com este e-mail. Valide seus dados");
+
+        // Lê o template do e-mail
+        var htmlBody = File.ReadAllText("EmailTemplates/ForgotPasswordClient.html");
+        htmlBody = htmlBody.Replace("{NOME}", user.FirstName);
+        htmlBody = htmlBody.Replace("{ID}", user.UserId.ToString());
+
+        var emailDto = new SendEmailDTO
+        {
+            To = user.Email,
+            Subject = "Recuperação de senha - Viagium",
+            HtmlBody = htmlBody
+        };
+        await _emailService.SendEmailAsync(emailDto);
     }
 }

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Viagium.EntitiesDTO;
 using Viagium.Services;
 using Viagium.Services.Interfaces;
@@ -35,8 +35,10 @@ public class RoomTypeController : ControllerBase
                 PricePerNight = formDto.PricePerNight,
                 MaxOccupancy = formDto.MaxOccupancy,
                 NumberOfRoomsAvailable = formDto.NumberOfRoomsAvailable,
-                Amenities = formDto.Amenities ?? new List<int>()
+                Amenities = formDto.Amenities ?? new List<int>(),
+                RoomsNumber = formDto.RoomsNumber ?? new List<string>()
             };
+
             if (formDto.Image != null)
             {
                 var imageUrl = await _imgbbService.UploadImageAsync(formDto.Image);
@@ -78,7 +80,7 @@ public class RoomTypeController : ControllerBase
     /// <summary>
     /// Lista tipos de quarto por amenidades.
     /// </summary>
-    /// <remarks>Exemplo: GET /api/roomtype/amenities?amenityIds=1&amenityIds=2</remarks>
+    /// <remarks>Exemplo: GET /api/roomtype/amenities?amenityIds=1&amp;amenityIds=2</remarks>
     [HttpGet("amenities")]
     public async Task<IActionResult> GetByAmenityId([FromQuery] List<int> amenityIds)
     {
