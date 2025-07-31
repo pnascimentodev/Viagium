@@ -255,11 +255,11 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/affiliate/logout</remarks>
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout([FromBody] string token)
+    public async Task<IActionResult> Logout([FromBody] LogoutRequestDTO request)
     {
         try
         {
-            var result = await _authAffiliateService.LogoutAsync(token);
+            var result = await _authAffiliateService.LogoutAsync(request.Token);
             return Ok(new { message = "Logout realizado com sucesso." });
         }
         catch (Exception ex)

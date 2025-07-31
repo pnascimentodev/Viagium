@@ -153,7 +153,7 @@ builder.Services.AddAuthentication(options =>
             logger?.LogInformation("[JWT] OnTokenValidated chamado. Authorization header: {Header}", authHeader);
             if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
             {
-                var rawToken = authHeader.Substring("Bearer ".Length).Trim().ToLowerInvariant();
+                var rawToken = authHeader.Substring("Bearer ".Length).Trim();
                 logger?.LogInformation("[JWT] Token extraído do header: {Token}", rawToken);
                 if (await tokenBlacklistService.IsTokenBlacklistedAsync(rawToken))
                 {
@@ -189,7 +189,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddHttpClient<ImgbbService>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddScoped<IEmailService, Viagium.Services.Email.EmailService>();
-builder.Services.AddScoped<ITokenBlacklistService, InMemoryTokenBlacklistService>();
+builder.Services.AddSingleton<ITokenBlacklistService, InMemoryTokenBlacklistService>();
 
 var app = builder.Build(); 
 // Configure the HTTP request pipeline.

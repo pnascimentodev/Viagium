@@ -71,6 +71,7 @@ public class AuthAffiliateService : IAuthAffiliateService
     
     public async Task<AffiliateLoginResponseDTO> LogoutAsync(string token)
     {
+        _logger.LogInformation("[Logout] Token recebido para blacklist: {Token}", token);
         token = token.Trim('"');
         var handler = new JwtSecurityTokenHandler();
         JwtSecurityToken jwtToken;
@@ -80,14 +81,19 @@ public class AuthAffiliateService : IAuthAffiliateService
         }
         catch
         {
-            _logger.LogWarning("Tentativa de logout com token inválido: {Token}", token);
+            _logger.LogWarning("[Logout] Tentativa de logout com token inválido: {Token}", token);
             return await Task.FromResult(new AffiliateLoginResponseDTO());
         }
         var expires = jwtToken.ValidTo;
+        _logger.LogInformation("[Logout] Token expira em: {Expires}", expires);
         if (expires > DateTime.UtcNow)
         {
             await _tokenBlacklistService.AddToBlacklistAsync(token, expires);
-            _logger.LogInformation("Token adicionado à blacklist no logout: {Token}", token);
+            _logger.LogInformation("[Logout] Token adicionado à blacklist: {Token}", token);
+        }
+        else
+        {
+            _logger.LogWarning("[Logout] Token já expirado, não adicionado à blacklist: {Token}", token);
         }
         return await Task.FromResult(new AffiliateLoginResponseDTO());
     }
