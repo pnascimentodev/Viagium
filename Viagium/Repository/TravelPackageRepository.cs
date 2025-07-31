@@ -60,9 +60,13 @@ public class TravelPackageRepository : ITravelPackageRepository
             destinationAddressId = destinationAddress.AdressId;
         }
 
+        // Mapeia apenas os campos do TravelPackage, sem associar objetos Address
         var travelPackage = _mapper.Map<TravelPackage>(createTravelPackageDTO);
         travelPackage.OriginAddressId = originAddressId;
         travelPackage.DestinationAddressId = destinationAddressId;
+        travelPackage.OriginAddress = null; // Garante que não será associado objeto Address
+        travelPackage.DestinationAddress = null;
+
         if (createTravelPackageDTO.Image != null)
         {
             var imageUrl = await _imgbbService.UploadImageAsync(createTravelPackageDTO.Image);
@@ -96,11 +100,13 @@ public class TravelPackageRepository : ITravelPackageRepository
         await _context.SaveChangesAsync();
 
         // Buscar hotéis ativos na cidade e país de destino
+        var destCity = destinationAddressEntity?.City?.ToLower() ?? string.Empty;
+        var destCountry = destinationAddressEntity?.Country?.ToLower() ?? string.Empty;
         var hotels = await _context.Hotels
             .Include(h => h.Address)
             .Where(h => h.IsActive &&
-                        h.Address.City.ToLower() == travelPackage.DestinationAddress.City.ToLower() &&
-                        h.Address.Country.ToLower() == travelPackage.DestinationAddress.Country.ToLower())
+                        h.Address.City.ToLower() == destCity &&
+                        h.Address.Country.ToLower() == destCountry)
             .ToListAsync();
         var hotelDtos = _mapper.Map<List<HotelDTO>>(hotels);
 
@@ -127,10 +133,10 @@ public class TravelPackageRepository : ITravelPackageRepository
             PackageTax = travelPackage.PackageTax,
             CupomDiscount = travelPackage.CupomDiscount,
             DiscountValue = travelPackage.DiscountValue,
-            OriginCity = travelPackage.OriginAddress?.City,
-            OriginCountry = travelPackage.OriginAddress?.Country,
-            DestinationCity = travelPackage.DestinationAddress?.City,
-            DestinationCountry = travelPackage.DestinationAddress?.Country,
+            OriginCity = originAddressEntity?.City,
+            OriginCountry = originAddressEntity?.Country,
+            DestinationCity = destinationAddressEntity?.City,
+            DestinationCountry = destinationAddressEntity?.Country,
             Hotels = hotelDtos,
             PackageSchedule = _mapper.Map<PackageScheduleDTO>(schedule)
         };
