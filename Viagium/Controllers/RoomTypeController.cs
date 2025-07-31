@@ -80,7 +80,7 @@ public class RoomTypeController : ControllerBase
     /// <summary>
     /// Lista tipos de quarto por amenidades.
     /// </summary>
-    /// <remarks>Exemplo: GET /api/roomtype/amenities?amenityIds=1&amenityIds=2</remarks>
+    /// <remarks>Exemplo: GET /api/roomtype/amenities?amenityIds=1&amp;amenityIds=2</remarks>
     [HttpGet("amenities")]
     public async Task<IActionResult> GetByAmenityId([FromQuery] List<int> amenityIds)
     {

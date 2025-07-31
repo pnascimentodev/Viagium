@@ -128,7 +128,84 @@ public class TravelPackageRepository : ITravelPackageRepository
         };
         return response;
     }
-    
+
+    public async Task<bool> UpdateAsync(int travelPackageId, CreateTravelPackageDTO createTravelPackageDTO)
+    {
+        var travelPackage = await _context.TravelPackages
+            .Include(tp => tp.OriginAddress)
+            .Include(tp => tp.DestinationAddress)
+            .FirstOrDefaultAsync(tp => tp.TravelPackageId == travelPackageId);
+
+        if (travelPackage == null)
+            return false;
+
+        // Atualiza os campos do pacote de viagem
+        travelPackage.Title = createTravelPackageDTO.Title;
+        travelPackage.Description = createTravelPackageDTO.Description;
+        travelPackage.VehicleType = createTravelPackageDTO.VehicleType;
+        travelPackage.Duration = createTravelPackageDTO.Duration;
+        travelPackage.MaxPeople = createTravelPackageDTO.MaxPeople;
+        travelPackage.OriginalPrice = createTravelPackageDTO.OriginalPrice;
+        travelPackage.PackageTax = createTravelPackageDTO.PackageTax;
+        travelPackage.CupomDiscount = createTravelPackageDTO.CupomDiscount;
+        travelPackage.DiscountValue = createTravelPackageDTO.DiscountValue;
+
+        // Atualiza os endereços
+        if (createTravelPackageDTO.OriginAddress != null)
+        {
+            if (travelPackage.OriginAddress == null)
+            {
+                travelPackage.OriginAddress = new Address();
+            }
+
+            travelPackage.OriginAddress.City = createTravelPackageDTO.OriginAddress.City;
+            travelPackage.OriginAddress.Country = createTravelPackageDTO.OriginAddress.Country;
+        }
+
+        if (createTravelPackageDTO.DestinationAddress != null)
+        {
+            if (travelPackage.DestinationAddress == null)
+            {
+                travelPackage.DestinationAddress = new Address();
+            }
+
+            travelPackage.DestinationAddress.City = createTravelPackageDTO.DestinationAddress.City;
+            travelPackage.DestinationAddress.Country = createTravelPackageDTO.DestinationAddress.Country;
+        }
+
+        // Atualiza a imagem se fornecida
+        if (createTravelPackageDTO.Image != null)
+        {
+            var imageUrl = await _imgbbService.UploadImageAsync(createTravelPackageDTO.Image);
+            travelPackage.ImageUrl = imageUrl;
+        }
+
+        // Atualiza o PackageSchedule
+        var schedule = await _context.PackageSchedules
+            .FirstOrDefaultAsync(ps => ps.TravelPackageId == travelPackageId);
+
+        if (schedule != null)
+        {
+            schedule.StartDate = createTravelPackageDTO.PackageSchedule.StartDate;
+            schedule.IsFixed = createTravelPackageDTO.PackageSchedule.IsFixed;
+            schedule.IsAvailable = createTravelPackageDTO.PackageSchedule.IsAvailable;
+        }
+        else
+        {
+            schedule = new PackageSchedule
+            {
+                TravelPackageId = travelPackageId,
+                StartDate = createTravelPackageDTO.PackageSchedule.StartDate,
+                IsFixed = createTravelPackageDTO.PackageSchedule.IsFixed,
+                IsAvailable = createTravelPackageDTO.PackageSchedule.IsAvailable
+            };
+            await _context.PackageSchedules.AddAsync(schedule);
+        }
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<CreateTravelPackageDTO?> AssociateActiveHotelsByCityAndCountry(
         int travelPackageId, string city, string country)
     {
@@ -154,5 +231,268 @@ public class TravelPackageRepository : ITravelPackageRepository
 
         await _context.SaveChangesAsync();
         return _mapper.Map<CreateTravelPackageDTO>(travelPackage);
+    }
+
+    public async Task<List<ResponseTravelPackageDTO>> ListAllAsync()
+    {
+        var now = DateTime.Now;
+        var packages = await _context.TravelPackages
+            .Where(tp => tp.IsActive)
+            .Include(tp => tp.PackageSchedules)
+            .Include(tp => tp.OriginAddress)
+            .Include(tp => tp.DestinationAddress)
+            .Include(tp => tp.PackageHotels)
+                .ThenInclude(ph => ph.Hotel)
+                    .ThenInclude(h => h.Address)
+            .ToListAsync();
+
+        bool changed = false;
+        foreach (var pkg in packages)
+        {
+            var schedule = pkg.PackageSchedules?.FirstOrDefault();
+            if (schedule != null && schedule.IsAvailable && now >= schedule.StartDate)
+            {
+                schedule.IsAvailable = false;
+                changed = true;
+            }
+        }
+        if (changed) await _context.SaveChangesAsync();
+
+        var result = new List<ResponseTravelPackageDTO>();
+        foreach (var pkg in packages)
+        {
+            var hotels = pkg.PackageHotels?.Select(ph => ph.Hotel).Where(h => h != null).ToList() ?? new List<Models.Hotel>();
+            var schedule = pkg.PackageSchedules?.FirstOrDefault();
+            result.Add(new ResponseTravelPackageDTO
+            {
+                TravelPackageId = pkg.TravelPackageId,
+                Title = pkg.Title,
+                Description = pkg.Description,
+                ImageUrl = pkg.ImageUrl,
+                VehicleType = pkg.VehicleType,
+                Duration = pkg.Duration,
+                MaxPeople = pkg.MaxPeople,
+                OriginalPrice = pkg.OriginalPrice,
+                Price = pkg.Price,
+                PackageTax = pkg.PackageTax,
+                CupomDiscount = pkg.CupomDiscount,
+                DiscountValue = pkg.DiscountValue,
+                OriginCity = pkg.OriginAddress?.City,
+                OriginCountry = pkg.OriginAddress?.Country,
+                DestinationCity = pkg.DestinationAddress?.City,
+                DestinationCountry = pkg.DestinationAddress?.Country,
+                Hotels = _mapper.Map<List<HotelDTO>>(hotels),
+                PackageSchedule = _mapper.Map<PackageScheduleDTO>(schedule)
+            });
+        }
+        return result;
+    }
+    public async Task<ResponseTravelPackageDTO?> GetByIdAsync(int id)
+    {
+        var travelPackage = await _context.TravelPackages
+            .Where(tp => tp.IsActive)
+            .Include(tp => tp.PackageHotels)
+                .ThenInclude(ph => ph.Hotel)
+                    .ThenInclude(h => h.Address)
+            .Include(tp => tp.OriginAddress)
+            .Include(tp => tp.DestinationAddress)
+            .Include(tp => tp.PackageSchedules)
+            .FirstOrDefaultAsync(tp => tp.TravelPackageId == id);
+
+        if (travelPackage == null) return null;
+
+        var schedule = travelPackage.PackageSchedules?.FirstOrDefault();
+        return new ResponseTravelPackageDTO
+        {
+            TravelPackageId = travelPackage.TravelPackageId,
+            Title = travelPackage.Title,
+            Description = travelPackage.Description,
+            ImageUrl = travelPackage.ImageUrl,
+            VehicleType = travelPackage.VehicleType,
+            Duration = travelPackage.Duration,
+            MaxPeople = travelPackage.MaxPeople,
+            OriginalPrice = travelPackage.OriginalPrice,
+            Price = travelPackage.Price,
+            PackageTax = travelPackage.PackageTax,
+            CupomDiscount = travelPackage.CupomDiscount,
+            DiscountValue = travelPackage.DiscountValue,
+            OriginCity = travelPackage.OriginAddress?.City,
+            OriginCountry = travelPackage.OriginAddress?.Country,
+            DestinationCity = travelPackage.DestinationAddress?.City,
+            DestinationCountry = travelPackage.DestinationAddress?.Country,
+            Hotels = _mapper.Map<List<HotelDTO>>(travelPackage.PackageHotels.Select(ph => ph.Hotel).Where(h => h != null)),
+            PackageSchedule = _mapper.Map<PackageScheduleDTO>(schedule)
+        };
+    }
+    public async Task<ResponseTravelPackageDTO?> UpdateAsync(ResponseTravelPackageDTO responseTravelPackageDTO)
+    {
+        // Exemplo de implementação básica (ajuste conforme sua lógica de negócio)
+        var travelPackage = await _context.TravelPackages
+            .Include(tp => tp.PackageSchedules)
+            .FirstOrDefaultAsync(tp => tp.TravelPackageId == responseTravelPackageDTO.TravelPackageId);
+        if (travelPackage == null) return null;
+
+        travelPackage.Title = responseTravelPackageDTO.Title;
+        travelPackage.Description = responseTravelPackageDTO.Description;
+        travelPackage.ImageUrl = responseTravelPackageDTO.ImageUrl;
+        travelPackage.VehicleType = responseTravelPackageDTO.VehicleType;
+        travelPackage.Duration = responseTravelPackageDTO.Duration;
+        travelPackage.MaxPeople = responseTravelPackageDTO.MaxPeople;
+        travelPackage.OriginalPrice = responseTravelPackageDTO.OriginalPrice;
+        travelPackage.Price = responseTravelPackageDTO.Price ?? 0;
+        travelPackage.PackageTax = responseTravelPackageDTO.PackageTax;
+        travelPackage.CupomDiscount = responseTravelPackageDTO.CupomDiscount;
+        travelPackage.DiscountValue = responseTravelPackageDTO.DiscountValue;
+        // Atualize outros campos conforme necessário
+
+        // Atualiza o PackageSchedule (apenas o primeiro, se existir)
+        var schedule = travelPackage.PackageSchedules?.FirstOrDefault();
+        if (schedule != null && responseTravelPackageDTO.PackageSchedule != null)
+        {
+            schedule.StartDate = responseTravelPackageDTO.PackageSchedule.StartDate;
+            schedule.IsFixed = responseTravelPackageDTO.PackageSchedule.IsFixed;
+            schedule.IsAvailable = responseTravelPackageDTO.PackageSchedule.IsAvailable;
+        }
+
+        await _context.SaveChangesAsync();
+        return responseTravelPackageDTO;
+    }
+
+    public async Task<ResponseTravelPackageDTO?> GetByNameAsync(string name)
+    {
+        var travelPackage = await _context.TravelPackages
+            .Where(tp => tp.IsActive)
+            .Include(tp => tp.PackageHotels)
+                .ThenInclude(ph => ph.Hotel)
+                    .ThenInclude(h => h.Address)
+            .Include(tp => tp.OriginAddress)
+            .Include(tp => tp.DestinationAddress)
+            .Include(tp => tp.PackageSchedules)
+            .FirstOrDefaultAsync(tp => tp.Title == name);
+
+        if (travelPackage == null) return null;
+
+        var schedule = travelPackage.PackageSchedules?.FirstOrDefault();
+        return new ResponseTravelPackageDTO
+        {
+            TravelPackageId = travelPackage.TravelPackageId,
+            Title = travelPackage.Title,
+            Description = travelPackage.Description,
+            ImageUrl = travelPackage.ImageUrl,
+            VehicleType = travelPackage.VehicleType,
+            Duration = travelPackage.Duration,
+            MaxPeople = travelPackage.MaxPeople,
+            OriginalPrice = travelPackage.OriginalPrice,
+            Price = travelPackage.Price,
+            PackageTax = travelPackage.PackageTax,
+            CupomDiscount = travelPackage.CupomDiscount,
+            DiscountValue = travelPackage.DiscountValue,
+            OriginCity = travelPackage.OriginAddress?.City,
+            OriginCountry = travelPackage.OriginAddress?.Country,
+            DestinationCity = travelPackage.DestinationAddress?.City,
+            DestinationCountry = travelPackage.DestinationAddress?.Country,
+            Hotels = _mapper.Map<List<HotelDTO>>(travelPackage.PackageHotels.Select(ph => ph.Hotel).Where(h => h != null)),
+            PackageSchedule = _mapper.Map<PackageScheduleDTO>(schedule)
+        };
+    }
+
+    public async Task<ResponseTravelPackageDTO?> GetByCityAndCountryAsync(string city, string country)
+    {
+        var travelPackage = await _context.TravelPackages
+            .Where(tp => tp.IsActive)
+            .Include(tp => tp.PackageHotels)
+                .ThenInclude(ph => ph.Hotel)
+                    .ThenInclude(h => h.Address)
+            .Include(tp => tp.OriginAddress)
+            .Include(tp => tp.DestinationAddress)
+            .Include(tp => tp.PackageSchedules)
+            .FirstOrDefaultAsync(tp => tp.DestinationAddress.City == city && tp.DestinationAddress.Country == country);
+
+        if (travelPackage == null) return null;
+
+        var schedule = travelPackage.PackageSchedules?.FirstOrDefault();
+        return new ResponseTravelPackageDTO
+        {
+            TravelPackageId = travelPackage.TravelPackageId,
+            Title = travelPackage.Title,
+            Description = travelPackage.Description,
+            ImageUrl = travelPackage.ImageUrl,
+            VehicleType = travelPackage.VehicleType,
+            Duration = travelPackage.Duration,
+            MaxPeople = travelPackage.MaxPeople,
+            OriginalPrice = travelPackage.OriginalPrice,
+            Price = travelPackage.Price,
+            PackageTax = travelPackage.PackageTax,
+            CupomDiscount = travelPackage.CupomDiscount,
+            DiscountValue = travelPackage.DiscountValue,
+            OriginCity = travelPackage.OriginAddress?.City,
+            OriginCountry = travelPackage.OriginAddress?.Country,
+            DestinationCity = travelPackage.DestinationAddress?.City,
+            DestinationCountry = travelPackage.DestinationAddress?.Country,
+            Hotels = _mapper.Map<List<HotelDTO>>(travelPackage.PackageHotels.Select(ph => ph.Hotel).Where(h => h != null)),
+            PackageSchedule = _mapper.Map<PackageScheduleDTO>(schedule)
+        };
+    }
+
+    public async Task<List<ResponseTravelPackageDTO>> DesactivateAsync(int id)
+    {
+        var travelPackage = await _context.TravelPackages
+            .Include(tp => tp.PackageSchedules)
+            .FirstOrDefaultAsync(tp => tp.TravelPackageId == id);
+        if (travelPackage != null)
+        {
+            travelPackage.IsActive = false;
+            travelPackage.DeletedAt = DateTime.Now;
+            foreach (var schedule in travelPackage.PackageSchedules)
+            {
+                schedule.IsAvailable = false;
+            }
+            await _context.SaveChangesAsync();
+        }
+        return await ListAllAsync();
+    }
+
+    public async Task<List<ResponseTravelPackageDTO>> ActivateAsync(int id)
+    {
+        var travelPackage = await _context.TravelPackages
+            .Include(tp => tp.PackageSchedules)
+            .FirstOrDefaultAsync(tp => tp.TravelPackageId == id);
+        if (travelPackage != null)
+        {
+            travelPackage.IsActive = true;
+            travelPackage.DeletedAt = null;
+            travelPackage.UpdatedAt = DateTime.Now;
+            foreach (var schedule in travelPackage.PackageSchedules)
+            {
+                schedule.IsAvailable = true;
+            }
+            await _context.SaveChangesAsync();
+        }
+        return await ListAllAsync();
+    }
+
+    public async Task<List<ResponseTravelPackageDTO>> CreateDiscountAsync(
+        int travelPackageId, decimal discountPercentage, DateTime startDate, DateTime endDate)
+    {
+        var travelPackage = await _context.TravelPackages
+            .FirstOrDefaultAsync(tp => tp.TravelPackageId == travelPackageId);
+        if (travelPackage != null)
+        {
+            travelPackage.DiscountValue = discountPercentage;
+            await _context.SaveChangesAsync();
+        }
+        return await ListAllAsync();
+    }
+
+    public async Task<List<ResponseTravelPackageDTO>> DesactivateDiscountAsync(int travelPackageId)
+    {
+        var travelPackage = await _context.TravelPackages
+            .FirstOrDefaultAsync(tp => tp.TravelPackageId == travelPackageId);
+        if (travelPackage != null)
+        {
+            travelPackage.DiscountValue = 0;
+            await _context.SaveChangesAsync();
+        }
+        return await ListAllAsync();
     }
 }
