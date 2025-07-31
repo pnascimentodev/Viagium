@@ -38,4 +38,10 @@ public class Reservation
 
     //desativar a reserva cancelamento
     public bool IsActive { get; internal set; }
+
+    [ForeignKey("Hotel")]
+    public int? HotelId { get; set; }
+    public Hotel? Hotel { get; set; }
+
+
 }

@@ -19,5 +19,7 @@ namespace Viagium.EntitiesDTO.Reservation
 
         // Dados do quarto do hotel
         public RoomTypeDTO? RoomType { get; set; }
+
+        public bool IsActive { get; internal set; }
     }
 }

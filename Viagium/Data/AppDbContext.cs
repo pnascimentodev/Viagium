@@ -103,6 +103,14 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired(false); // Tornando o relacionamento opcional
 
+        // Relacionamento Reservation - Hotel (N:1) - Novo relacionamento direto
+        modelBuilder.Entity<Reservation>()
+            .HasOne(r => r.Hotel)
+            .WithMany(h => h.Reservations)
+            .HasForeignKey(r => r.HotelId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false); // Opcional porque pode ser nulo
+
         // Decimais para RoomType e ReservationRoom
         modelBuilder.Entity<RoomType>()
             .Property(rt => rt.PricePerNight)

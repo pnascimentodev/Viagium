@@ -29,6 +29,19 @@ namespace Viagium.Services
                 Validator.ValidateObject(reservation, new ValidationContext(reservation), true);
                 ValidateCustomRules(reservation);
 
+                //PaymentId esta null porem quando for criado o pagamento,
+                //ele será atualizado para gerar um PaymentId de pagamento???
+                //Como estava antes???
+
+
+                // Validar se o hotel existe antes de criar a reserva
+                var hotelExists = await _unitOfWork.HotelRepository.GetByIdAsync(createReservationDto.HotelId);
+                if (hotelExists == null)
+                    throw new KeyNotFoundException($"Hotel com ID {createReservationDto.HotelId} não encontrado.");
+
+                reservation.IsActive = true; // Define a reserva como ativa
+                reservation.HotelId = createReservationDto.HotelId; // Define o HotelId diretamente na reserva
+                
                 // 1. Criar a Reserva primeiro para obter o ReservationId
                 await _unitOfWork.ReservationRepository.AddAsync(reservation);
                 await _unitOfWork.SaveAsync();
@@ -44,7 +57,6 @@ namespace Viagium.Services
                         Validator.ValidateObject(traveler, new ValidationContext(traveler), true);
                         await _unitOfWork.TravelerRepository.AddAsync(traveler);
                     }                    
-                    
                 }
 
                 // 3. Buscar a reserva completa com todos os dados para retorno
@@ -54,6 +66,14 @@ namespace Viagium.Services
                 // Buscar os travelers manualmente para evitar duplicação
                 var travelers = await _unitOfWork.TravelerRepository.GetByReservationIdAsync(reservation.ReservationId);
                 dto.Travelers = _mapper.Map<List<TravelerDTO>>(travelers);
+                dto.IsActive = reservation.IsActive; // Incluir o status ativo da reserva
+                
+                // O Hotel agora vem automaticamente através do relacionamento direto
+                // Mas vamos garantir que os dados estejam completos como fallback
+                if (dto.Hotel == null && hotelExists != null)
+                {
+                    dto.Hotel = _mapper.Map<HotelDTO>(hotelExists);
+                }
                 
                 return dto;
 
@@ -85,6 +105,19 @@ namespace Viagium.Services
                     var dto = _mapper.Map<ResponseReservationDTO>(reservation);
                     var travelers = await _unitOfWork.TravelerRepository.GetByReservationIdAsync(reservation.ReservationId);
                     dto.Travelers = _mapper.Map<List<TravelerDTO>>(travelers);
+                    dto.IsActive = reservation.IsActive; // Incluir o status ativo da reserva
+                    
+                    // O Hotel agora vem automaticamente através do relacionamento direto
+                    // Se não vier pelo AutoMapper, buscar manualmente como fallback
+                    if (dto.Hotel == null && reservation.HotelId.HasValue)
+                    {
+                        var hotelData = await _unitOfWork.HotelRepository.GetByIdAsync(reservation.HotelId.Value);
+                        if (hotelData != null)
+                        {
+                            dto.Hotel = _mapper.Map<HotelDTO>(hotelData);
+                        }
+                    }
+                    
                     dtos.Add(dto);
                 }
 
@@ -105,15 +138,16 @@ namespace Viagium.Services
                 // Buscar os travelers manualmente para evitar duplicação
                 var travelers = await _unitOfWork.TravelerRepository.GetByReservationIdAsync(id);
                 dto.Travelers = _mapper.Map<List<TravelerDTO>>(travelers);
+                dto.IsActive = reservation.IsActive; // Incluir o status ativo da reserva
 
-                // Busca o hotel através do RoomType da primeira ReservationRoom
-                if (reservation.ReservationRooms != null && reservation.ReservationRooms.Any())
+                // O Hotel agora vem automaticamente através do relacionamento direto
+                // Se não vier pelo AutoMapper, buscar manualmente como fallback
+                if (dto.Hotel == null && reservation.HotelId.HasValue)
                 {
-                    var roomType = reservation.ReservationRooms.First().RoomType;
-                    if (roomType != null)
+                    var hotelData = await _unitOfWork.HotelRepository.GetByIdAsync(reservation.HotelId.Value);
+                    if (hotelData != null)
                     {
-                        var hotel = await _unitOfWork.HotelRepository.GetByIdAsync(roomType.HotelId);
-                        dto.Hotel = _mapper.Map<HotelDTO>(hotel);
+                        dto.Hotel = _mapper.Map<HotelDTO>(hotelData);
                     }
                 }
                 
@@ -139,7 +173,7 @@ namespace Viagium.Services
             return (paymentStatus, reservation.Status);
         }
 
-        //Caso tenha alguma validacao posterior
+        
 
 
         private void ValidateCustomRules(Reservation reservation)
@@ -156,10 +190,34 @@ namespace Viagium.Services
         {
             return await ExceptionHandler.ExecuteWithHandling(async () =>
             {
-                var reservation = await _unitOfWork.ReservationRepository.DeactivateAsync(id);
-                return reservation;
+                // Validação do ID
+                if (id <= 0)
+                    throw new ArgumentException("ID da reserva deve ser maior que zero.");
 
-            }, "reserva desativada");
+                // Busca a reserva para validar se existe e se já não está desativada
+                var existingReservation = await _unitOfWork.ReservationRepository.GetByIdAsync(id);
+                if (existingReservation == null)
+                    throw new KeyNotFoundException("Reserva não encontrada para desativação.");
+
+                // Verifica se a reserva já está desativada
+                if (!existingReservation.IsActive)
+                    throw new InvalidOperationException("A reserva já está desativada.");
+
+                // Verifica se a reserva pode ser desativada (ex: não está finalizada)
+                if (existingReservation.Status?.ToLower() == "completed")
+                    throw new InvalidOperationException("Não é possível desativar uma reserva que já foi finalizada.");
+
+                // Chama o repository para desativar
+                var deactivatedReservation = await _unitOfWork.ReservationRepository.DeactivateAsync(id);
+                
+                // Atualiza o status da reserva para "cancelled" quando desativada
+                deactivatedReservation.Status = "cancelled";
+                await _unitOfWork.ReservationRepository.UpdateAsync(deactivatedReservation);
+                await _unitOfWork.SaveAsync();
+
+                return deactivatedReservation;
+
+            }, "desativação de reserva");
         }
     }
 }

@@ -23,6 +23,8 @@ namespace Viagium.Repository
         {
             return await _context.Reservations
                 .Include(r => r.User)
+                .Include(r => r.Hotel) // Incluir o Hotel diretamente
+                    .ThenInclude(h => h.Address) // Incluir o endereço do hotel
                 .Include(r => r.TravelPackage)
                     .ThenInclude(tp => tp.OriginAddress)
                 .Include(r => r.TravelPackage)
@@ -39,6 +41,8 @@ namespace Viagium.Repository
         {
             return await _context.Reservations
                 .Include(r => r.User)
+                .Include(r => r.Hotel) // Incluir o Hotel diretamente
+                    .ThenInclude(h => h.Address) // Incluir o endereço do hotel
                 .Include(r => r.TravelPackage)
                     .ThenInclude(tp => tp.OriginAddress)
                 .Include(r => r.TravelPackage)

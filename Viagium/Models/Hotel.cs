@@ -62,5 +62,5 @@ public class Hotel
     public Address Address { get; set; } = new Address();
     
     public ICollection<HotelAmenity> HotelAmenity { get; set; } = new List<HotelAmenity>();
-
+    public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
 }
