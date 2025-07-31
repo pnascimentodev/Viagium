@@ -42,7 +42,7 @@ namespace Viagium.Models
         public DateTime? DeletedAt { get; set; }
         
         [MaxLength(100)]
-        public string AsaasApiId { get; set; }
+        public string? AsaasApiId { get; set; }
         public ICollection<TravelPackage> TravelPackages { get; set; }
         public ICollection<Reservation> Reservations { get; set; }
 
