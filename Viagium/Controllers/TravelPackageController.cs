@@ -2,6 +2,7 @@
 using Viagium.Services;
 using AutoMapper;
 using Viagium.EntitiesDTO;
+using Viagium.EntitiesDTO.TravelPackageDTO;
 
 namespace Viagium.Controllers;
 
@@ -16,152 +17,21 @@ public class TravelPackageController : ControllerBase
         _service = service;
         _mapper = mapper;
     }
-    
-    /// <summary>
-    /// Cria um novo pacote de viagem.
-    /// </summary>
-    /// <remarks>Exemplo: POST /api/travelpackage</remarks>
-    //Criar um pacote de viagem
-    [HttpPost]
-    public async Task<IActionResult> Create([FromBody] Models.TravelPackage travelPackage)
-    {
-        try
-        {
-            ExceptionHandler.ValidateObject(travelPackage, "pacote de viagem");
-            var createdPackage = await _service.AddAsync(travelPackage);
-            var dto = _mapper.Map<EntitiesDTO.TravelPackageDTO>(createdPackage);
-            return CreatedAtAction(nameof(GetById), new { id = createdPackage.TravelPackageId }, dto);
-        }
-        catch (Exception ex)
-        {
-            return ExceptionHandler.HandleException(ex);
-        }
-    }
 
-    /// <summary>
-    /// Busca um pacote de viagem pelo ID.
-    /// </summary>
-    /// <remarks>Exemplo: GET /api/travelpackage/1</remarks>
-    // Método para buscar pacote de viagem por ID
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id)
+    [HttpPost("create")]
+    public async Task<IActionResult> CreateTravelPackage([FromForm] CreateTravelPackageDTO create)
     {
-        var pacote = await _service.GetByIdAsync(id);
-        if (pacote == null)
-            return NotFound();
-        return Ok(pacote);
-    }
+        try
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-
-    /// <summary>
-    /// Lista todos os pacotes de viagem cadastrados.
-    /// </summary>
-    /// <remarks>Exemplo: GET /api/travelpackage</remarks>
-    // Método para buscar todos os pacotes de viagem
-    [HttpGet]
-    public async Task<IActionResult> GetAllTravelPackages()
-    {
-        var pacotes = await _service.GetAllAsync();
-        return Ok(pacotes);
-    }
-    
-    /// <summary>
-    /// Atualiza um pacote de viagem.
-    /// </summary>
-    /// <remarks>Exemplo: PUT /api/travelpackage/1</remarks>
-    // Método para atualizar um pacote de viagem
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] EditTravelPackageDTO dto)
-    {
-        try
-        {
-            ExceptionHandler.ValidateObject(dto, "pacote de viagem");
-            var pacoteAtualizado = await _service.UpdateAsync(id, dto);
-            return Ok(pacoteAtualizado);
+            var result = await _service.AddAsync(create);
+            return CreatedAtAction(nameof(CreateTravelPackage), new { title = result.Title }, result);
         }
         catch (Exception ex)
         {
-            return ExceptionHandler.HandleException(ex);
-        }
-    }
-    
-    /// <summary>
-    /// Desativa um pacote de viagem.
-    /// </summary>
-    /// <remarks>Exemplo: DELETE /api/travelpackage/1</remarks>
-    // Método para desativar um pacote de viagem
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Deactivate(int id)
-    {
-        try
-        {
-            var pacoteDesativado = await _service.DesativateAsync(id);
-            if (pacoteDesativado == null)
-                return NotFound("Pacote de viagem não encontrado para desativação.");
-            return Ok(pacoteDesativado);
-        }
-        catch (Exception ex)
-        {
-            return ExceptionHandler.HandleException(ex);
-        }
-    }
-    
-    /// <summary>
-    /// Ativa um pacote de viagem.
-    /// </summary>
-    /// <remarks>Exemplo: POST /api/travelpackage/activate/1</remarks>
-    // Método para ativar um pacote de viagem
-    [HttpPost("activate/{id}")]
-    public async Task<IActionResult> Activate(int id)
-    {
-        try
-        {
-            var pacoteAtivado = await _service.ActivateAsync(id);
-            if (pacoteAtivado == null)
-                return NotFound("Pacote de viagem não encontrado para ativação.");
-            return Ok(pacoteAtivado);
-        }
-        catch (Exception ex)
-        {
-            return ExceptionHandler.HandleException(ex);
-        }
-    }
-
-    /// <summary>
-    /// Ativa uma promoção em um pacote de viagem.
-    /// </summary>
-    /// <remarks>Exemplo: POST /api/travelpackage/active-promotion/1</remarks>
-    [HttpPost("active-promotion/{id}")]
-    public async Task<IActionResult> ActivePromotion(int id, [FromBody] decimal discountPercentage)
-    {
-        try
-        {
-            var pacoteAtivado = await _service.ActivePromotionAsync(id, discountPercentage);
-            if (pacoteAtivado == null)
-                return NotFound("Pacote de viagem não encontrado para ativação de promoção.");
-            return Ok(pacoteAtivado);
-        }
-        catch (Exception ex)
-        {
-            return ExceptionHandler.HandleException(ex);
-        }
-    }
-
-    /// <summary>
-    /// Lista os pacotes de viagem ativos.
-    /// </summary>
-    /// <remarks>Exemplo: GET /api/travelpackage/active-package</remarks>
-    [HttpGet("active-package")]
-    public async Task<IActionResult> GetActivePackage()
-    {
-        try
-        {
-            var pacoteAtivo = await _service.GetActiveAsync();
-            return Ok(pacoteAtivo);
-        }
-        catch (Exception ex)
-        {
-            return ExceptionHandler.HandleException(ex);
+            return StatusCode(500, $"Erro ao criar pacote de viagem: {ex.Message}");
         }
     }
 }

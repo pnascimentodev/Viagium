@@ -1,126 +1,66 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel.DataAnnotations;
+using AutoMapper;
 using Viagium.EntitiesDTO;
+using Viagium.EntitiesDTO.TravelPackageDTO;
 using Viagium.Models;
+using Viagium.Repository;
 using Viagium.Repository.Interface;
+using Viagium.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Viagium.Services
 {
     public class TravelPackageService : ITravelPackage
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
+        private readonly ITravelPackageRepository _travelPackageRepository;
+        private readonly IHotelRepository _hotelRepository;
+        private readonly AppDbContext _context;
 
-        public TravelPackageService(IUnitOfWork unitOfWork)
+        public TravelPackageService(IUnitOfWork unitOfWork, IMapper mapper, ITravelPackageRepository travelPackageRepository, IHotelRepository hotelRepository, AppDbContext context)
         {
             _unitOfWork = unitOfWork;
-        }
-
-        public async Task<TravelPackage> AddAsync(TravelPackage travelPackage)
-        {
-            return await ExceptionHandler.ExecuteWithHandling(async () =>
-            {
-                // Validação de data annotations
-                var validationContext = new ValidationContext(travelPackage);
-                Validator.ValidateObject(travelPackage, validationContext, validateAllProperties: true);
-
-                // Validações customizadas específicas do negócio
-                ValidateCustomRules(travelPackage);
-
-                await _unitOfWork.TravelPackageRepository.AddAsync(travelPackage);
-                await _unitOfWork.SaveAsync();
-
-                return travelPackage;
-            }, "criação de pacote de viagem");
-        }
-
-        private void ValidateCustomRules(TravelPackage travelPackage)
-        {
-            var errors = new List<string>();
-
-            if (travelPackage.OriginAddressId == travelPackage.DestinationAddressId)
-                errors.Add("Endereço de origem e destino não podem ser iguais.");
-
-            if (errors.Any())
-                throw new ArgumentException(string.Join("\n", errors));
+            _mapper = mapper;
+            _travelPackageRepository = travelPackageRepository;
+            _hotelRepository = hotelRepository;
+            _context = context;
         }
         
-        public async Task<TravelPackage?> GetByIdAsync(int id)
+        public async Task<ResponseTravelPackageDTO> AddAsync(CreateTravelPackageDTO createTravelPackageDto)
         {
-            return await ExceptionHandler.ExecuteWithHandling(async () =>
-            {
-                var travelPackage = await _unitOfWork.TravelPackageRepository.GetByIdAsync(id);
-                if (travelPackage == null)
-                    throw new KeyNotFoundException("Pacote de viagem não encontrado.");
+            // Salva o pacote de viagem e obtém o objeto salvo (com hotéis do destino)
+            var response = await _travelPackageRepository.AddAsync(createTravelPackageDto);
 
-                return travelPackage;
-            }, "busca de pacote de viagem");
-        }
+            // Busca o pacote salvo para obter o TravelPackageId
+            var travelPackage = await _context.TravelPackages
+                .Include(tp => tp.DestinationAddress)
+                .FirstOrDefaultAsync(tp => tp.TravelPackageId == response.TravelPackageId);
 
-        public async Task<IEnumerable<TravelPackage>> GetAllAsync()
-        {
-            return await ExceptionHandler.ExecuteWithHandling(async () =>
+            // Após salvar, associa hotéis ativos do destino ao pacote (relacionamento muitos-para-muitos)
+            if (travelPackage?.DestinationAddress != null)
             {
-                var travelPackages= await _unitOfWork.TravelPackageRepository.GetAllAsync();
-                if (travelPackages == null || !travelPackages.Any())
-                    throw new KeyNotFoundException("Nenhum pacote de viagem registrado.");
+                var city = travelPackage.DestinationAddress.City;
+                var country = travelPackage.DestinationAddress.Country;
+                await _travelPackageRepository.AssociateActiveHotelsByCityAndCountry(
+                    travelPackageId: travelPackage.TravelPackageId,
+                    city: city,
+                    country: country
+                );
 
-                return travelPackages;
-            }, "busca todos os pacotes de viagem");
-        }
-        
-        public async Task<EditTravelPackageDTO> UpdateAsync(int id, EditTravelPackageDTO travelPackage)
-        {
-            return await ExceptionHandler.ExecuteWithHandling(async () =>
-            {
-                var updated = await _unitOfWork.TravelPackageRepository.UpdateAsync(id, travelPackage);
-                return updated;
-            }, "atualização de pacote de viagem");
-        }
-        
-        public async Task<TravelPackage> DesativateAsync(int id)
-        {
-            return await ExceptionHandler.ExecuteWithHandling(async () =>
-            {
-                var travelPackage = await _unitOfWork.TravelPackageRepository.DesativateAsync(id);
-                if (travelPackage == null)
-                    throw new KeyNotFoundException("Pacote de viagem não encontrado para desativação.");
-
-                return travelPackage;
-            }, "desativação de pacote de viagem");
-        }
-        
-        public async Task<TravelPackage> ActivateAsync(int id)
-        {
-            return await ExceptionHandler.ExecuteWithHandling(async () =>
-            {
-                var travelPackage = await _unitOfWork.TravelPackageRepository.ActivateAsync(id);
-                if (travelPackage == null)
-                    throw new KeyNotFoundException("Pacote de viagem não encontrado para ativação.");
-
-                return travelPackage;
-            }, "ativação de pacote de viagem");
-        }
-        
-        public async Task<TravelPackage> ActivePromotionAsync(int id, decimal discountPercentage)
-        {
-            return await ExceptionHandler.ExecuteWithHandling(async () =>
-            {
-                var travelPackage = await _unitOfWork.TravelPackageRepository.ActivePromotionAsync(id, discountPercentage);
-                if (travelPackage == null)
-                    throw new KeyNotFoundException("Pacote de viagem não encontrado para ativação de promoção.");
-                return travelPackage;
-            }, "ativação de promoção de pacote de viagem");
+                // Buscar hotéis novamente após associação
+                var hotels = await _context.Hotels
+                    .Include(h => h.Address)
+                    .Where(h => h.IsActive &&
+                                h.Address.City.ToLower() == city.ToLower() &&
+                                h.Address.Country.ToLower() == country.ToLower())
+                    .ToListAsync();
+                response.Hotels = _mapper.Map<List<HotelDTO>>(hotels);
+            }
+            return response;
         }
 
-        public async Task<TravelPackage> GetActiveAsync()
-        {
-            return await ExceptionHandler.ExecuteWithHandling(async () =>
-            {
-                var travelPackage = await _unitOfWork.TravelPackageRepository.GetActiveAsync();
-                if (travelPackage == null)
-                    throw new KeyNotFoundException("Nenhum pacote de viagem ativo encontrado.");
-                return travelPackage;
-            }, "busca de pacote de viagem ativo");
-        }
+
     }
 }

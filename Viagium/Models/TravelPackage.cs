@@ -71,6 +71,7 @@ namespace Viagium.Models
             
         public virtual ICollection<Reservation>? Reservations { get; set; }
         public virtual ICollection<PackageSchedule>? PackageSchedules { get; set; }
+        public virtual ICollection<PackageHotel> PackageHotels { get; set; } = new List<PackageHotel>();
 
         [NotMapped]
         public string OccupancyInfo {

@@ -4,6 +4,7 @@ using Viagium.EntitiesDTO;
 using Viagium.EntitiesDTO.User;
 using Viagium.EntitiesDTO.Affiliate;
 using Viagium.EntitiesDTO.ApiDTO;
+using Viagium.EntitiesDTO.TravelPackageDTO;
 
 namespace Viagium.ProfileAutoMapper
 {
@@ -34,6 +35,12 @@ namespace Viagium.ProfileAutoMapper
             CreateMap<RoomType, RoomTypeDTO>();
             CreateMap<Traveler, TravelerDTO>();
             CreateMap<TravelPackage, TravelPackageDTO>();
+            CreateMap<TravelPackageDTO, TravelPackage>();
+            CreateMap<TravelPackage, CreateTravelPackageDTO>();
+            CreateMap<CreateTravelPackageDTO, TravelPackage>()
+                .ForMember(dest => dest.OriginAddress, opt => opt.MapFrom(src => src.OriginAddress))
+                .ForMember(dest => dest.DestinationAddress, opt => opt.MapFrom(src => src.DestinationAddress))
+                .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.UserId));
             CreateMap<TravelPackageHistory, TravelPackageHistoryDTO>();
             CreateMap<UserUpdateDto, Viagium.Models.User>()
                 .ForMember(dest => dest.DocumentNumber, opt => opt.Ignore())
@@ -129,6 +136,19 @@ namespace Viagium.ProfileAutoMapper
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
                 .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.Rating))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
+            CreateMap<AddressPackageDTO, Address>()
+                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City))
+                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt));
+            CreateMap<Address, AddressPackageDTO>()
+                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City))
+                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt));
+            CreateMap<CreateTravelPackageDTO, TravelPackage>()
+                .ForMember(dest => dest.OriginAddress, opt => opt.MapFrom(src => src.OriginAddress))
+                .ForMember(dest => dest.DestinationAddress, opt => opt.MapFrom(src => src.DestinationAddress))
+                .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.UserId));
+            CreateMap<PackageSchedule, PackageScheduleDTO>();
         }
     }
 }
