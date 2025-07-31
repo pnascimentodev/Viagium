@@ -29,7 +29,8 @@ namespace Viagium.ProfileAutoMapper
             CreateMap<Payment, PaymentDTO>();
             CreateMap<Viagium.Models.Reservation, ReservationDTO>();
             CreateMap<Reservation, CreateReservationDTO>().ReverseMap()
-                .ForMember(dest => dest.HotelId, opt => opt.MapFrom(src => src.HotelId)); // Mapear o HotelId
+                .ForMember(dest => dest.HotelId, opt => opt.MapFrom(src => src.HotelId)) // Mapear o HotelId
+                .ForMember(dest => dest.RoomTypeId, opt => opt.MapFrom(src => src.RoomTypeId)); // Mapear o RoomTypeId
             CreateMap<UserCreateDTO, AsaasUserDTO>();
             CreateMap<ReservationRoom, ReservationRoomDTO>();
             CreateMap<CreateReservationDTO, ResponseReservationDTO>().ReverseMap();
@@ -38,7 +39,7 @@ namespace Viagium.ProfileAutoMapper
                 .ForMember(dest => dest.Travelers, opt => opt.Ignore()) // Travelers serão preenchidos manualmente no serviço
                 .ForMember(dest => dest.TravelPackage, opt => opt.MapFrom(src => src.TravelPackage))
                 .ForMember(dest => dest.Hotel, opt => opt.MapFrom(src => src.Hotel)) // Agora mapeamos o Hotel diretamente
-                .ForMember(dest => dest.RoomType, opt => opt.MapFrom(src => src.ReservationRooms != null && src.ReservationRooms.Any() ? src.ReservationRooms.First().RoomType : null));
+                .ForMember(dest => dest.RoomType, opt => opt.MapFrom(src => src.RoomType ?? (src.ReservationRooms != null && src.ReservationRooms.Any() ? src.ReservationRooms.First().RoomType : null))); // Priorizar RoomType direto, depois ReservationRooms
             CreateMap<Review, ReviewDTO>();
             CreateMap<Room, RoomDTO>();
             CreateMap<RoomType, RoomTypeDTO>();

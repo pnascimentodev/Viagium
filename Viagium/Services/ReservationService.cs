@@ -41,6 +41,7 @@ namespace Viagium.Services
 
                 reservation.IsActive = true; // Define a reserva como ativa
                 reservation.HotelId = createReservationDto.HotelId; // Define o HotelId diretamente na reserva
+                reservation.RoomTypeId = createReservationDto.RoomTypeId; // Define o RoomTypeId diretamente na reserva
                 
                 // 1. Criar a Reserva primeiro para obter o ReservationId
                 await _unitOfWork.ReservationRepository.AddAsync(reservation);
@@ -73,6 +74,16 @@ namespace Viagium.Services
                 if (dto.Hotel == null && hotelExists != null)
                 {
                     dto.Hotel = _mapper.Map<HotelDTO>(hotelExists);
+                }
+
+                // Garantir que o RoomType também esteja presente
+                if (dto.RoomType == null && createReservationDto.RoomTypeId > 0)
+                {
+                    var roomTypeData = await _unitOfWork.RoomTypeRepository.GetByIdAsync(createReservationDto.RoomTypeId);
+                    if (roomTypeData != null)
+                    {
+                        dto.RoomType = _mapper.Map<RoomTypeDTO>(roomTypeData);
+                    }
                 }
                 
                 return dto;
@@ -117,6 +128,17 @@ namespace Viagium.Services
                             dto.Hotel = _mapper.Map<HotelDTO>(hotelData);
                         }
                     }
+
+                    // O RoomType agora vem automaticamente através do relacionamento direto
+                    // Se não vier pelo AutoMapper, buscar manualmente como fallback
+                    if (dto.RoomType == null && reservation.RoomTypeId.HasValue)
+                    {
+                        var roomTypeData = await _unitOfWork.RoomTypeRepository.GetByIdAsync(reservation.RoomTypeId.Value);
+                        if (roomTypeData != null)
+                        {
+                            dto.RoomType = _mapper.Map<RoomTypeDTO>(roomTypeData);
+                        }
+                    }
                     
                     dtos.Add(dto);
                 }
@@ -148,6 +170,17 @@ namespace Viagium.Services
                     if (hotelData != null)
                     {
                         dto.Hotel = _mapper.Map<HotelDTO>(hotelData);
+                    }
+                }
+
+                // O RoomType agora vem automaticamente através do relacionamento direto
+                // Se não vier pelo AutoMapper, buscar manualmente como fallback
+                if (dto.RoomType == null && reservation.RoomTypeId.HasValue)
+                {
+                    var roomTypeData = await _unitOfWork.RoomTypeRepository.GetByIdAsync(reservation.RoomTypeId.Value);
+                    if (roomTypeData != null)
+                    {
+                        dto.RoomType = _mapper.Map<RoomTypeDTO>(roomTypeData);
                     }
                 }
                 

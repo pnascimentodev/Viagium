@@ -111,6 +111,14 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired(false); // Opcional porque pode ser nulo
 
+        // Relacionamento Reservation - RoomType (N:1) - Relacionamento direto
+        modelBuilder.Entity<Reservation>()
+            .HasOne(r => r.RoomType)
+            .WithMany() // RoomType não precisa de coleção de Reservations
+            .HasForeignKey(r => r.RoomTypeId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false); // Opcional porque pode ser nulo
+
         // Decimais para RoomType e ReservationRoom
         modelBuilder.Entity<RoomType>()
             .Property(rt => rt.PricePerNight)

@@ -17,10 +17,11 @@ public class UnitOfWork: IUnitOfWork
     public IHotelRepository? HotelRepository { get; }
     public IReviewRepository ReviewRepository { get; }
     public ITravelerRepository TravelerRepository { get; }
+    public IRoomTypeRepository RoomTypeRepository { get; }
 
     public UnitOfWork(AppDbContext context, ITravelPackageRepository travelPackageRepository,
         IUserRepository userRepository, IAffiliateRepository affiliateRepository, IAddressRepository addressRepository,
-        IReservationRepository reservationRepository, IPaymentRepository paymentRepository, IReviewRepository reviewRepository, IAmenityRepository amenityRepository, IHotelRepository hotelRepository, ITravelerRepository travelerRepository)
+        IReservationRepository reservationRepository, IPaymentRepository paymentRepository, IReviewRepository reviewRepository, IAmenityRepository amenityRepository, IHotelRepository hotelRepository, ITravelerRepository travelerRepository, IRoomTypeRepository roomTypeRepository)
     {
         _context = context;
         TravelPackageRepository = travelPackageRepository;
@@ -33,6 +34,7 @@ public class UnitOfWork: IUnitOfWork
         PaymentRepository = paymentRepository;
         ReviewRepository = reviewRepository;
         TravelerRepository = travelerRepository;
+        RoomTypeRepository = roomTypeRepository;
     }
     
     public async Task<int> SaveAsync()

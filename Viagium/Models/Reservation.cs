@@ -43,5 +43,9 @@ public class Reservation
     public int? HotelId { get; set; }
     public Hotel? Hotel { get; set; }
 
+    [ForeignKey("RoomType")]
+    public int? RoomTypeId { get; set; }
+    public RoomType? RoomType { get; set; }
+
 
 }
