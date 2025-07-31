@@ -246,4 +246,22 @@ public class AffiliateController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Realiza logout do afiliado, invalidando o token JWT.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/affiliate/logout</remarks>
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout([FromBody] string token)
+    {
+        try
+        {
+            var result = await _authAffiliateService.LogoutAsync(token);
+            return Ok(new { message = "Logout realizado com sucesso." });
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
+
 }

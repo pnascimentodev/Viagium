@@ -13,11 +13,13 @@ public class AuthAffiliateService : IAuthAffiliateService
 {
     private readonly IAffiliateRepository _affiliateRepository;
     private readonly JwtSettings _jwtSettings;
+    private readonly ITokenBlacklistService _tokenBlacklistService;
 
-    public AuthAffiliateService(IAffiliateRepository affiliateRepository, IOptions<JwtSettings> jwtOptions)
+    public AuthAffiliateService(IAffiliateRepository affiliateRepository, IOptions<JwtSettings> jwtOptions, ITokenBlacklistService tokenBlacklistService)
     {
         _affiliateRepository = affiliateRepository;
         _jwtSettings = jwtOptions.Value;
+        _tokenBlacklistService = tokenBlacklistService;
     }
 
     public async Task<AffiliateLoginResponseDTO> LoginAsync(LoginRequestDTO loginRequest)
@@ -62,5 +64,26 @@ public class AuthAffiliateService : IAuthAffiliateService
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+    
+    public async Task<AffiliateLoginResponseDTO> LogoutAsync(string token)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        JwtSecurityToken jwtToken;
+        try
+        {
+            jwtToken = handler.ReadJwtToken(token);
+        }
+        catch
+        {
+            // Token inválido
+            return await Task.FromResult(new AffiliateLoginResponseDTO());
+        }
+        var expires = jwtToken.ValidTo;
+        if (expires > DateTime.UtcNow)
+        {
+            await _tokenBlacklistService.AddToBlacklistAsync(token, expires);
+        }
+        return await Task.FromResult(new AffiliateLoginResponseDTO());
     }
 }
