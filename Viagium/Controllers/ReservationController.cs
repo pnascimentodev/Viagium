@@ -21,14 +21,14 @@ namespace Viagium.Controllers
         /// </summary>
         /// <remarks>Exemplo: POST /api/reservation</remarks>
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateReservationDTO createReservationDto)
+        public async Task<IActionResult> Create([FromForm] CreateReservationDTO createReservationDto)
         {
             try
             {
                 ExceptionHandler.ValidateObject(createReservationDto, "reserva");
                 var createdReservation = await _service.AddAsync(createReservationDto);
-                //return Ok(createdAddress);
-                return CreatedAtAction(nameof(GetById), new { id = createdReservation.ReservationId }, createdReservation);
+                //return CreatedAtAction(nameof(GetById), new { id = createdReservation.ReservationId }, createdReservation);
+                return Ok(createdReservation);
 
             }
             catch (Exception ex)

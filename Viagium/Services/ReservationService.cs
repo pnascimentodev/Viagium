@@ -20,33 +20,57 @@ namespace Viagium.Services
         }
 
 
-        public async Task<Reservation> AddAsync(CreateReservationDTO createReservationDto)
+        public async Task<ResponseReservationDTO?> AddAsync(CreateReservationDTO createReservationDto)
         {
             return await ExceptionHandler.ExecuteWithHandling(async () =>
             {
-                //Mapeou o que vem de DTO pra model Reservation
+                // Mapeia o DTO para a entidade Reservation
                 var reservation = _mapper.Map<Reservation>(createReservationDto);
                 Validator.ValidateObject(reservation, new ValidationContext(reservation), true);
-                // Validações customizadas específicas do negócio
                 ValidateCustomRules(reservation);
+
+                // Associa os viajantes à reserva criada
+                if (createReservationDto.Travelers != null && createReservationDto.Travelers.Any())
+                {
+                    foreach (var travelerDto in createReservationDto.Travelers)
+                    {
+                        var traveler = _mapper.Map<Traveler>(travelerDto);
+                        traveler.ReservationId = reservation.ReservationId;
+                        await _unitOfWork.TravelerRepository.AddAsync(traveler);
+                    }
+                    await _unitOfWork.SaveAsync();
+                }
+                // 1. Criar a Reserva primeiro
                 await _unitOfWork.ReservationRepository.AddAsync(reservation);
                 await _unitOfWork.SaveAsync();
-                return _mapper.Map<Reservation>(reservation);
+
+
+                return _mapper.Map<ResponseReservationDTO>(reservation);
+
             }, "criação de reserva");
         }
 
-        public async Task<IEnumerable<ReservationDTO>> GetAllAsync()
+        private void ValidateCustomRules(CreateReservationDTO reservation)
+        {
+            var errors = new List<string>();
+
+
+            if (errors.Any())
+                throw new ArgumentException(string.Join("\n", errors));
+        }
+
+        public async Task<IEnumerable<ResponseReservationDTO>> GetAllAsync()
         {
             return await ExceptionHandler.ExecuteWithHandling(async () =>
             {
                 var reservations = await _unitOfWork.ReservationRepository.GetAllAsync();
-                if(reservations.Any() == false)
+                if (reservations.Any() == false)
                     throw new KeyNotFoundException("Nenhuma reserva registrada.");
-                return _mapper.Map<IEnumerable<ReservationDTO>>(reservations);
+                return _mapper.Map<IEnumerable<ResponseReservationDTO>>(reservations);
             }, "busca todas as reservas");
         }
 
-        public async Task<ReservationDTO?> GetByIdAsync(int id)
+        public async Task<ResponseReservationDTO?> GetByIdAsync(int id)
         {
             return await ExceptionHandler.ExecuteWithHandling(async () =>
             {
@@ -54,7 +78,20 @@ namespace Viagium.Services
                 if (reservation == null)
                     throw new KeyNotFoundException("Reserva por id não encontrado.");
 
-                return _mapper.Map<ReservationDTO>(reservation);
+                var dto = _mapper.Map<ResponseReservationDTO>(reservation);
+                
+                // Busca o hotel através do RoomType da primeira ReservationRoom
+                if (reservation.ReservationRooms != null && reservation.ReservationRooms.Any())
+                {
+                    var roomType = reservation.ReservationRooms.First().RoomType;
+                    if (roomType != null)
+                    {
+                        var hotel = await _unitOfWork.HotelRepository.GetByIdAsync(roomType.HotelId);
+                        dto.Hotel = _mapper.Map<HotelDTO>(hotel);
+                    }
+                }
+                
+                return dto;
             }, "busca de reserva pelo id");
         }
 
@@ -77,16 +114,17 @@ namespace Viagium.Services
         }
 
         //Caso tenha alguma validacao posterior
-        
-        
+
+
         private void ValidateCustomRules(Reservation reservation)
         {
             var errors = new List<string>();
-                      
+
 
             if (errors.Any())
                 throw new ArgumentException(string.Join("\n", errors));
         }
+
 
         public async Task<Reservation> DeactivateAsync(int id)
         {

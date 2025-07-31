@@ -100,7 +100,8 @@ public class AppDbContext : DbContext
             .HasOne(r => r.Payment)
             .WithOne(p => p.Reservation)
             .HasForeignKey<Reservation>(r => r.PaymentId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false); // Tornando o relacionamento opcional
 
         // Decimais para RoomType e ReservationRoom
         modelBuilder.Entity<RoomType>()
