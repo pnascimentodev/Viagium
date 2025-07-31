@@ -14,14 +14,14 @@ namespace Viagium.EntitiesDTO.TravelPackageDTO
         public decimal OriginalPrice { get; set; }
         public decimal? Price { get; set; }
         public decimal PackageTax { get; set; }
-        public string CupomDiscount { get; set; }
-        public decimal DiscountValue { get; set; }
-        public decimal ManualDiscountValue { get; set; }
+        public string CupomDiscount { get; set; } = string.Empty;
+        public decimal DiscountValue { get; set; } = 0;
+        public decimal ManualDiscountValue { get; set; } = 0;
         public string OriginCity { get; set; }
         public string OriginCountry { get; set; }
         public string DestinationCity { get; set; }
         public string DestinationCountry { get; set; }
-        public List<HotelDTO> Hotels { get; set; } = new List<HotelDTO>();
+        public List<HotelWithAddressDTO> Hotels { get; set; } = new List<HotelWithAddressDTO>();
         public PackageScheduleDTO PackageSchedule { get; set; }
     }
 }
