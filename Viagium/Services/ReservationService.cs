@@ -29,23 +29,33 @@ namespace Viagium.Services
                 Validator.ValidateObject(reservation, new ValidationContext(reservation), true);
                 ValidateCustomRules(reservation);
 
-                // Associa os viajantes à reserva criada
+                // 1. Criar a Reserva primeiro para obter o ReservationId
+                await _unitOfWork.ReservationRepository.AddAsync(reservation);
+                await _unitOfWork.SaveAsync();
+
+                // 2. Associar os viajantes à reserva criada (agora que temos o ReservationId)
                 if (createReservationDto.Travelers != null && createReservationDto.Travelers.Any())
                 {
                     foreach (var travelerDto in createReservationDto.Travelers)
                     {
                         var traveler = _mapper.Map<Traveler>(travelerDto);
-                        traveler.ReservationId = reservation.ReservationId;
+                        traveler.ReservationId = reservation.ReservationId; // Agora o ReservationId existe
+                        
+                        Validator.ValidateObject(traveler, new ValidationContext(traveler), true);
                         await _unitOfWork.TravelerRepository.AddAsync(traveler);
-                    }
-                    await _unitOfWork.SaveAsync();
+                    }                    
+                    
                 }
-                // 1. Criar a Reserva primeiro
-                await _unitOfWork.ReservationRepository.AddAsync(reservation);
-                await _unitOfWork.SaveAsync();
 
-
-                return _mapper.Map<ResponseReservationDTO>(reservation);
+                // 3. Buscar a reserva completa com todos os dados para retorno
+                var completeReservation = await _unitOfWork.ReservationRepository.GetByIdAsync(reservation.ReservationId);
+                var dto = _mapper.Map<ResponseReservationDTO>(completeReservation);
+                
+                // Buscar os travelers manualmente para evitar duplicação
+                var travelers = await _unitOfWork.TravelerRepository.GetByReservationIdAsync(reservation.ReservationId);
+                dto.Travelers = _mapper.Map<List<TravelerDTO>>(travelers);
+                
+                return dto;
 
             }, "criação de reserva");
         }
@@ -66,7 +76,19 @@ namespace Viagium.Services
                 var reservations = await _unitOfWork.ReservationRepository.GetAllAsync();
                 if (reservations.Any() == false)
                     throw new KeyNotFoundException("Nenhuma reserva registrada.");
-                return _mapper.Map<IEnumerable<ResponseReservationDTO>>(reservations);
+                
+                var dtos = new List<ResponseReservationDTO>();
+
+                // Buscar os travelers manualmente para cada reserva para evitar duplicação
+                foreach (var reservation in reservations)
+                {
+                    var dto = _mapper.Map<ResponseReservationDTO>(reservation);
+                    var travelers = await _unitOfWork.TravelerRepository.GetByReservationIdAsync(reservation.ReservationId);
+                    dto.Travelers = _mapper.Map<List<TravelerDTO>>(travelers);
+                    dtos.Add(dto);
+                }
+
+                return dtos;
             }, "busca todas as reservas");
         }
 
@@ -79,7 +101,11 @@ namespace Viagium.Services
                     throw new KeyNotFoundException("Reserva por id não encontrado.");
 
                 var dto = _mapper.Map<ResponseReservationDTO>(reservation);
-                
+
+                // Buscar os travelers manualmente para evitar duplicação
+                var travelers = await _unitOfWork.TravelerRepository.GetByReservationIdAsync(id);
+                dto.Travelers = _mapper.Map<List<TravelerDTO>>(travelers);
+
                 // Busca o hotel através do RoomType da primeira ReservationRoom
                 if (reservation.ReservationRooms != null && reservation.ReservationRooms.Any())
                 {

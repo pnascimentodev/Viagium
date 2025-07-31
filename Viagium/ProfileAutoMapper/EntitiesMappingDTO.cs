@@ -33,7 +33,7 @@ namespace Viagium.ProfileAutoMapper
             CreateMap<ReservationRoom, ReservationRoomDTO>();
             CreateMap<Reservation,ResponseReservationDTO>()
                 .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
-                .ForMember(dest => dest.Travelers, opt => opt.MapFrom(src => src.Travelers))
+                .ForMember(dest => dest.Travelers, opt => opt.Ignore()) // Travelers serão preenchidos manualmente no serviço
                 .ForMember(dest => dest.TravelPackage, opt => opt.MapFrom(src => src.TravelPackage))
                 .ForMember(dest => dest.Hotel, opt => opt.Ignore()) // Hotel será preenchido manualmente no serviço
                 .ForMember(dest => dest.RoomType, opt => opt.MapFrom(src => src.ReservationRooms != null && src.ReservationRooms.Any() ? src.ReservationRooms.First().RoomType : null));

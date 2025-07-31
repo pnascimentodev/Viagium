@@ -21,7 +21,7 @@ namespace Viagium.Controllers
         /// </summary>
         /// <remarks>Exemplo: POST /api/reservation</remarks>
         [HttpPost]
-        public async Task<IActionResult> Create([FromForm] CreateReservationDTO createReservationDto)
+        public async Task<IActionResult> Create([FromBody] CreateReservationDTO createReservationDto)
         {
             try
             {

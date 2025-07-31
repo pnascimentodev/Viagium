@@ -20,7 +20,6 @@ namespace Viagium.Services
         public async Task AddAsync(Traveler traveler)
         {
             await _travelerRepository.AddAsync(traveler);
-            await _unitOfWork.SaveAsync();
         }
 
         public async Task<IEnumerable<Traveler>> GetAllAsync()

@@ -25,7 +25,7 @@ public class Reservation
     [Required]
     public decimal TotalPrice { get; set; }
 
-    public string Status { get; set; } = "Pending"; //reserva p c canc f 
+    public string Status { get; set; } = "Pending"; //reserva pendente completa canc finalizado(pagou e viajou) 
  
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     
