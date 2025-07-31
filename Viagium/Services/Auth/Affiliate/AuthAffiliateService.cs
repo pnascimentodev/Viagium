@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Viagium.Configurations;
 using Viagium.EntitiesDTO.Auth;
 using Viagium.Repository.Interface;
+using Microsoft.Extensions.Logging;
 
 namespace Viagium.Services.Auth.Affiliate;
 
@@ -13,11 +14,15 @@ public class AuthAffiliateService : IAuthAffiliateService
 {
     private readonly IAffiliateRepository _affiliateRepository;
     private readonly JwtSettings _jwtSettings;
+    private readonly ITokenBlacklistService _tokenBlacklistService;
+    private readonly ILogger<AuthAffiliateService> _logger;
 
-    public AuthAffiliateService(IAffiliateRepository affiliateRepository, IOptions<JwtSettings> jwtOptions)
+    public AuthAffiliateService(IAffiliateRepository affiliateRepository, IOptions<JwtSettings> jwtOptions, ITokenBlacklistService tokenBlacklistService, ILogger<AuthAffiliateService> logger)
     {
         _affiliateRepository = affiliateRepository;
         _jwtSettings = jwtOptions.Value;
+        _tokenBlacklistService = tokenBlacklistService;
+        _logger = logger;
     }
 
     public async Task<AffiliateLoginResponseDTO> LoginAsync(LoginRequestDTO loginRequest)
@@ -62,5 +67,34 @@ public class AuthAffiliateService : IAuthAffiliateService
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+    
+    public async Task<AffiliateLoginResponseDTO> LogoutAsync(string token)
+    {
+        _logger.LogInformation("[Logout] Token recebido para blacklist: {Token}", token);
+        token = token.Trim('"');
+        var handler = new JwtSecurityTokenHandler();
+        JwtSecurityToken jwtToken;
+        try
+        {
+            jwtToken = handler.ReadJwtToken(token);
+        }
+        catch
+        {
+            _logger.LogWarning("[Logout] Tentativa de logout com token inválido: {Token}", token);
+            return await Task.FromResult(new AffiliateLoginResponseDTO());
+        }
+        var expires = jwtToken.ValidTo;
+        _logger.LogInformation("[Logout] Token expira em: {Expires}", expires);
+        if (expires > DateTime.UtcNow)
+        {
+            await _tokenBlacklistService.AddToBlacklistAsync(token, expires);
+            _logger.LogInformation("[Logout] Token adicionado à blacklist: {Token}", token);
+        }
+        else
+        {
+            _logger.LogWarning("[Logout] Token já expirado, não adicionado à blacklist: {Token}", token);
+        }
+        return await Task.FromResult(new AffiliateLoginResponseDTO());
     }
 }

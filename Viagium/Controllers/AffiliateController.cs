@@ -8,11 +8,13 @@ using Viagium.EntitiesDTO.Auth;
 using Viagium.Services.Auth.Affiliate;
 using Viagium.EntitiesDTO.Affiliate;
 using Viagium.EntitiesDTO.User;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Viagium.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class AffiliateController : ControllerBase
 {
     private IAuthAffiliateService _authAffiliateService;
@@ -32,6 +34,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/affiliate/create</remarks>
     [HttpPost("create")]
+    [AllowAnonymous]
     public async Task<IActionResult> CreateAffiliate([FromBody] AffiliateCreateDto affiliateCreateDto)
     {
         try
@@ -148,6 +151,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/affiliate/login</remarks>
     [HttpPost("login")]
+    [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequest)
     {
         try
@@ -239,6 +243,24 @@ public class AffiliateController : ControllerBase
             if (user == null)
                 return NotFound("Usuário não encontrado para recuperação de senha.");
             return Ok(user);
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
+
+    /// <summary>
+    /// Realiza logout do afiliado, invalidando o token JWT.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/affiliate/logout</remarks>
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout([FromBody] LogoutRequestDTO request)
+    {
+        try
+        {
+            var result = await _authAffiliateService.LogoutAsync(request.Token);
+            return Ok(new { message = "Logout realizado com sucesso." });
         }
         catch (Exception ex)
         {
