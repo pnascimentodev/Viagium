@@ -63,4 +63,8 @@ public class Hotel
     
     public ICollection<HotelAmenity> HotelAmenity { get; set; } = new List<HotelAmenity>();
     public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
+
+    // Adicionado relacionamento com RoomType
+    public ICollection<RoomType> RoomTypes { get; set; } = new List<RoomType>();
+
 }

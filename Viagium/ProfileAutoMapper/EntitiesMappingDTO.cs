@@ -5,6 +5,7 @@ using Viagium.EntitiesDTO.ApiDTO;
 using Viagium.EntitiesDTO.Reservation;
 using Viagium.EntitiesDTO.User;
 using Viagium.Models;
+using Viagium.EntitiesDTO.TravelPackageDTO;
 
 namespace Viagium.ProfileAutoMapper
 {
@@ -20,7 +21,8 @@ namespace Viagium.ProfileAutoMapper
                     AmenityId = ha.Amenity.AmenityId,
                     Name = ha.Amenity.Name,
                     IconName = ha.Amenity.IconName
-                })));
+                })))
+                .ForMember(dest => dest.RoomTypes, opt => opt.MapFrom(src => src.RoomTypes));
             CreateMap<Affiliate, AffiliateDTO>()
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
                 .ForMember(dest => dest.Hotels, opt => opt.MapFrom(src => src.Hotels));
@@ -46,6 +48,12 @@ namespace Viagium.ProfileAutoMapper
             CreateMap<Traveler, TravelerDTO>();
             CreateMap<TravelerDTO, Traveler>(); // Adicionando mapeamento reverso
             CreateMap<TravelPackage, TravelPackageDTO>();
+            CreateMap<TravelPackageDTO, TravelPackage>();
+            CreateMap<TravelPackage, CreateTravelPackageDTO>();
+            CreateMap<CreateTravelPackageDTO, TravelPackage>()
+                .ForMember(dest => dest.OriginAddress, opt => opt.MapFrom(src => src.OriginAddress))
+                .ForMember(dest => dest.DestinationAddress, opt => opt.MapFrom(src => src.DestinationAddress))
+                .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.UserId));
             CreateMap<TravelPackageHistory, TravelPackageHistoryDTO>();
             CreateMap<UserUpdateDto, Viagium.Models.User>()
                 .ForMember(dest => dest.DocumentNumber, opt => opt.Ignore())
@@ -74,7 +82,8 @@ namespace Viagium.ProfileAutoMapper
                     AmenityId = ha.Amenity.AmenityId,
                     Name = ha.Amenity.Name,
                     IconName = ha.Amenity.IconName
-                })));
+                })))
+                .ForMember(dest => dest.RoomTypes, opt => opt.MapFrom(src => src.RoomTypes));
             CreateMap<HotelWithAddressDTO, Hotel>()
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address));
             CreateMap<HotelCreateFormDTO, Hotel>()
@@ -145,6 +154,21 @@ namespace Viagium.ProfileAutoMapper
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
                 .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.Rating))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
+            CreateMap<AddressPackageDTO, Address>()
+                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City))
+                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt));
+            CreateMap<Address, AddressPackageDTO>()
+                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City))
+                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt));
+            CreateMap<CreateTravelPackageDTO, TravelPackage>()
+                .ForMember(dest => dest.OriginAddress, opt => opt.MapFrom(src => src.OriginAddress))
+                .ForMember(dest => dest.DestinationAddress, opt => opt.MapFrom(src => src.DestinationAddress))
+                .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.UserId));
+            CreateMap<PackageSchedule, PackageScheduleDTO>();
+            
+            
         }
     }
 }

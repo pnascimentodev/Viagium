@@ -8,11 +8,13 @@ using Viagium.EntitiesDTO.Auth;
 using Viagium.Services.Auth.Affiliate;
 using Viagium.EntitiesDTO.Affiliate;
 using Viagium.EntitiesDTO.User;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Viagium.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class AffiliateController : ControllerBase
 {
     private IAuthAffiliateService _authAffiliateService;
@@ -32,6 +34,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/affiliate/create</remarks>
     [HttpPost("create")]
+    [AllowAnonymous]
     public async Task<IActionResult> CreateAffiliate([FromBody] AffiliateCreateDto affiliateCreateDto)
     {
         try
@@ -124,6 +127,10 @@ public class AffiliateController : ControllerBase
     }
 
 
+    /// <summary>
+    /// Busca afiliados por cidade.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/affiliate/ByCity/SaoPaulo</remarks>
     [HttpGet("ByCity/{city}")]
     public async Task<IActionResult> GetByCity(string city)
     {
@@ -139,8 +146,12 @@ public class AffiliateController : ControllerBase
         }
     }
     
-    // endpoint de login
+    /// <summary>
+    /// Realiza login do afiliado.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/affiliate/login</remarks>
     [HttpPost("login")]
+    [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequest)
     {
         try
@@ -161,6 +172,11 @@ public class AffiliateController : ControllerBase
             return ExceptionHandler.HandleException(ex);
         }
     }
+
+    /// <summary>
+    /// Busca afiliado pelo e-mail.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/affiliate/by-email?email=exemplo@email.com</remarks>
     [HttpGet("by-email")]
     public async Task<IActionResult> GetByEmail([FromQuery] string email)
     {
@@ -179,10 +195,9 @@ public class AffiliateController : ControllerBase
 
     }
     /// <summary>
-    /// Envia e-mail de recuperação de senha para o affiliado.
+    /// Envia e-mail de recuperação de senha para o afiliado.
     /// </summary>
-    /// <remarks>Exemplo: POST /api/affiliate/forgot-password-email</remarks>
-    
+    /// <remarks>Exemplo: POST /api/affiliate/forgot-password</remarks>
     [HttpPost("forgot-password")]
     public async Task<IActionResult> SendForgotPasswordEmailAsync([FromBody] string email)
     {
@@ -197,6 +212,10 @@ public class AffiliateController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Atualiza a senha do afiliado.
+    /// </summary>
+    /// <remarks>Exemplo: PUT /api/affiliate/update-password/1</remarks>
     [HttpPut("update-password/{id}")]
    public async Task<IActionResult> UpdatePassword(int id, [FromBody] UpdatePasswordDto dto)
     {
@@ -211,6 +230,10 @@ public class AffiliateController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Redefine a senha do afiliado.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/affiliate/forgot-password/1</remarks>
     [HttpPost("forgot-password/{id}")]
     public async Task<IActionResult> ForgotPassword(int id, [FromBody] ForgotPasswordDto dto)
     {
@@ -220,6 +243,24 @@ public class AffiliateController : ControllerBase
             if (user == null)
                 return NotFound("Usuário não encontrado para recuperação de senha.");
             return Ok(user);
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
+
+    /// <summary>
+    /// Realiza logout do afiliado, invalidando o token JWT.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/affiliate/logout</remarks>
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout([FromBody] LogoutRequestDTO request)
+    {
+        try
+        {
+            var result = await _authAffiliateService.LogoutAsync(request.Token);
+            return Ok(new { message = "Logout realizado com sucesso." });
         }
         catch (Exception ex)
         {

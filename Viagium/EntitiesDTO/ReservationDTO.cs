@@ -13,7 +13,11 @@ public class ReservationDTO
     public int UserId { get; set; }
 
     [Required]
+
     public int TravelPackageId { get; set; }
+
+    public TravelPackageDTO.TravelPackageDTO? TravelPackage { get; set; }
+
 
     [Required]
     [DataType(DataType.Date)]

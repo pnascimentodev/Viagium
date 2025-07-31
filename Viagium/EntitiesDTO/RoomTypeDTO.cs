@@ -39,5 +39,5 @@ public class RoomTypeDTO
     public DateTime? DeletedAt { get; set; }
     
     public List<RoomDTO>? Rooms { get; set; }
-    public List<AmenityDTO>? Amenities { get; set; }
+    public List<AmenityDTO>? Amenities { get; set; } = new();
 }
