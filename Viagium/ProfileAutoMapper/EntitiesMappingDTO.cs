@@ -20,7 +20,8 @@ namespace Viagium.ProfileAutoMapper
                     AmenityId = ha.Amenity.AmenityId,
                     Name = ha.Amenity.Name,
                     IconName = ha.Amenity.IconName
-                })));
+                })))
+                .ForMember(dest => dest.RoomTypes, opt => opt.MapFrom(src => src.RoomTypes));
             CreateMap<Affiliate, AffiliateDTO>()
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
                 .ForMember(dest => dest.Hotels, opt => opt.MapFrom(src => src.Hotels));
@@ -69,7 +70,8 @@ namespace Viagium.ProfileAutoMapper
                     AmenityId = ha.Amenity.AmenityId,
                     Name = ha.Amenity.Name,
                     IconName = ha.Amenity.IconName
-                })));
+                })))
+                .ForMember(dest => dest.RoomTypes, opt => opt.MapFrom(src => src.RoomTypes));
             CreateMap<HotelWithAddressDTO, Hotel>()
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address));
             CreateMap<HotelCreateFormDTO, Hotel>()

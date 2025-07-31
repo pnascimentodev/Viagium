@@ -56,7 +56,7 @@ namespace Viagium.Services
                                 h.Address.City.ToLower() == city.ToLower() &&
                                 h.Address.Country.ToLower() == country.ToLower())
                     .ToListAsync();
-                response.Hotels = _mapper.Map<List<HotelDTO>>(hotels);
+                response.Hotels = _mapper.Map<List<HotelWithAddressDTO>>(hotels);
             }
             return response;
         }

@@ -71,7 +71,7 @@ public class AppDbContext : DbContext
         // Hotel - RoomType (1:N)
         modelBuilder.Entity<RoomType>()
             .HasOne(rt => rt.Hotel)
-            .WithMany()
+            .WithMany(h => h.RoomTypes) // Corrigido: define a navegação
             .HasForeignKey(rt => rt.HotelId)
             .OnDelete(DeleteBehavior.Restrict);
 

@@ -13,7 +13,21 @@ public class PackageScheduleDTO
 
     [NotMapped]
     [Display(Name = "Data de Término")]
-    public DateTime EndDate => StartDate.AddDays(Duration - 1);
+    public DateTime? EndDate
+    {
+        get
+        {
+            if (Duration <= 0) return null;
+            try
+            {
+                return StartDate.AddDays(Duration - 1);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return null;
+            }
+        }
+    }
 
     public int Duration { get; set; }
 
