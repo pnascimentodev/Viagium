@@ -24,7 +24,7 @@ public class PaymentService : IPaymentService
         _asaasBaseUrl = Environment.GetEnvironmentVariable("ASAAS_BASE_URL") ?? string.Empty;
     }
 
-    public async Task<Payment> AddAsync(Reservation reservation)
+    public async Task<Payment> AddPaymentAsync(Reservation reservation)
     {
         // Monta o payload apenas com dados do cliente já existente e do pagamento
         DateTime dataPagamento = DateTime.Now;
@@ -32,10 +32,9 @@ public class PaymentService : IPaymentService
         {
             dataPagamento = DateTime.Now.AddDays(1);
         }
-        if (reservation.Payment?.PaymentMethod == PaymentMethodType.CREDIT_CARD)
+        if (reservation.Payment?.PaymentMethod == PaymentMethodType.CREDIT_CARD || reservation.Payment?.PaymentMethod == PaymentMethodType.DEBIT_CARD)
         {
-            // Para cartão de crédito, o pagamento é considerado imediato
-            dataPagamento = DateTime.Now;
+            dataPagamento = DateTime.Now.AddDays(1);
         }
         if (reservation.Payment?.PaymentMethod == PaymentMethodType.BOLETO)
         {
@@ -106,10 +105,11 @@ public class PaymentService : IPaymentService
     {
         var novoCliente = new
         {
-            name = user.FirstName + user.LastName,
+            name = $"{user.FirstName} {user.LastName}",
             email = user.Email,
             mobilePhone = user.Phone,
             cpfCnpj = user.DocumentNumber
+
         };
 
         var jsonPayload = JsonSerializer.Serialize(novoCliente);
@@ -128,10 +128,101 @@ public class PaymentService : IPaymentService
         var responseContent = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
-            throw new Exception($"Erro ao criar cliente no Asaas: {responseContent}");
+            throw new Exception($"Erro {response.StatusCode} ao criar cliente no Asaas: {responseContent}");
 
         var doc = JsonDocument.Parse(responseContent);
         return doc.RootElement.GetProperty("id").GetString()!;
+    }
+    
+    public async Task<string> GetPixQrCodeByCpfAsync(string documentNumber)
+    {
+        // 1. Buscar o cliente pelo CPF na API do Asaas
+        var customerRequest = new HttpRequestMessage(HttpMethod.Get, $"{_asaasBaseUrl}/customers?cpfCnpj={documentNumber}");
+        customerRequest.Headers.Add("access_token", _asaasApiKey);
+        customerRequest.Headers.Add("User-Agent", "ViagiumApp/1.0");
+        customerRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        var customerResponse = await _httpClient.SendAsync(customerRequest);
+        var customerContent = await customerResponse.Content.ReadAsStringAsync();
+        if (!customerResponse.IsSuccessStatusCode)
+            throw new Exception($"Erro ao buscar cliente: {customerContent}");
+        var customerJson = JsonDocument.Parse(customerContent);
+        var data = customerJson.RootElement.GetProperty("data");
+        if (data.GetArrayLength() == 0)
+            throw new Exception("Cliente não encontrado para o CPF informado.");
+        var customerId = data[0].GetProperty("id").GetString();
+
+        // 2. Buscar cobranças PIX pendentes
+        var paymentsRequest = new HttpRequestMessage(HttpMethod.Get, $"{_asaasBaseUrl}/payments?customer={customerId}&billingType=PIX&status=PENDING");
+        paymentsRequest.Headers.Add("access_token", _asaasApiKey);
+        paymentsRequest.Headers.Add("User-Agent", "ViagiumApp/1.0");
+        paymentsRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        var paymentsResponse = await _httpClient.SendAsync(paymentsRequest);
+        var paymentsContent = await paymentsResponse.Content.ReadAsStringAsync();
+        if (!paymentsResponse.IsSuccessStatusCode)
+            throw new Exception($"Erro ao buscar cobranças PIX: {paymentsContent}");
+        var paymentsJson = JsonDocument.Parse(paymentsContent);
+        var paymentsData = paymentsJson.RootElement.GetProperty("data");
+        if (paymentsData.GetArrayLength() == 0)
+            throw new Exception("Nenhuma cobrança PIX pendente encontrada para este cliente.");
+        var paymentId = paymentsData[0].GetProperty("id").GetString();
+
+        // 3. Buscar QR Code do pagamento PIX
+        var qrCodeRequest = new HttpRequestMessage(HttpMethod.Get, $"{_asaasBaseUrl}/payments/{paymentId}/pixQrCode");
+        qrCodeRequest.Headers.Add("access_token", _asaasApiKey);
+        qrCodeRequest.Headers.Add("User-Agent", "ViagiumApp/1.0");
+        qrCodeRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        var qrCodeResponse = await _httpClient.SendAsync(qrCodeRequest);
+        var qrCodeContent = await qrCodeResponse.Content.ReadAsStringAsync();
+        if (!qrCodeResponse.IsSuccessStatusCode)
+            throw new Exception($"Erro ao buscar QR Code do PIX: {qrCodeContent}");
+        var qrCodeJson = JsonDocument.Parse(qrCodeContent);
+        if (!qrCodeJson.RootElement.TryGetProperty("qrCode", out var qrCodeProp))
+            throw new Exception("A resposta da API não contém o QR Code do PIX. Verifique se a cobrança realmente possui um QR Code gerado.");
+        var qrCode = qrCodeProp.GetString();
+        if (string.IsNullOrEmpty(qrCode))
+            throw new Exception("O QR Code retornado está vazio. Verifique se a cobrança está correta e ativa.");
+        return qrCode;
+    }
+
+    public async Task<string> GetBankSlipByDocumentNumber(string documentNumber)
+    {
+        // 1. Buscar o cliente pelo CPF/CNPJ na API do Asaas
+        var customerRequest = new HttpRequestMessage(HttpMethod.Get, $"{_asaasBaseUrl}/customers?cpfCnpj={documentNumber}");
+        customerRequest.Headers.Add("access_token", _asaasApiKey);
+        customerRequest.Headers.Add("User-Agent", "ViagiumApp/1.0");
+        customerRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        var customerResponse = await _httpClient.SendAsync(customerRequest);
+        var customerContent = await customerResponse.Content.ReadAsStringAsync();
+        if (!customerResponse.IsSuccessStatusCode)
+            throw new Exception($"Erro ao buscar cliente: {customerContent}");
+        var customerJson = JsonDocument.Parse(customerContent);
+        var data = customerJson.RootElement.GetProperty("data");
+        if (data.GetArrayLength() == 0)
+            throw new Exception("Cliente não encontrado para o documento informado.");
+        var customerId = data[0].GetProperty("id").GetString();
+
+        // 2. Buscar cobranças BOLETO pendentes
+        var paymentsRequest = new HttpRequestMessage(HttpMethod.Get, $"{_asaasBaseUrl}/payments?customer={customerId}&billingType=BOLETO&status=PENDING");
+        paymentsRequest.Headers.Add("access_token", _asaasApiKey);
+        paymentsRequest.Headers.Add("User-Agent", "ViagiumApp/1.0");
+        paymentsRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        var paymentsResponse = await _httpClient.SendAsync(paymentsRequest);
+        var paymentsContent = await paymentsResponse.Content.ReadAsStringAsync();
+        if (!paymentsResponse.IsSuccessStatusCode)
+            throw new Exception($"Erro ao buscar boletos: {paymentsContent}");
+        var paymentsJson = JsonDocument.Parse(paymentsContent);
+        var paymentsData = paymentsJson.RootElement.GetProperty("data");
+        if (paymentsData.GetArrayLength() == 0)
+            throw new Exception("Nenhum boleto pendente encontrado para este cliente.");
+        var paymentId = paymentsData[0].GetProperty("id").GetString();
+
+        // 3. Buscar o link do boleto para download
+        var boletoUrl = paymentsData[0].GetProperty("bankSlipUrl").GetString();
+        if (string.IsNullOrEmpty(boletoUrl))
+            throw new Exception("Não foi possível obter o link do boleto para download.");
+        
+        return boletoUrl;
+
     }
 
     public async Task SincronizarPagamentos()
@@ -162,6 +253,17 @@ public class PaymentService : IPaymentService
                     pagamentoLocal.Status = status!;
                     pagamentoLocal.Amount = valor;
                     await _unitOfWork.PaymentRepository.FinalizePaymentAsync(pagamentoLocal);
+
+                    // Se o pagamento foi confirmado, atualizar a reserva para Confirmado
+                    if (status == "RECEIVED")
+                    {
+                        var reserva = await _unitOfWork.ReservationRepository.GetByIdAsync(pagamentoLocal.ReservationId);
+                        if (reserva != null)
+                        {
+                            reserva.Status = "Confirmado";
+                            await _unitOfWork.ReservationRepository.UpdateAsync(reserva);
+                        }
+                    }
                 }
             }
             await _unitOfWork.SaveAsync();

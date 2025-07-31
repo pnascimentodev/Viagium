@@ -28,11 +28,12 @@ public class PaymentController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/payment/CreatePayment</remarks>
     [HttpPost("CreatePayment")] //envia a informação de pagamento para a api do Asaas
-    public async Task<IActionResult> CreatePayment([FromBody] Reservation reservation)
+    [Consumes("application/x-www-form-urlencoded")]
+    public async Task<IActionResult> CreatePayment([FromForm] Reservation reservation)
     {
         try
         {
-            var payment = await _paymentService.AddAsync(reservation);
+            var payment = await _paymentService.AddPaymentAsync(reservation);
 
             return Ok(new
             {
@@ -58,7 +59,8 @@ public class PaymentController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/payment/CreateUser</remarks>
     [HttpPost("CreateUser")] //envia a informação de pagamento para a api do Asaas
-    public async Task<IActionResult> CreateUser([FromBody] AsaasUserDTO user)
+    [Consumes("application/x-www-form-urlencoded")]
+    public async Task<IActionResult> CreateUser([FromForm] AsaasUserDTO user)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -77,6 +79,40 @@ public class PaymentController : ControllerBase
                 erro = "Erro ao criar cliente",
                 detalhes = ex.Message
             });
+        }
+    }
+    
+    [HttpPost("GetPixQrCodeByCpf")]
+    [Consumes("application/x-www-form-urlencoded")]
+    public async Task<IActionResult> GetPixQrCodeByCpf([FromForm] string cpf)
+    {
+        if (string.IsNullOrWhiteSpace(cpf))
+            return BadRequest(new { erro = "O CPF é obrigatório." });
+        try
+        {
+            var qrCode = await _paymentService.GetPixQrCodeByCpfAsync(cpf);
+            return Ok(new { qrCode });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { erro = "Erro ao obter QR Code do PIX", detalhes = ex.Message });
+        }
+    }
+    
+    [HttpPost("GetBankSlipByDocumentNumber")]
+    [Consumes("application/x-www-form-urlencoded")]
+    public async Task<IActionResult> GetBankSlipByDocumentNumber([FromForm] string documentNumber)
+    {
+        if (string.IsNullOrWhiteSpace(documentNumber))
+            return BadRequest(new { erro = "O número do documento é obrigatório." });
+        try
+        {
+            var boletoUrl = await _paymentService.GetBankSlipByDocumentNumber(documentNumber);
+            return Ok(new { boletoUrl });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { erro = "Erro ao obter boleto para download", detalhes = ex.Message });
         }
     }
 }
