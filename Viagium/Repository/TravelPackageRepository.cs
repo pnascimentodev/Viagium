@@ -66,6 +66,7 @@ public class TravelPackageRepository : ITravelPackageRepository
         travelPackage.DestinationAddressId = destinationAddressId;
         travelPackage.OriginAddress = null; // Garante que não será associado objeto Address
         travelPackage.DestinationAddress = null;
+        travelPackage.CreatedAt = DateTime.Now; // Garante que o campo CreatedAt será preenchido
 
         if (createTravelPackageDTO.Image != null)
         {
@@ -99,10 +100,10 @@ public class TravelPackageRepository : ITravelPackageRepository
         await _context.PackageSchedules.AddAsync(schedule);
         await _context.SaveChangesAsync();
 
-        // Buscar hotéis ativos na cidade e país de destino
-        var destCity = destinationAddressEntity?.City?.ToLower() ?? string.Empty;
-        var destCountry = destinationAddressEntity?.Country?.ToLower() ?? string.Empty;
-        var hotels = await _context.Hotels
+        // Buscar hotéis ativos na cidade e país de destino (normalizando para ignorar acentuação e espaços)
+        var destCity = Normalize(destinationAddressEntity?.City);
+        var destCountry = Normalize(destinationAddressEntity?.Country);
+        var hotelsQuery = _context.Hotels
             .Include(h => h.Address)
             .Include(h => h.HotelAmenity)
                 .ThenInclude(ha => ha.Amenity)
@@ -111,10 +112,11 @@ public class TravelPackageRepository : ITravelPackageRepository
                     .ThenInclude(rta => rta.Amenity)
             .Include(h => h.RoomTypes)
                 .ThenInclude(rt => rt.Rooms)
-            .Where(h => h.IsActive &&
-                        h.Address.City.ToLower() == destCity &&
-                        h.Address.Country.ToLower() == destCountry)
-            .ToListAsync();
+            .Where(h => h.IsActive);
+        var hotels = hotelsQuery
+            .AsEnumerable()
+            .Where(h => Normalize(h.Address.City) == destCity && Normalize(h.Address.Country) == destCountry)
+            .ToList();
         var hotelDtos = hotels.Select(hotel => new HotelWithAddressDTO
         {
             HotelId = hotel.HotelId,
@@ -336,6 +338,26 @@ public class TravelPackageRepository : ITravelPackageRepository
         foreach (var pkg in packages)
         {
             var hotels = pkg.PackageHotels?.Select(ph => ph.Hotel).Where(h => h != null).ToList() ?? new List<Models.Hotel>();
+            // Buscar hotéis ativos na cidade/país de destino, e se o pacote tiver CreatedAt, filtrar por data
+            var extraHotelsQuery = _context.Hotels
+                .Include(h => h.Address)
+                .Include(h => h.HotelAmenity)
+                    .ThenInclude(ha => ha.Amenity)
+                .Include(h => h.RoomTypes)
+                    .ThenInclude(rt => rt.RoomTypeAmenities)
+                        .ThenInclude(rta => rta.Amenity)
+                .Include(h => h.RoomTypes)
+                    .ThenInclude(rt => rt.Rooms)
+                .Where(h => h.IsActive &&
+                            h.Address.City.ToLower() == pkg.DestinationAddress.City.ToLower() &&
+                            h.Address.Country.ToLower() == pkg.DestinationAddress.Country.ToLower() &&
+                            !hotels.Any(existing => existing.HotelId == h.HotelId));
+            if (pkg.CreatedAt != null && pkg.CreatedAt > DateTime.MinValue)
+            {
+                extraHotelsQuery = extraHotelsQuery.Where(h => h.CreatedAt >= pkg.CreatedAt);
+            }
+            var extraHotels = await extraHotelsQuery.ToListAsync();
+            hotels.AddRange(extraHotels);
             var hotelDtos = hotels.Select(hotel => new HotelWithAddressDTO
             {
                 HotelId = hotel.HotelId,
@@ -410,22 +432,6 @@ public class TravelPackageRepository : ITravelPackageRepository
     {
         var travelPackage = await _context.TravelPackages
             .Where(tp => tp.IsActive)
-            .Include(tp => tp.PackageHotels)
-                .ThenInclude(ph => ph.Hotel)
-                    .ThenInclude(h => h.Address)
-            .Include(tp => tp.PackageHotels)
-                .ThenInclude(ph => ph.Hotel)
-                    .ThenInclude(h => h.HotelAmenity)
-                        .ThenInclude(ha => ha.Amenity)
-            .Include(tp => tp.PackageHotels)
-                .ThenInclude(ph => ph.Hotel)
-                    .ThenInclude(h => h.RoomTypes)
-                        .ThenInclude(rt => rt.RoomTypeAmenities)
-                            .ThenInclude(rta => rta.Amenity)
-            .Include(tp => tp.PackageHotels)
-                .ThenInclude(ph => ph.Hotel)
-                    .ThenInclude(h => h.RoomTypes)
-                        .ThenInclude(rt => rt.Rooms)
             .Include(tp => tp.OriginAddress)
             .Include(tp => tp.DestinationAddress)
             .Include(tp => tp.PackageSchedules)
@@ -434,7 +440,23 @@ public class TravelPackageRepository : ITravelPackageRepository
         if (travelPackage == null) return null;
 
         var schedule = travelPackage.PackageSchedules?.FirstOrDefault();
-        var hotelDtos = travelPackage.PackageHotels?.Select(ph => ph.Hotel).Where(h => h != null).Select(hotel => new HotelWithAddressDTO
+        var destCity = Normalize(travelPackage.DestinationAddress?.City);
+        var destCountry = Normalize(travelPackage.DestinationAddress?.Country);
+        var hotelsQuery = _context.Hotels
+            .Include(h => h.Address)
+            .Include(h => h.HotelAmenity)
+                .ThenInclude(ha => ha.Amenity)
+            .Include(h => h.RoomTypes)
+                .ThenInclude(rt => rt.RoomTypeAmenities)
+                    .ThenInclude(rta => rta.Amenity)
+            .Include(h => h.RoomTypes)
+                .ThenInclude(rt => rt.Rooms)
+            .Where(h => h.IsActive);
+        var hotels = hotelsQuery
+            .AsEnumerable()
+            .Where(h => Normalize(h.Address.City) == destCity && Normalize(h.Address.Country) == destCountry)
+            .ToList();
+        var hotelDtos = hotels.Select(hotel => new HotelWithAddressDTO
         {
             HotelId = hotel.HotelId,
             Name = hotel.Name,
@@ -453,29 +475,33 @@ public class TravelPackageRepository : ITravelPackageRepository
                 Name = ha.Amenity.Name,
                 IconName = ha.Amenity.IconName
             }).ToList() ?? new List<AmenityDTO>(),
-            RoomTypes = hotel.RoomTypes?.Where(rt => rt.IsActive).Select(rt => new RoomTypeDTO
-            {
-                RoomTypeId = rt.RoomTypeId,
-                HotelId = rt.HotelId,
-                Name = rt.Name,
-                Description = rt.Description,
-                ImageUrl = rt.ImageUrl,
-                PricePerNight = rt.PricePerNight,
-                MaxOccupancy = rt.MaxOccupancy,
-                NumberOfRoomsAvailable = rt.NumberOfRoomsAvailable,
-                CreatedAt = rt.CreatedAt,
-                IsActive = rt.IsActive,
-                DeletedAt = rt.DeletedAt,
-                Amenities = rt.RoomTypeAmenities?.Select(rta => new AmenityDTO
+            RoomTypes = _context.RoomTypes
+                .Include(rt => rt.RoomTypeAmenities)
+                    .ThenInclude(rta => rta.Amenity)
+                .Where(rt => rt.HotelId == hotel.HotelId && rt.IsActive)
+                .Select(rt => new RoomTypeDTO
                 {
-                    AmenityId = rta.Amenity.AmenityId,
-                    Name = rta.Amenity.Name,
-                    IconName = rta.Amenity.IconName
-                }).ToList() ?? new List<AmenityDTO>(),
-                Rooms = rt.Rooms?.Select(r => _mapper.Map<RoomDTO>(r)).ToList() ?? new List<RoomDTO>()
-            }).ToList() ?? new List<RoomTypeDTO>(),
+                    RoomTypeId = rt.RoomTypeId,
+                    HotelId = rt.HotelId,
+                    Name = rt.Name,
+                    Description = rt.Description,
+                    ImageUrl = rt.ImageUrl,
+                    PricePerNight = rt.PricePerNight,
+                    MaxOccupancy = rt.MaxOccupancy,
+                    NumberOfRoomsAvailable = rt.NumberOfRoomsAvailable,
+                    CreatedAt = rt.CreatedAt,
+                    IsActive = rt.IsActive,
+                    DeletedAt = rt.DeletedAt,
+                    Amenities = rt.RoomTypeAmenities != null ? rt.RoomTypeAmenities.Select(rta => new AmenityDTO
+                    {
+                        AmenityId = rta.Amenity.AmenityId,
+                        Name = rta.Amenity.Name,
+                        IconName = rta.Amenity.IconName
+                    }).ToList() : new List<AmenityDTO>(),
+                    Rooms = rt.Rooms != null ? rt.Rooms.Select(r => _mapper.Map<RoomDTO>(r)).ToList() : new List<RoomDTO>()
+                }).ToList(),
             AffiliateId = hotel.AffiliateId
-        }).ToList() ?? new List<HotelWithAddressDTO>();
+        }).ToList();
 
         return new ResponseTravelPackageDTO
         {
@@ -690,5 +716,19 @@ public class TravelPackageRepository : ITravelPackageRepository
         travelPackage.Price = price > 0 ? price : 0;
         await _context.SaveChangesAsync();
         return await GetByIdAsync(travelPackageId);
+    }
+
+    private static string Normalize(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        var normalized = value.ToLower().Trim();
+        normalized = normalized.Replace("á", "a").Replace("à", "a").Replace("ã", "a").Replace("â", "a")
+            .Replace("é", "e").Replace("ê", "e").Replace("è", "e")
+            .Replace("í", "i").Replace("î", "i").Replace("ì", "i")
+            .Replace("ó", "o").Replace("ô", "o").Replace("õ", "o").Replace("ò", "o")
+            .Replace("ú", "u").Replace("û", "u").Replace("ù", "u")
+            .Replace("ç", "c");
+        normalized = new string(normalized.Where(c => !char.IsWhiteSpace(c) && !char.IsPunctuation(c)).ToArray());
+        return normalized;
     }
 }
