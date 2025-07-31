@@ -21,12 +21,40 @@ namespace Viagium.Repository
 
         public async Task<IEnumerable<Reservation>> GetAllAsync()
         {
-            return await _context.Reservations.ToListAsync();
+            return await _context.Reservations
+                .Include(r => r.User)
+                .Include(r => r.Hotel) // Incluir o Hotel diretamente
+                    .ThenInclude(h => h.Address) // Incluir o endereço do hotel
+                .Include(r => r.RoomType) // Incluir o RoomType diretamente
+                .Include(r => r.TravelPackage)
+                    .ThenInclude(tp => tp.OriginAddress)
+                .Include(r => r.TravelPackage)
+                    .ThenInclude(tp => tp.DestinationAddress)
+                .Include(r => r.TravelPackage)
+                    .ThenInclude(tp => tp.User)
+                .Include(r => r.ReservationRooms)
+                    .ThenInclude(rr => rr.RoomType)
+                .Include(r => r.Travelers)
+                .ToListAsync();
         }
 
         public async Task<Reservation?> GetByIdAsync(int id)
         {
-            return await _context.Reservations.FindAsync(id);
+            return await _context.Reservations
+                .Include(r => r.User)
+                .Include(r => r.Hotel) // Incluir o Hotel diretamente
+                    .ThenInclude(h => h.Address) // Incluir o endereço do hotel
+                .Include(r => r.RoomType) // Incluir o RoomType diretamente
+                .Include(r => r.TravelPackage)
+                    .ThenInclude(tp => tp.OriginAddress)
+                .Include(r => r.TravelPackage)
+                    .ThenInclude(tp => tp.DestinationAddress)
+                .Include(r => r.TravelPackage)
+                    .ThenInclude(tp => tp.User)
+                .Include(r => r.ReservationRooms)
+                    .ThenInclude(rr => rr.RoomType)
+                .Include(r => r.Travelers)
+                .FirstOrDefaultAsync(r => r.ReservationId == id);
         }
 
         public async Task<Reservation?> GetByIdWithPaymentAsync(int id)

@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
-using Viagium.Models;
 using Viagium.EntitiesDTO;
-using Viagium.EntitiesDTO.User;
 using Viagium.EntitiesDTO.Affiliate;
 using Viagium.EntitiesDTO.ApiDTO;
+using Viagium.EntitiesDTO.Reservation;
+using Viagium.EntitiesDTO.User;
+using Viagium.Models;
 using Viagium.EntitiesDTO.TravelPackageDTO;
 
 namespace Viagium.ProfileAutoMapper
@@ -29,12 +30,23 @@ namespace Viagium.ProfileAutoMapper
 
             CreateMap<Payment, PaymentDTO>();
             CreateMap<Viagium.Models.Reservation, ReservationDTO>();
+            CreateMap<Reservation, CreateReservationDTO>().ReverseMap()
+                .ForMember(dest => dest.HotelId, opt => opt.MapFrom(src => src.HotelId)) // Mapear o HotelId
+                .ForMember(dest => dest.RoomTypeId, opt => opt.MapFrom(src => src.RoomTypeId)); // Mapear o RoomTypeId
             CreateMap<UserCreateDTO, AsaasUserDTO>();
             CreateMap<ReservationRoom, ReservationRoomDTO>();
+            CreateMap<CreateReservationDTO, ResponseReservationDTO>().ReverseMap();
+            CreateMap<Reservation,ResponseReservationDTO>()
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
+                .ForMember(dest => dest.Travelers, opt => opt.Ignore()) // Travelers serão preenchidos manualmente no serviço
+                .ForMember(dest => dest.TravelPackage, opt => opt.MapFrom(src => src.TravelPackage))
+                .ForMember(dest => dest.Hotel, opt => opt.MapFrom(src => src.Hotel)) // Agora mapeamos o Hotel diretamente
+                .ForMember(dest => dest.RoomType, opt => opt.MapFrom(src => src.RoomType ?? (src.ReservationRooms != null && src.ReservationRooms.Any() ? src.ReservationRooms.First().RoomType : null))); // Priorizar RoomType direto, depois ReservationRooms
             CreateMap<Review, ReviewDTO>();
             CreateMap<Room, RoomDTO>();
             CreateMap<RoomType, RoomTypeDTO>();
             CreateMap<Traveler, TravelerDTO>();
+            CreateMap<TravelerDTO, Traveler>(); // Adicionando mapeamento reverso
             CreateMap<TravelPackage, TravelPackageDTO>();
             CreateMap<TravelPackageDTO, TravelPackage>();
             CreateMap<TravelPackage, CreateTravelPackageDTO>();
@@ -62,7 +74,7 @@ namespace Viagium.ProfileAutoMapper
                 .ForMember(dest => dest.Role, opt => opt.Ignore())
                 .ForMember(dest => dest.IsActive, opt => opt.Ignore());
             CreateMap<Viagium.Models.User, AdminDTO>();
-            
+
             CreateMap<Hotel, HotelWithAddressDTO>()
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
                 .ForMember(dest => dest.Amenities, opt => opt.MapFrom(src => src.HotelAmenity.Select(ha => new AmenityDTO
@@ -89,7 +101,7 @@ namespace Viagium.ProfileAutoMapper
             CreateMap<Models.Affiliate, AffiliateListDTO>()
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
                 .ForMember(dest => dest.Hotels, opt => opt.MapFrom(src => src.Hotels));
-            
+
             // Mapeamentos para User
             CreateMap<UserUpdateDto, Viagium.Models.User>()
                 .ForMember(dest => dest.DocumentNumber, opt => opt.Ignore())
@@ -101,7 +113,7 @@ namespace Viagium.ProfileAutoMapper
                 .ForMember(dest => dest.IsActive, opt => opt.Ignore());
             CreateMap<UserDTO, UserListDTO>();
             CreateMap<Models.User, UserEmailDTO>();
-            
+
             // Mapeamentos para Admin
             CreateMap<AdminRegisterDTO, Viagium.Models.User>()
                 .ForMember(dest => dest.HashPassword, opt => opt.Ignore())
@@ -112,11 +124,15 @@ namespace Viagium.ProfileAutoMapper
                 .ForMember(dest => dest.Role, opt => opt.Ignore())
                 .ForMember(dest => dest.IsActive, opt => opt.Ignore());
             CreateMap<Viagium.Models.User, AdminDTO>();
-            
+
             // Mapeamentos para Address
             CreateMap<Address, AddressDTO>().ReverseMap();
             CreateMap<Address, AddressListDTO>();
             CreateMap<Hotel, HotelDTO>();
+            CreateMap<HotelWithAddressDTO, HotelDTO>()
+                .ForMember(dest => dest.AffiliateId, opt => opt.MapFrom(src => src.AffiliateId))
+                .ForMember(dest => dest.AddressId, opt => opt.Ignore()) // HotelWithAddressDTO não tem AddressId
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address));
             CreateMap<Models.User, UserEmailDTO>();
             CreateMap<RoomTypeCreateDTO, RoomType>()
                     //.ForMember(dest => dest.RoomTypeAmenities, opt => opt.Ignore());   verificar com priscilla
