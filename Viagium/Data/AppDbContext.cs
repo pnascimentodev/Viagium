@@ -28,6 +28,7 @@ public class AppDbContext : DbContext
     public DbSet<Amenity> Amenities { get; set; }
     public DbSet<RoomTypeAmenity> RoomTypeAmenities { get; set; }
     public DbSet<HotelAmenity> HotelAmenities { get; set; }
+    public DbSet<PackageHotel> PackageHotels { get; set; }
 
 
     // Configura o modelo do banco de dados
@@ -178,5 +179,23 @@ public class AppDbContext : DbContext
             .WithMany(tp => tp.PackageSchedules)
             .HasForeignKey(ps => ps.TravelPackageId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Chave composta para PackageHotel (TravelPackageId + HotelId)
+        modelBuilder.Entity<PackageHotel>()
+            .HasKey(ph => new { ph.TravelPackageId, ph.HotelId });
+
+        // Configura precisão dos campos decimais em TravelPackage
+        modelBuilder.Entity<TravelPackage>()
+            .Property(tp => tp.OriginalPrice)
+            .HasPrecision(18, 2);
+        modelBuilder.Entity<TravelPackage>()
+            .Property(tp => tp.PackageTax)
+            .HasPrecision(18, 2);
+        modelBuilder.Entity<TravelPackage>()
+            .Property(tp => tp.DiscountValue)
+            .HasPrecision(18, 2);
+        modelBuilder.Entity<TravelPackage>()
+            .Property(tp => tp.ManualDiscountValue)
+            .HasPrecision(18, 2);
     }
 }

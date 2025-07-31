@@ -58,6 +58,9 @@ namespace Viagium.Models
             [Range(0, 100, ErrorMessage = "O valor do desconto deve ser entre 0 e 100")]
             public decimal DiscountValue { get; set; } = 0;
 
+            [Range(0, 100, ErrorMessage = "O valor do desconto manual deve ser entre 0 e 100")]
+            public decimal ManualDiscountValue { get; set; } = 0;
+
             [Required]
             [ForeignKey("User")]
             public int CreatedBy { get; set; }
@@ -71,6 +74,7 @@ namespace Viagium.Models
             
         public virtual ICollection<Reservation>? Reservations { get; set; }
         public virtual ICollection<PackageSchedule>? PackageSchedules { get; set; }
+        public virtual ICollection<PackageHotel> PackageHotels { get; set; } = new List<PackageHotel>();
 
         [NotMapped]
         public string OccupancyInfo {

@@ -11,7 +11,7 @@ public class ReservationDTO
     public UserDTO? User { get; set; }
 
     [Required]
-    public TravelPackageDTO? TravelPackage { get; set; }
+    public TravelPackageDTO.TravelPackageDTO? TravelPackage { get; set; }
 
     [Required]
     [DataType(DataType.Date)]
