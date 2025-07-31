@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Viagium.Configurations;
 using Viagium.EntitiesDTO.Auth;
 using Viagium.Repository.Interface;
+using Microsoft.Extensions.Logging;
 
 namespace Viagium.Services.Auth.Affiliate;
 
@@ -14,12 +15,14 @@ public class AuthAffiliateService : IAuthAffiliateService
     private readonly IAffiliateRepository _affiliateRepository;
     private readonly JwtSettings _jwtSettings;
     private readonly ITokenBlacklistService _tokenBlacklistService;
+    private readonly ILogger<AuthAffiliateService> _logger;
 
-    public AuthAffiliateService(IAffiliateRepository affiliateRepository, IOptions<JwtSettings> jwtOptions, ITokenBlacklistService tokenBlacklistService)
+    public AuthAffiliateService(IAffiliateRepository affiliateRepository, IOptions<JwtSettings> jwtOptions, ITokenBlacklistService tokenBlacklistService, ILogger<AuthAffiliateService> logger)
     {
         _affiliateRepository = affiliateRepository;
         _jwtSettings = jwtOptions.Value;
         _tokenBlacklistService = tokenBlacklistService;
+        _logger = logger;
     }
 
     public async Task<AffiliateLoginResponseDTO> LoginAsync(LoginRequestDTO loginRequest)
@@ -68,6 +71,7 @@ public class AuthAffiliateService : IAuthAffiliateService
     
     public async Task<AffiliateLoginResponseDTO> LogoutAsync(string token)
     {
+        token = token.Trim('"');
         var handler = new JwtSecurityTokenHandler();
         JwtSecurityToken jwtToken;
         try
@@ -76,13 +80,14 @@ public class AuthAffiliateService : IAuthAffiliateService
         }
         catch
         {
-            // Token inválido
+            _logger.LogWarning("Tentativa de logout com token inválido: {Token}", token);
             return await Task.FromResult(new AffiliateLoginResponseDTO());
         }
         var expires = jwtToken.ValidTo;
         if (expires > DateTime.UtcNow)
         {
             await _tokenBlacklistService.AddToBlacklistAsync(token, expires);
+            _logger.LogInformation("Token adicionado à blacklist no logout: {Token}", token);
         }
         return await Task.FromResult(new AffiliateLoginResponseDTO());
     }

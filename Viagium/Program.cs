@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -132,14 +133,43 @@ builder.Services.AddAuthentication(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,                      // Valida se o emissor do token é o esperado
-        ValidateAudience = true,                    // Valida se o token foi criado para o público esperado
-        ValidateLifetime = true,                    // Valida se o token não está expirado
-        ValidateIssuerSigningKey = true,            // Valida se a assinatura do token está correta
-
-        ValidIssuer = jwtSettings["Issuer"],       // Define o valor esperado para o emissor do token
-        ValidAudience = jwtSettings["Audience"],   // Define o valor esperado para o público do token
-        IssuerSigningKey = new SymmetricSecurityKey(key)  // Define a chave secreta para validar a assinatura do token
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(key)
+    };
+    // Verificação da blacklist
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var tokenBlacklistService = context.HttpContext.RequestServices.GetRequiredService<ITokenBlacklistService>();
+            var loggerFactory = context.HttpContext.RequestServices.GetService(typeof(ILoggerFactory)) as ILoggerFactory;
+            var logger = loggerFactory?.CreateLogger("JwtBlacklist");
+            var authHeader = context.HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+            logger?.LogInformation("[JWT] OnTokenValidated chamado. Authorization header: {Header}", authHeader);
+            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+            {
+                var rawToken = authHeader.Substring("Bearer ".Length).Trim().ToLowerInvariant();
+                logger?.LogInformation("[JWT] Token extraído do header: {Token}", rawToken);
+                if (await tokenBlacklistService.IsTokenBlacklistedAsync(rawToken))
+                {
+                    logger?.LogWarning("[JWT] Token bloqueado por blacklist: {Token}", rawToken);
+                    context.Fail("Token revogado (logout). Faça login novamente.");
+                }
+                else
+                {
+                    logger?.LogInformation("[JWT] Token NÃO está na blacklist: {Token}", rawToken);
+                }
+            }
+            else
+            {
+                logger?.LogWarning("[JWT] Authorization header ausente ou mal formatado.");
+            }
+        }
     };
 });
 
@@ -159,6 +189,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddHttpClient<ImgbbService>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddScoped<IEmailService, Viagium.Services.Email.EmailService>();
+builder.Services.AddScoped<ITokenBlacklistService, InMemoryTokenBlacklistService>();
 
 var app = builder.Build(); 
 // Configure the HTTP request pipeline.
