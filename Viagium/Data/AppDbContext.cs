@@ -183,5 +183,19 @@ public class AppDbContext : DbContext
         // Chave composta para PackageHotel (TravelPackageId + HotelId)
         modelBuilder.Entity<PackageHotel>()
             .HasKey(ph => new { ph.TravelPackageId, ph.HotelId });
+
+        // Configura precisão dos campos decimais em TravelPackage
+        modelBuilder.Entity<TravelPackage>()
+            .Property(tp => tp.OriginalPrice)
+            .HasPrecision(18, 2);
+        modelBuilder.Entity<TravelPackage>()
+            .Property(tp => tp.PackageTax)
+            .HasPrecision(18, 2);
+        modelBuilder.Entity<TravelPackage>()
+            .Property(tp => tp.DiscountValue)
+            .HasPrecision(18, 2);
+        modelBuilder.Entity<TravelPackage>()
+            .Property(tp => tp.ManualDiscountValue)
+            .HasPrecision(18, 2);
     }
 }

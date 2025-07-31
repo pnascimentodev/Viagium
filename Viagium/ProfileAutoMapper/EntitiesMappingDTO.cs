@@ -149,6 +149,8 @@ namespace Viagium.ProfileAutoMapper
                 .ForMember(dest => dest.DestinationAddress, opt => opt.MapFrom(src => src.DestinationAddress))
                 .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.UserId));
             CreateMap<PackageSchedule, PackageScheduleDTO>();
+            
+            
         }
     }
 }

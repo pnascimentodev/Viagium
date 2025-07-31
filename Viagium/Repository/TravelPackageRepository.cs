@@ -104,6 +104,14 @@ public class TravelPackageRepository : ITravelPackageRepository
             .ToListAsync();
         var hotelDtos = _mapper.Map<List<HotelDTO>>(hotels);
 
+        // Cálculo do preço final considerando apenas o desconto manual
+        decimal price = travelPackage.OriginalPrice;
+        if (travelPackage.ManualDiscountValue > 0)
+        {
+            price -= (travelPackage.OriginalPrice * travelPackage.ManualDiscountValue / 100);
+        }
+        travelPackage.Price = price > 0 ? price : 0;
+
         // Montar o DTO de resposta
         var response = new ResponseTravelPackageDTO
         {
@@ -149,6 +157,14 @@ public class TravelPackageRepository : ITravelPackageRepository
         travelPackage.PackageTax = createTravelPackageDTO.PackageTax;
         travelPackage.CupomDiscount = createTravelPackageDTO.CupomDiscount;
         travelPackage.DiscountValue = createTravelPackageDTO.DiscountValue;
+        travelPackage.ManualDiscountValue = createTravelPackageDTO.ManualDiscountValue;
+        // Cálculo do preço final considerando apenas o desconto manual
+        decimal price = travelPackage.OriginalPrice;
+        if (travelPackage.ManualDiscountValue > 0)
+        {
+            price -= (travelPackage.OriginalPrice * travelPackage.ManualDiscountValue / 100);
+        }
+        travelPackage.Price = price > 0 ? price : 0;
 
         // Atualiza os endereços
         if (createTravelPackageDTO.OriginAddress != null)
@@ -494,5 +510,26 @@ public class TravelPackageRepository : ITravelPackageRepository
             await _context.SaveChangesAsync();
         }
         return await ListAllAsync();
+    }
+
+    public async Task<ResponseTravelPackageDTO?> UpdateCupomAsync(int travelPackageId, string cupom, decimal discountValue)
+    {
+        var travelPackage = await _context.TravelPackages
+            .Include(tp => tp.OriginAddress)
+            .Include(tp => tp.DestinationAddress)
+            .FirstOrDefaultAsync(tp => tp.TravelPackageId == travelPackageId);
+        if (travelPackage == null)
+            return null;
+        travelPackage.CupomDiscount = cupom;
+        travelPackage.DiscountValue = discountValue;
+        // Recalcula o preço considerando ambos descontos
+        decimal price = travelPackage.OriginalPrice;
+        if (travelPackage.DiscountValue > 0)
+            price -= (travelPackage.OriginalPrice * travelPackage.DiscountValue / 100);
+        if (travelPackage.ManualDiscountValue > 0)
+            price -= (travelPackage.OriginalPrice * travelPackage.ManualDiscountValue / 100);
+        travelPackage.Price = price > 0 ? price : 0;
+        await _context.SaveChangesAsync();
+        return await GetByIdAsync(travelPackageId);
     }
 }

@@ -16,6 +16,7 @@ namespace Viagium.EntitiesDTO.TravelPackageDTO
         public decimal PackageTax { get; set; }
         public string CupomDiscount { get; set; }
         public decimal DiscountValue { get; set; }
+        public decimal ManualDiscountValue { get; set; }
         public string OriginCity { get; set; }
         public string OriginCountry { get; set; }
         public string DestinationCity { get; set; }

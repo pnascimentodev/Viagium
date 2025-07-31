@@ -29,7 +29,8 @@ namespace Viagium.Repository
             int travelPackageId, decimal discountPercentage, DateTime startDate, DateTime endDate);
         
         Task<List<ResponseTravelPackageDTO>> DesactivateDiscountAsync(int travelPackageId);
-        
+
+        Task<ResponseTravelPackageDTO?> UpdateCupomAsync(int travelPackageId, string cupom, decimal discountValue);
         
     }
 

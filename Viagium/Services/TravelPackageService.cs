@@ -114,16 +114,16 @@ namespace Viagium.Services
                 throw new Exception("Pacote não encontrado.");
             if (discountPercentage <= 0 || discountPercentage > 100)
                 throw new Exception("Desconto inválido.");
-            if (travelPackage.OriginalPrice <= 0)
-                throw new Exception("Preço original inválido.");
-            if (travelPackage.Price != null)
-                throw new Exception("Já existe desconto ativo neste pacote.");
-
-            // Regra: Price recebe o valor antigo, OriginalPrice recebe o valor com desconto
-            travelPackage.Price = travelPackage.OriginalPrice;
-            var desconto = (travelPackage.OriginalPrice * discountPercentage) / 100;
-            travelPackage.OriginalPrice = travelPackage.OriginalPrice - desconto;
-            travelPackage.DiscountValue = discountPercentage;
+            if (travelPackage.Price <= 0)
+                throw new Exception("Preço atual inválido.");
+            // Salva o preço antigo
+            travelPackage.OriginalPrice = travelPackage.Price;
+            // Atualiza o desconto manual
+            travelPackage.ManualDiscountValue = discountPercentage;
+            // Calcula o novo preço com o desconto manual
+            decimal price = travelPackage.OriginalPrice;
+            price -= (travelPackage.OriginalPrice * travelPackage.ManualDiscountValue / 100);
+            travelPackage.Price = price > 0 ? price : 0;
             await _context.SaveChangesAsync();
             return await ListAllAsync();
         }
@@ -133,14 +133,19 @@ namespace Viagium.Services
             var travelPackage = await _context.TravelPackages.FirstOrDefaultAsync(tp => tp.TravelPackageId == travelPackageId);
             if (travelPackage == null)
                 throw new Exception("Pacote não encontrado.");
-            if (travelPackage.Price == null)
-                throw new Exception("Não há desconto ativo para desativar.");
-            // Regra: OriginalPrice recebe o valor de Price, Price volta a ser null
-            travelPackage.OriginalPrice = travelPackage.Price;
-            travelPackage.Price = 0;
-            travelPackage.DiscountValue = 0;
+            if (travelPackage.ManualDiscountValue == 0)
+                throw new Exception("Não há desconto manual ativo para desativar.");
+            // Restaura o preço anterior salvo em OriginalPrice, se válido
+            travelPackage.ManualDiscountValue = 0;
+            if (travelPackage.OriginalPrice > 0)
+                travelPackage.Price = travelPackage.OriginalPrice;
             await _context.SaveChangesAsync();
             return await ListAllAsync();
+        }
+
+        public async Task<ResponseTravelPackageDTO?> UpdateCupomAsync(int travelPackageId, string cupom, decimal discountValue)
+        {
+            return await _travelPackageRepository.UpdateCupomAsync(travelPackageId, cupom, discountValue);
         }
 
     }

@@ -71,8 +71,8 @@ public class TravelPackageController : ControllerBase
     /// <summary>
     /// Aplica desconto em um pacote de viagem.
     /// </summary>
-    /// <remarks>Exemplo: POST /api/TravelPackage/discount</remarks>
-    [HttpPost("discount")]
+    /// <remarks>Exemplo: PUT /api/TravelPackage/discount</remarks>
+    [HttpPut("discount")]
     public async Task<IActionResult> CreateDiscount(int travelPackageId, decimal discountPercentage)
     {
         try
@@ -89,8 +89,8 @@ public class TravelPackageController : ControllerBase
     /// <summary>
     /// Remove desconto de um pacote de viagem.
     /// </summary>
-    /// <remarks>Exemplo: POST /api/TravelPackage/discount/deactivate</remarks>
-    [HttpPost("discount/deactivate")]
+    /// <remarks>Exemplo: PUT /api/TravelPackage/discount/deactivate</remarks>
+    [HttpPut("discount/deactivate")]
     public async Task<IActionResult> DesactivateDiscount(int travelPackageId)
     {
         try
@@ -174,5 +174,39 @@ public class TravelPackageController : ControllerBase
         var result = await _service.GetByCityAndCountryAsync(city, country);
         if (result == null) return NotFound();
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Atualiza o cupom e o valor de desconto de um pacote de viagem já registrado.
+    /// </summary>
+    /// <remarks>Exemplo: PUT /api/TravelPackage/cupom</remarks>
+    [HttpPut("cupom")]
+    public async Task<IActionResult> PutCupom([FromQuery] int travelPackageId, [FromQuery] string cupom, [FromQuery] decimal discountValue)
+    {
+        try
+        {
+            var result = await _service.UpdateCupomAsync(travelPackageId, cupom, discountValue);
+            if (result == null) return NotFound();
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Retorna o valor do desconto do cupom informado para um pacote.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/TravelPackage/cupom-discount?travelPackageId=1&amp;cupom=MEUCUPOM</remarks>
+    [HttpGet("cupom-discount")]
+    public async Task<IActionResult> GetCupomDiscount([FromQuery] int travelPackageId, [FromQuery] string cupom)
+    {
+        var pacote = await _service.GetByIdAsync(travelPackageId);
+        if (pacote == null)
+            return NotFound("Pacote não encontrado.");
+        if (string.IsNullOrWhiteSpace(pacote.CupomDiscount) || !string.Equals(pacote.CupomDiscount, cupom, StringComparison.OrdinalIgnoreCase))
+            return Ok(0); // Cupom não existe ou não corresponde
+        return Ok(pacote.DiscountValue);
     }
 }

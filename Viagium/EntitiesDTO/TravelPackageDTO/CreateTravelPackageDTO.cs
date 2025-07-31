@@ -46,6 +46,9 @@ public class CreateTravelPackageDTO
             [Range(0, 100, ErrorMessage = "O valor do desconto deve ser entre 0 e 100")]
             public decimal DiscountValue { get; set; } = 0;
 
+            [Range(0, 100, ErrorMessage = "O valor do desconto manual deve ser entre 0 e 100")]
+            public decimal ManualDiscountValue { get; set; } = 0;
+
             public PackageScheduleDTO PackageSchedule { get; set; } = new PackageScheduleDTO();
 
             [Required]
