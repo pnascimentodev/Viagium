@@ -23,6 +23,10 @@ public class PaymentController : ControllerBase
     
 
 
+    /// <summary>
+    /// Cria um novo pagamento.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/payment/CreatePayment</remarks>
     [HttpPost("CreatePayment")] //envia a informação de pagamento para a api do Asaas
     public async Task<IActionResult> CreatePayment([FromBody] Reservation reservation)
     {
@@ -49,6 +53,10 @@ public class PaymentController : ControllerBase
         }
     }
     
+    /// <summary>
+    /// Cria um novo usuário.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/payment/CreateUser</remarks>
     [HttpPost("CreateUser")] //envia a informação de pagamento para a api do Asaas
     public async Task<IActionResult> CreateUser([FromBody] AsaasUserDTO user)
     {
@@ -71,7 +79,4 @@ public class PaymentController : ControllerBase
             });
         }
     }
-    
-    
-    
 }

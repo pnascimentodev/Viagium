@@ -124,6 +124,10 @@ public class AffiliateController : ControllerBase
     }
 
 
+    /// <summary>
+    /// Busca afiliados por cidade.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/affiliate/ByCity/SaoPaulo</remarks>
     [HttpGet("ByCity/{city}")]
     public async Task<IActionResult> GetByCity(string city)
     {
@@ -139,7 +143,10 @@ public class AffiliateController : ControllerBase
         }
     }
     
-    // endpoint de login
+    /// <summary>
+    /// Realiza login do afiliado.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/affiliate/login</remarks>
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequest)
     {
@@ -161,6 +168,11 @@ public class AffiliateController : ControllerBase
             return ExceptionHandler.HandleException(ex);
         }
     }
+
+    /// <summary>
+    /// Busca afiliado pelo e-mail.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/affiliate/by-email?email=exemplo@email.com</remarks>
     [HttpGet("by-email")]
     public async Task<IActionResult> GetByEmail([FromQuery] string email)
     {
@@ -179,10 +191,9 @@ public class AffiliateController : ControllerBase
 
     }
     /// <summary>
-    /// Envia e-mail de recuperação de senha para o affiliado.
+    /// Envia e-mail de recuperação de senha para o afiliado.
     /// </summary>
-    /// <remarks>Exemplo: POST /api/affiliate/forgot-password-email</remarks>
-    
+    /// <remarks>Exemplo: POST /api/affiliate/forgot-password</remarks>
     [HttpPost("forgot-password")]
     public async Task<IActionResult> SendForgotPasswordEmailAsync([FromBody] string email)
     {
@@ -197,6 +208,10 @@ public class AffiliateController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Atualiza a senha do afiliado.
+    /// </summary>
+    /// <remarks>Exemplo: PUT /api/affiliate/update-password/1</remarks>
     [HttpPut("update-password/{id}")]
    public async Task<IActionResult> UpdatePassword(int id, [FromBody] UpdatePasswordDto dto)
     {
@@ -211,6 +226,10 @@ public class AffiliateController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Redefine a senha do afiliado.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/affiliate/forgot-password/1</remarks>
     [HttpPost("forgot-password/{id}")]
     public async Task<IActionResult> ForgotPassword(int id, [FromBody] ForgotPasswordDto dto)
     {
