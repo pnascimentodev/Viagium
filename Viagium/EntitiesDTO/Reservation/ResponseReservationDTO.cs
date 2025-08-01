@@ -12,7 +12,7 @@ namespace Viagium.EntitiesDTO.Reservation
         public List<TravelerDTO>? Travelers { get; set; }
 
         // Dados do pacote
-        public TravelPackageDTO? TravelPackage { get; set; }
+        public TravelPackageDTO.TravelPackageDTO? TravelPackage { get; set; }
 
         // Dados do hotel
         public HotelDTO? Hotel { get; set; }

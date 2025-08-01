@@ -10,7 +10,7 @@ public class Payment
     public int PaymentId { get; set; }
     
     [ForeignKey("Reservation")]
-    public int? ReservationId { get; set; }
+    public int ReservationId { get; set; }
     public Reservation? Reservation { get; set; }
     
     [Required]
