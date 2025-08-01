@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Viagium.Data;
 using Viagium.EntitiesDTO;
 using Viagium.Models;
 using Viagium.Repository.Interface;
@@ -13,12 +15,14 @@ public class HotelService : IHotelService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly ImgbbService _imgbbService;
+    private readonly AppDbContext _context;
     
-    public HotelService(IUnitOfWork unitOfWork, IMapper mapper, ImgbbService imgbbService)
+    public HotelService(IUnitOfWork unitOfWork, IMapper mapper, ImgbbService imgbbService, AppDbContext context)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _imgbbService = imgbbService;
+        _context = context;
     }
     
     public async Task<HotelWithAddressDTO> AddAsync(HotelCreateFormDTO hotelCreateFormDTO)
@@ -73,6 +77,111 @@ public class HotelService : IHotelService
             await _unitOfWork.HotelRepository.UpdateAsync(hotelWithAddressDTO);
             await _unitOfWork.SaveAsync();
         }, "atualização de hotel");
+    }
+
+    public async Task UpdateAsync(int id, HotelUpdateDTO hotelUpdateDTO)
+    {
+        await ExceptionHandler.ExecuteWithHandling(async () =>
+        {
+            // Buscar o hotel existente completo
+            var existingHotelWithAddress = await _unitOfWork.HotelRepository.GetByIdAsync(id);
+            if (existingHotelWithAddress == null)
+                throw new KeyNotFoundException("Hotel não encontrado.");
+
+            // Buscar o hotel da base de dados para atualização
+            var existingHotel = await _context.Hotels
+                .Include(h => h.Address)
+                .Include(h => h.HotelAmenity)
+                .FirstOrDefaultAsync(h => h.HotelId == id);
+
+            if (existingHotel == null)
+                throw new KeyNotFoundException("Hotel não encontrado.");
+
+            // Atualizar apenas os campos que foram fornecidos
+            if (!string.IsNullOrEmpty(hotelUpdateDTO.Name))
+                existingHotel.Name = hotelUpdateDTO.Name;
+            
+            if (!string.IsNullOrEmpty(hotelUpdateDTO.Description))
+                existingHotel.Description = hotelUpdateDTO.Description;
+            
+            if (!string.IsNullOrEmpty(hotelUpdateDTO.ContactNumber))
+                existingHotel.ContactNumber = hotelUpdateDTO.ContactNumber;
+            
+            if (!string.IsNullOrEmpty(hotelUpdateDTO.TypeHosting))
+                existingHotel.TypeHosting = hotelUpdateDTO.TypeHosting;
+            
+            if (!string.IsNullOrEmpty(hotelUpdateDTO.Cnpj))
+                existingHotel.Cnpj = hotelUpdateDTO.Cnpj;
+            
+            if (!string.IsNullOrEmpty(hotelUpdateDTO.InscricaoEstadual))
+                existingHotel.InscricaoEstadual = hotelUpdateDTO.InscricaoEstadual;
+            
+            if (!string.IsNullOrEmpty(hotelUpdateDTO.Cadastur))
+                existingHotel.Cadastur = hotelUpdateDTO.Cadastur;
+            
+            if (hotelUpdateDTO.CadasturExpiration.HasValue)
+                existingHotel.CadasturExpiration = hotelUpdateDTO.CadasturExpiration.Value;
+            
+            if (hotelUpdateDTO.Star.HasValue)
+                existingHotel.Star = hotelUpdateDTO.Star.Value;
+            
+            if (!string.IsNullOrEmpty(hotelUpdateDTO.ImageUrl))
+                existingHotel.ImageUrl = hotelUpdateDTO.ImageUrl;
+            
+            if (hotelUpdateDTO.IsActive.HasValue)
+                existingHotel.IsActive = hotelUpdateDTO.IsActive.Value;
+
+            // Atualizar endereço se fornecido
+            if (hotelUpdateDTO.Address != null && existingHotel.Address != null)
+            {
+                if (!string.IsNullOrEmpty(hotelUpdateDTO.Address.StreetName))
+                    existingHotel.Address.StreetName = hotelUpdateDTO.Address.StreetName;
+                
+                if (hotelUpdateDTO.Address.AddressNumber > 0)
+                    existingHotel.Address.AddressNumber = hotelUpdateDTO.Address.AddressNumber;
+                
+                if (!string.IsNullOrEmpty(hotelUpdateDTO.Address.Neighborhood))
+                    existingHotel.Address.Neighborhood = hotelUpdateDTO.Address.Neighborhood;
+                
+                if (!string.IsNullOrEmpty(hotelUpdateDTO.Address.City))
+                    existingHotel.Address.City = hotelUpdateDTO.Address.City;
+                
+                if (!string.IsNullOrEmpty(hotelUpdateDTO.Address.State))
+                    existingHotel.Address.State = hotelUpdateDTO.Address.State;
+                
+                if (!string.IsNullOrEmpty(hotelUpdateDTO.Address.ZipCode))
+                    existingHotel.Address.ZipCode = hotelUpdateDTO.Address.ZipCode;
+                
+                if (!string.IsNullOrEmpty(hotelUpdateDTO.Address.Country))
+                    existingHotel.Address.Country = hotelUpdateDTO.Address.Country;
+            }
+
+            // Atualizar amenities se fornecido
+            if (hotelUpdateDTO.Amenities != null)
+            {
+                // Remover amenities existentes
+                var existingAmenities = existingHotel.HotelAmenity.ToList();
+                _context.HotelAmenities.RemoveRange(existingAmenities);
+
+                // Adicionar novos amenities se a lista não estiver vazia
+                if (hotelUpdateDTO.Amenities.Any())
+                {
+                    foreach (var amenityId in hotelUpdateDTO.Amenities)
+                    {
+                        var hotelAmenity = new HotelAmenity
+                        {
+                            HotelId = id,
+                            AmenityId = amenityId
+                        };
+                        await _context.HotelAmenities.AddAsync(hotelAmenity);
+                    }
+                }
+            }
+
+            existingHotel.UpdatedAt = DateTime.Now;
+            _context.Hotels.Update(existingHotel);
+            await _context.SaveChangesAsync();
+        }, "atualização parcial de hotel");
     }
     
     public async Task<bool> DesactivateAsync(int id)

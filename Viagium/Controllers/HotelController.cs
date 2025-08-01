@@ -52,14 +52,11 @@ public class HotelController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: PUT /api/hotel/1</remarks>
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] HotelWithAddressDTO hotelWithAddressDTO)
+    public async Task<IActionResult> Update(int id, [FromBody] HotelUpdateDTO hotelUpdateDTO)
     {
         try
         {
-            if (id != hotelWithAddressDTO.HotelId)
-                return BadRequest("Id do hotel não coincide com o id fornecido na rota.");
-            
-            await _hotelService.UpdateAsync(hotelWithAddressDTO);
+            await _hotelService.UpdateAsync(id, hotelUpdateDTO);
             return NoContent();
         }
         catch (Exception ex)

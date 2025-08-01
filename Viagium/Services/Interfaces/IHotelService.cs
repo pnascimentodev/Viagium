@@ -8,6 +8,7 @@ public interface IHotelService
     Task<HotelWithAddressDTO?> GetByIdAsync(int id);
     Task<IEnumerable<HotelWithAddressDTO>> GetAllAsync();
     Task UpdateAsync(HotelWithAddressDTO hotelWithAddressDTO);
+    Task UpdateAsync(int id, HotelUpdateDTO hotelUpdateDTO);
     Task<bool> DesactivateAsync(int id);
     Task<bool> ActivateAsync(int id);
     Task<IEnumerable<HotelWithAddressDTO>> GetByAmenityAsync(int amenityId);
