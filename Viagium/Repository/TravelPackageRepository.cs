@@ -338,6 +338,10 @@ public class TravelPackageRepository : ITravelPackageRepository
         foreach (var pkg in packages)
         {
             var hotels = pkg.PackageHotels?.Select(ph => ph.Hotel).Where(h => h != null).ToList() ?? new List<Models.Hotel>();
+            
+            // Extrair os IDs dos hotéis já incluídos no pacote
+            var existingHotelIds = hotels.Select(h => h.HotelId).ToList();
+            
             // Buscar hotéis ativos na cidade/país de destino, e se o pacote tiver CreatedAt, filtrar por data
             var extraHotelsQuery = _context.Hotels
                 .Include(h => h.Address)
@@ -351,7 +355,7 @@ public class TravelPackageRepository : ITravelPackageRepository
                 .Where(h => h.IsActive &&
                             h.Address.City.ToLower() == pkg.DestinationAddress.City.ToLower() &&
                             h.Address.Country.ToLower() == pkg.DestinationAddress.Country.ToLower() &&
-                            !hotels.Any(existing => existing.HotelId == h.HotelId));
+                            !existingHotelIds.Contains(h.HotelId));
             if (pkg.CreatedAt != null && pkg.CreatedAt > DateTime.MinValue)
             {
                 extraHotelsQuery = extraHotelsQuery.Where(h => h.CreatedAt >= pkg.CreatedAt);
