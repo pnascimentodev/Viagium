@@ -24,9 +24,8 @@ public class AddressDTO
     [Display(Name = "Estado")]
     public string State { get; set; } = string.Empty;
     
-    [Required(ErrorMessage = "O CEP � obrigat�rio.")]
-    [Display(Name = "CEP")]
-    [RegularExpression(@"^\d{5}-\d{3}$", ErrorMessage = "O CEP deve estar no formato 00000-000.")]
+    [Required(ErrorMessage = "O CEP/Código Postal é obrigatório.")]
+    [Display(Name = "CEP/Código Postal")]
     public string ZipCode { get; set; } = string.Empty;
     
     [Required(ErrorMessage = "O pa�s � obrigat�rio.")]
