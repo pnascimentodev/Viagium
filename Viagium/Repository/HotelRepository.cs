@@ -98,12 +98,16 @@ public class HotelRepository : IHotelRepository
     {
         var hotel = await _context.Hotels
             .Include(h => h.Address)
+            .Include(h => h.Affiliate)
+                .ThenInclude(a => a.Address)
             .Include(h => h.HotelAmenity)
                 .ThenInclude(ha => ha.Amenity)
+            .Include(h => h.RoomTypes)
             .FirstOrDefaultAsync(h => h.HotelId == hotelId);
 
         if (hotel == null) return null;
 
+        // O mapeamento do AutoMapper para AffiliateDTO já está correto e igual ao da rota de afiliado
         var dto = _mapper.Map<HotelWithAddressDTO>(hotel);
         dto.Amenities = hotel.HotelAmenity
             .Select(ha => new AmenityDTO {
@@ -118,10 +122,12 @@ public class HotelRepository : IHotelRepository
     {
         var hotels = await _context.Hotels
             .Include(h => h.Address)
+            .Include(h => h.Affiliate)
+                .ThenInclude(a => a.Address)
             .Include(h => h.HotelAmenity)
                 .ThenInclude(ha => ha.Amenity)
+            .Include(h => h.RoomTypes)
             .ToListAsync();
-
         return _mapper.Map<IEnumerable<HotelWithAddressDTO>>(hotels);
     }
     

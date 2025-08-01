@@ -22,10 +22,12 @@ namespace Viagium.ProfileAutoMapper
                     Name = ha.Amenity.Name,
                     IconName = ha.Amenity.IconName
                 })))
-                .ForMember(dest => dest.RoomTypes, opt => opt.MapFrom(src => src.RoomTypes));
+                .ForMember(dest => dest.RoomTypes, opt => opt.MapFrom(src => src.RoomTypes))
+                .ForMember(dest => dest.Affiliate, opt => opt.MapFrom(src => src.Affiliate));
             CreateMap<Affiliate, AffiliateDTO>()
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
                 .ForMember(dest => dest.Hotels, opt => opt.MapFrom(src => src.Hotels));
+            CreateMap<Address, AddressDTO>();
             CreateMap<Viagium.Models.User, UserDTO>();
 
             CreateMap<Payment, PaymentDTO>();
@@ -128,7 +130,9 @@ namespace Viagium.ProfileAutoMapper
             // Mapeamentos para Address
             CreateMap<Address, AddressDTO>().ReverseMap();
             CreateMap<Address, AddressListDTO>();
-            CreateMap<Hotel, HotelDTO>();
+            CreateMap<Hotel, HotelDTO>()
+                .ForMember(dest => dest.Affiliate, opt => opt.MapFrom(src => src.Affiliate))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt));
             CreateMap<HotelWithAddressDTO, HotelDTO>()
                 .ForMember(dest => dest.AffiliateId, opt => opt.MapFrom(src => src.AffiliateId))
                 .ForMember(dest => dest.AddressId, opt => opt.Ignore()) // HotelWithAddressDTO não tem AddressId

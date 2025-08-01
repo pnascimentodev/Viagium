@@ -60,7 +60,7 @@ public class HotelService : IHotelService
             var hotels = await _unitOfWork.HotelRepository.GetAllAsync();
             if (hotels == null || !hotels.Any())
                 throw new KeyNotFoundException("Nenhum hotel registrado.");
-            return _mapper.Map<IEnumerable<HotelWithAddressDTO>>(hotels);
+            return hotels;
         }, "busca todos os hotéis");
     }
     

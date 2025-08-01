@@ -16,4 +16,5 @@ public class HotelWithAddressDTO
     public List<AmenityDTO> Amenities { get; set; } = new();
     public List<RoomTypeDTO> RoomTypes { get; set; } = new();
     public int AffiliateId { get; set; } // Corrigido para ser int, compatível com Hotel
+    public AffiliateDTO? Affiliate { get; set; }
 }
