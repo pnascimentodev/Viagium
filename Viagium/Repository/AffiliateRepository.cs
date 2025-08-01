@@ -117,4 +117,17 @@ public class AffiliateRepository : IAffiliateRepository
         await _context.SaveChangesAsync();
         return affiliate;
     }
+
+    public async Task<IEnumerable<Affiliate>> GetAllAdmAsync(bool includeDeleted)
+    {
+        return await _context.Affiliates
+            .Include(a => a.Address)
+            .Include(a => a.Hotels)
+                .ThenInclude(h => h.Address)
+            .Include(a => a.Hotels)
+                .ThenInclude(h => h.HotelAmenity)
+                    .ThenInclude(ha => ha.Amenity)
+            .Where(a => includeDeleted || a.IsActive)
+            .ToListAsync();
+    }
 }

@@ -268,4 +268,22 @@ public class AffiliateController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Lista todos os afiliados (ativos e inativos).
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/affiliate/all-adm</remarks>
+    [HttpGet("all-adm")]
+    public async Task<IActionResult> GetAllAdm()
+    {
+        try
+        {
+            var affiliates = await _affiliateService.GetAllAdmAsync(true);
+            return Ok(affiliates);
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
+
 }

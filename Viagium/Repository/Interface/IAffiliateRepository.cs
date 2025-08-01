@@ -8,6 +8,7 @@ public interface IAffiliateRepository
     Task UpdateAsync(Affiliate affiliate);
     Task<Affiliate?> GetByIdAsync(int id);
     Task<IEnumerable<Affiliate>> GetAllAsync();
+    Task<IEnumerable<Affiliate>> GetAllAdmAsync(bool includeDeleted);
     Task<Affiliate?> GetByCnpjAsync(string cnpj);
     Task<Affiliate?> GetByStateRegistrationAsync(string stateRegistration);
     Task<IEnumerable<Affiliate>> GetByCityAsync(string city);

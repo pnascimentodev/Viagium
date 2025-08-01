@@ -18,5 +18,6 @@ public interface IAffiliateService
     Task SendForgotPasswordEmailAsync(string email);
     Task<AffiliateDTO> UpdatePasswordAsync(int id, UpdatePasswordDto dto);
     Task<AffiliateDTO> ForgotPasswordAsync(int id, string newPassword);
+    Task<IEnumerable<AffiliateDTO>> GetAllAdmAsync(bool includeDeleted);
 
 }

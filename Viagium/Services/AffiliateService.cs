@@ -166,6 +166,15 @@ public class AffiliateService : IAffiliateService
             return _mapper.Map<IEnumerable<AffiliateDTO>>(affiliates);
         }, "busca de afiliados");
     }
+    
+    public async Task<IEnumerable<AffiliateDTO>> GetAllAdmAsync(bool includeDeleted)
+    {
+        return await ExceptionHandler.ExecuteWithHandling(async () =>
+        {
+            var affiliates = await _unitOfWork.AffiliateRepository.GetAllAdmAsync(includeDeleted);
+            return _mapper.Map<IEnumerable<AffiliateDTO>>(affiliates);
+        }, "busca de afiliados ativos e inativos");
+    }
 
     public Task<bool> DeleteAsync(int id)
     {
