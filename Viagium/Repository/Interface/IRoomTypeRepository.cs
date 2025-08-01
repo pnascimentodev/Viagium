@@ -12,4 +12,6 @@ public interface IRoomTypeRepository
     Task UpdateAsync(RoomType roomType);
     Task<RoomType> DesativateAsync(int id);
     Task<RoomType> ActivateAsync(int id);
+    Task<List<RoomType>> GetRoomTypesWithAvailableRoomsAsync();
+    Task<List<RoomType>> GetRoomTypesWithUnavailableRoomsAsync();
 }
