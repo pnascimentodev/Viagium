@@ -5,6 +5,8 @@ using Viagium.EntitiesDTO.Reservation;
 using Viagium.Models;
 using Viagium.Repository.Interface;
 using Viagium.Services.Interfaces;
+using Viagium.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Viagium.Services
 {
@@ -86,6 +88,14 @@ namespace Viagium.Services
                     }
                 }
                 
+                // Após criar a reserva, buscar o primeiro Room disponível do RoomType e marcar como indisponível
+                var availableRoom = await _unitOfWork.RoomRepository.GetFirstAvailableByRoomTypeIdAsync(createReservationDto.RoomTypeId);
+                if (availableRoom != null)
+                {
+                    availableRoom.IsAvailable = false;
+                    await _unitOfWork.RoomRepository.UpdateAsync(availableRoom);
+                }
+
                 return dto;
 
             }, "criação de reserva");

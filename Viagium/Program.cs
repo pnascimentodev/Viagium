@@ -76,6 +76,7 @@ builder.Services.AddScoped<IHotelRepository, HotelRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<ITravelerRepository, TravelerRepository>();
+builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 
 
 // Registra o UnitOfWork e o serviços

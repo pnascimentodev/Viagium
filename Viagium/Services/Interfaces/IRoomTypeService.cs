@@ -12,4 +12,6 @@ public interface IRoomTypeService
     Task<RoomTypeDTO> UpdateAsync(RoomTypeUpdateDTO dto);
     Task<RoomTypeDTO> DesativateAsync(int id);
     Task<RoomTypeDTO> ActivateAsync(int id);
+    Task<List<RoomTypeDTO>> GetRoomTypesWithAvailableRoomsAsync();
+    Task<List<RoomTypeDTO>> GetRoomTypesWithUnavailableRoomsAsync();
 }
