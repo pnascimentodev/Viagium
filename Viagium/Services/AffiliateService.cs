@@ -112,6 +112,9 @@ public class AffiliateService : IAffiliateService
                 StateRegistration = affiliate.StateRegistration,
                 HashPassword = affiliate.HashPassword,
                 CreatedAt = affiliate.CreatedAt,
+                UpdatedAt = affiliate.UpdatedAt,
+                DeletedAt = affiliate.DeletedAt,
+                IsActive = affiliate.IsActive,
                 AddressId = affiliate.AddressId,
                 Address = new AddressDTO
                 {

@@ -26,7 +26,10 @@ namespace Viagium.ProfileAutoMapper
                 .ForMember(dest => dest.Affiliate, opt => opt.MapFrom(src => src.Affiliate));
             CreateMap<Affiliate, AffiliateDTO>()
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
-                .ForMember(dest => dest.Hotels, opt => opt.MapFrom(src => src.Hotels));
+                .ForMember(dest => dest.Hotels, opt => opt.MapFrom(src => src.Hotels))
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+                .ForMember(dest => dest.DeletedAt, opt => opt.MapFrom(src => src.DeletedAt))
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt));
             CreateMap<Address, AddressDTO>();
             CreateMap<Viagium.Models.User, UserDTO>();
 
@@ -99,7 +102,11 @@ namespace Viagium.ProfileAutoMapper
                 .ForMember(dest => dest.HashPassword, opt => opt.Ignore())
                 .ForMember(dest => dest.AffiliateId, opt => opt.Ignore());
             CreateMap<Models.Affiliate, AffiliateDTO>()
-                .ForMember(dest => dest.Hotels, opt => opt.MapFrom(src => src.Hotels));
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+                .ForMember(dest => dest.Hotels, opt => opt.MapFrom(src => src.Hotels))
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+                .ForMember(dest => dest.DeletedAt, opt => opt.MapFrom(src => src.DeletedAt))
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt));
             CreateMap<Models.Affiliate, AffiliateListDTO>()
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
                 .ForMember(dest => dest.Hotels, opt => opt.MapFrom(src => src.Hotels));
