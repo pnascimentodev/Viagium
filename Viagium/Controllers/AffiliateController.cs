@@ -200,6 +200,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/affiliate/forgot-password</remarks>
     [HttpPost("forgot-password")]
+    [AllowAnonymous]
     public async Task<IActionResult> SendForgotPasswordEmailAsync([FromBody] string email)
     {
         try
