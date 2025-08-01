@@ -42,6 +42,10 @@ public class Hotel
     [Display(Name = "Cnpj do Hotel")]
     public string Cnpj { get; set; } = string.Empty;
     
+    [Required(ErrorMessage = "A Inscrição Estadual do hotel é obrigatória.")]
+    [Display(Name = "Inscrição Estadual do Hotel")]
+    public string InscricaoEstadual { get; set; } = string.Empty;
+    
     [Required(ErrorMessage = "O Cadastur do hotel é obrigatório.")]
     [Display(Name = "Cadastur do Hotel")]
     public string Cadastur { get; set; } = string.Empty;
