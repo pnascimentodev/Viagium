@@ -142,6 +142,7 @@ public class UserService : IUserService
             if (user == null) return null;
             return new UserDTO
             {
+                UserId = user.UserId,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
@@ -150,7 +151,8 @@ public class UserService : IUserService
                 Phone = user.Phone,
                 Role = user.Role.ToString(),
                 IsActive = user.IsActive,
-                HashPassword = user.HashPassword
+                HashPassword = user.HashPassword,
+                UpdatedAt = user.UpdatedAt ?? DateTime.Now
             };
         }, "buscar usuário por id");
     }
@@ -162,6 +164,7 @@ public class UserService : IUserService
             var users = await _unitOfWork.UserRepository.GetAllAsync();
             return users.Select(user => new UserDTO
             {
+                UserId = user.UserId,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
@@ -170,7 +173,8 @@ public class UserService : IUserService
                 Phone = user.Phone,
                 Role = user.Role.ToString(),
                 IsActive = user.IsActive,
-                HashPassword = user.HashPassword
+                HashPassword = user.HashPassword,
+                UpdatedAt = user.UpdatedAt ?? DateTime.Now
             }).ToList();
         }, "buscar todos usuários");
     }
