@@ -122,17 +122,21 @@ public class UserController : ControllerBase
     {
         try
         {
+            if (userUpdateDto == null)
+                return BadRequest("Dados de atualização não enviados.");
+            if (id <= 0)
+                return BadRequest("Id inválido.");
             var user = await _userService.GetByIdAsync(id);
             if (user == null)
                 return NotFound("Id não encontrado.");
-
-            // Mapeia os campos do DTO para o usuário existente, exceto DocumentNumber
-            _mapper.Map(userUpdateDto, user);
-            user.UpdatedAt = DateTime.Now;
-
-            ExceptionHandler.ValidateObject(user, "usuário");
-            await _userService.UpdateAsync(userUpdateDto, userUpdateDto.Password); // Corrigido: passa o DTO
-            return Ok(user); 
+            // Garante que o id do DTO é igual ao da rota
+            userUpdateDto.UserId = id;
+            // Valida apenas os campos enviados
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            await _userService.UpdateAsync(userUpdateDto, userUpdateDto.Password ?? "");
+            var updatedUser = await _userService.GetByIdAsync(id);
+            return Ok(updatedUser);
         }
         catch (Exception ex)
         {

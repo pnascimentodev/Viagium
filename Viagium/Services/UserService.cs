@@ -183,23 +183,32 @@ public class UserService : IUserService
     {
         await ExceptionHandler.ExecuteWithHandling(async () =>
         {
-            if (await _unitOfWork.UserRepository.EmailExistsAsync(userUpdateDto.Email, userUpdateDto.UserId))
-                throw new ArgumentException("Já existe outro usuário cadastrado com este e-mail.");
-
-            ValidatePassword(password);
-
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userUpdateDto.UserId);
             if (user == null)
                 throw new KeyNotFoundException("Usuário não encontrado para atualização.");
 
-            user.Email = userUpdateDto.Email;
-            user.FirstName = userUpdateDto.FirstName;
-            user.LastName = userUpdateDto.LastName;
-            user.BirthDate = userUpdateDto.BirthDate;
-            user.HashPassword = PasswordHelper.HashPassword(password);
+            // Atualização parcial: só atualiza campos enviados (não nulos)
+            if (!string.IsNullOrWhiteSpace(userUpdateDto.Email))
+            {
+                if (await _unitOfWork.UserRepository.EmailExistsAsync(userUpdateDto.Email, userUpdateDto.UserId))
+                    throw new ArgumentException("Já existe outro usuário cadastrado com este e-mail.");
+                user.Email = userUpdateDto.Email;
+            }
+            if (!string.IsNullOrWhiteSpace(userUpdateDto.FirstName))
+                user.FirstName = userUpdateDto.FirstName;
+            if (!string.IsNullOrWhiteSpace(userUpdateDto.LastName))
+                user.LastName = userUpdateDto.LastName;
+            if (userUpdateDto.BirthDate.HasValue)
+                user.BirthDate = userUpdateDto.BirthDate.Value;
+            if (!string.IsNullOrWhiteSpace(userUpdateDto.Phone))
+                user.Phone = userUpdateDto.Phone;
+            if (!string.IsNullOrWhiteSpace(userUpdateDto.Password))
+            {
+                ValidatePassword(userUpdateDto.Password);
+                user.HashPassword = PasswordHelper.HashPassword(userUpdateDto.Password);
+            }
+            user.UpdatedAt = DateTime.Now;
 
-            var validationContext = new ValidationContext(userUpdateDto);
-            Validator.ValidateObject(userUpdateDto, validationContext, validateAllProperties: true);
             ValidadeCustomRules(user);
             await _unitOfWork.UserRepository.UpdateAsync(user);
             await _unitOfWork.SaveAsync();

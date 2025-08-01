@@ -167,8 +167,12 @@ namespace Viagium.ProfileAutoMapper
                 .ForMember(dest => dest.DestinationAddress, opt => opt.MapFrom(src => src.DestinationAddress))
                 .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.UserId));
             CreateMap<PackageSchedule, PackageScheduleDTO>();
-            
-            
+            CreateMap<UserUpdateDto, UserDTO>()
+                .ForMember(dest => dest.DocumentNumber, opt => opt.Ignore())
+                .ForMember(dest => dest.Role, opt => opt.Ignore())
+                .ForMember(dest => dest.IsActive, opt => opt.Ignore())
+                .ForMember(dest => dest.HashPassword, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore());
         }
     }
 }
