@@ -93,6 +93,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/affiliate</remarks>
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAll()
     {
         try
@@ -235,6 +236,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/affiliate/forgot-password/1</remarks>
     [HttpPost("forgot-password/{id}")]
+    [AllowAnonymous]
     public async Task<IActionResult> ForgotPassword(int id, [FromBody] ForgotPasswordDto dto)
     {
         try
@@ -273,6 +275,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/affiliate/all-adm</remarks>
     [HttpGet("all-adm")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAllAdm()
     {
         try

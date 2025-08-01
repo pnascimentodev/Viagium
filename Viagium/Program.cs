@@ -187,7 +187,20 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod());
 });
 
-builder.Services.AddHttpClient<ImgbbService>();
+builder.Services.AddHttpClient<ImgbbService>(client =>
+{
+    // Configurações otimizadas para upload de imagens
+    client.Timeout = TimeSpan.FromMinutes(2); // Timeout maior para uploads
+    client.DefaultRequestHeaders.Add("User-Agent", "Viagium-App/1.0");
+    client.DefaultRequestHeaders.ConnectionClose = false; // Reutilizar conexões
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
+{
+    // Configurações para melhorar performance
+    MaxConnectionsPerServer = 10,
+    UseCookies = false // Não precisamos de cookies para API
+});
+
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddScoped<IEmailService, Viagium.Services.Email.EmailService>();
 builder.Services.AddSingleton<ITokenBlacklistService, InMemoryTokenBlacklistService>();
