@@ -97,5 +97,23 @@ namespace Viagium.Controllers
                 return ExceptionHandler.HandleException(ex);
             }
         }
+
+        /// <summary>
+        /// Busca todas as reservas de um cliente pelo ID do usuário.
+        /// </summary>
+        /// <remarks>Exemplo: GET /api/reservation/user/1</remarks>
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetByUserId(int userId)
+        {
+            try
+            {
+                var reservations = await _service.GetByUserIdAsync(userId);
+                return Ok(reservations);
+            }
+            catch (Exception ex)
+            {
+                return ExceptionHandler.HandleException(ex);
+            }
+        }
     }
 }

@@ -10,6 +10,7 @@ namespace Viagium.Services.Interfaces
         Task<ResponseReservationDTO?> AddAsync(CreateReservationDTO createReservationDto);
         Task<ResponseReservationDTO?> GetByIdAsync(int id);
         Task<IEnumerable<ResponseReservationDTO>> GetAllAsync();
+        Task<IEnumerable<ResponseReservationDTO>> GetByUserIdAsync(int userId);
 
         // Uma tupla é uma estrutura que pode agrupar múltiplos valores de tipos diferentes em um único retorno.
         Task<(string paymentStatus, string reservationStatus)> CheckAndUpdatePaymentStatusAsync(int reservationId); // Novo método

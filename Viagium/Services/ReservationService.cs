@@ -262,5 +262,41 @@ namespace Viagium.Services
 
             }, "desativação de reserva");
         }
+
+        public async Task<IEnumerable<ResponseReservationDTO>> GetByUserIdAsync(int userId)
+        {
+            return await ExceptionHandler.ExecuteWithHandling(async () =>
+            {
+                var reservations = await _unitOfWork.ReservationRepository.GetByUserIdAsync(userId);
+                if (!reservations.Any())
+                    throw new KeyNotFoundException("Nenhuma reserva encontrada para este usuário.");
+                var dtos = new List<ResponseReservationDTO>();
+                foreach (var reservation in reservations)
+                {
+                    var dto = _mapper.Map<ResponseReservationDTO>(reservation);
+                    var travelers = await _unitOfWork.TravelerRepository.GetByReservationIdAsync(reservation.ReservationId);
+                    dto.Travelers = _mapper.Map<List<TravelerDTO>>(travelers);
+                    dto.IsActive = reservation.IsActive;
+                    if (dto.Hotel == null && reservation.HotelId.HasValue)
+                    {
+                        var hotelData = await _unitOfWork.HotelRepository.GetByIdAsync(reservation.HotelId.Value);
+                        if (hotelData != null)
+                        {
+                            dto.Hotel = _mapper.Map<HotelDTO>(hotelData);
+                        }
+                    }
+                    if (dto.RoomType == null && reservation.RoomTypeId.HasValue)
+                    {
+                        var roomTypeData = await _unitOfWork.RoomTypeRepository.GetByIdAsync(reservation.RoomTypeId.Value);
+                        if (roomTypeData != null)
+                        {
+                            dto.RoomType = _mapper.Map<RoomTypeDTO>(roomTypeData);
+                        }
+                    }
+                    dtos.Add(dto);
+                }
+                return dtos;
+            }, "busca reservas por usuário");
+        }
     }
 }
