@@ -33,6 +33,11 @@ public class Hotel
     [Display(Name = "Hotel Ativo")]
     public bool IsActive { get; set; } = true;
     
+    [Required]
+    [Range(1, 5, ErrorMessage = "O número de estrelas deve estar entre 1 e 5.")]
+    [Display(Name = "Número de Estrelas")]
+    public int Star { get; set; } = 1;
+    
     [Required (ErrorMessage = "O CNPJ do hotel é obrigatório.")]
     [Display(Name = "Cnpj do Hotel")]
     public string Cnpj { get; set; } = string.Empty;

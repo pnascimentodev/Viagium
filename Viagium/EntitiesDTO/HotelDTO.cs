@@ -20,6 +20,11 @@ public class HotelDTO
     [Display(Name = "Telefone de Contato do Hotel")]
     public string ContactNumber { get; set; } = string.Empty;
     
+    [Required]
+    [Range(1, 5, ErrorMessage = "O número de estrelas deve estar entre 1 e 5.")]
+    [Display(Name = "Número de Estrelas")]
+    public int Star { get; set; } = 1;
+    
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime? UpdatedAt { get; set; }
 

@@ -22,6 +22,10 @@ public class HotelCreateFormDTO
     [DataType(DataType.Date)]
     public DateTime CadasturExpiration { get; set; }
     [Required]
+    [Range(1, 5, ErrorMessage = "O número de estrelas deve estar entre 1 e 5.")]
+    [Display(Name = "Número de Estrelas")]
+    public int Star { get; set; } = 1;
+    [Required]
     public int AffiliateId { get; set; }
     [Required]
     public AddressDTO Address { get; set; } = new AddressDTO();
