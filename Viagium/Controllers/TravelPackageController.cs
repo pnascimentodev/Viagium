@@ -12,10 +12,12 @@ public class TravelPackageController : ControllerBase
 {
     private readonly TravelPackageService _service;
     private readonly IMapper _mapper;
-    public TravelPackageController(TravelPackageService service, IMapper mapper)
+    private readonly ImgbbService _imgbbService;
+    public TravelPackageController(TravelPackageService service, IMapper mapper, ImgbbService imgbbService)
     {
         _service = service;
         _mapper = mapper;
+        _imgbbService = imgbbService;
     }
 
     /// <summary>
@@ -55,10 +57,17 @@ public class TravelPackageController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: PUT /api/TravelPackage/update</remarks>
     [HttpPut("update")]
-    public async Task<IActionResult> Update([FromBody] ResponseTravelPackageDTO dto)
+    public async Task<IActionResult> Update([FromForm] UpdateTravelPackageFormDTO formDto)
     {
         try
         {
+            if (formDto.ImageFile != null)
+            {
+                var imageUrl = await _imgbbService.UploadImageAsync(formDto.ImageFile);
+                formDto.ImageUrl = imageUrl;
+            }
+            // Mapeia para o DTO de domínio se necessário
+            var dto = _mapper.Map<ResponseTravelPackageDTO>(formDto);
             var result = await _service.UpdateAsync(dto);
             return Ok(result);
         }
