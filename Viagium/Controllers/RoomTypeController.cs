@@ -141,4 +141,26 @@ public class RoomTypeController : ControllerBase
             return BadRequest(new { error = ex.Message });
         }
     }
+
+    /// <summary>
+    /// Lista tipos de quarto que possuem apenas quartos disponíveis.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/roomtype/roomAvaliable</remarks>
+    [HttpGet("roomAvaliable")]
+    public async Task<IActionResult> GetRoomTypesWithAvailableRooms()
+    {
+        var result = await _roomTypeService.GetRoomTypesWithAvailableRoomsAsync();
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Lista tipos de quarto que possuem apenas quartos que não estão disponíveis.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/roomtype/roomUnavailable</remarks>
+    [HttpGet("roomUnavailable")]
+    public async Task<IActionResult> GetRoomTypesWithUnavailableRooms()
+    {
+        var result = await _roomTypeService.GetRoomTypesWithUnavailableRoomsAsync();
+        return Ok(result);
+    }
 }

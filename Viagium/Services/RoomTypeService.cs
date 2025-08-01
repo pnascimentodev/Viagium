@@ -104,4 +104,16 @@ public class RoomTypeService : IRoomTypeService
             throw new KeyNotFoundException("Tipo de quarto não encontrado para ativação.");
         return _mapper.Map<RoomTypeDTO>(roomType);
     }
+
+    public async Task<List<RoomTypeDTO>> GetRoomTypesWithAvailableRoomsAsync()
+    {
+        var roomTypes = await _roomTypeRepository.GetRoomTypesWithAvailableRoomsAsync();
+        return roomTypes.Select(rt => _mapper.Map<RoomTypeDTO>(rt)).ToList();
+    }
+
+    public async Task<List<RoomTypeDTO>> GetRoomTypesWithUnavailableRoomsAsync()
+    {
+        var roomTypes = await _roomTypeRepository.GetRoomTypesWithUnavailableRoomsAsync();
+        return roomTypes.Select(rt => _mapper.Map<RoomTypeDTO>(rt)).ToList();
+    }
 }
