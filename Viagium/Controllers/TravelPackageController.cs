@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Viagium.Services;
 using AutoMapper;
-using Viagium.EntitiesDTO;
 using Viagium.EntitiesDTO.TravelPackageDTO;
+using Viagium.Models;
+using Viagium.Services.Interfaces;
 
 namespace Viagium.Controllers;
 
@@ -13,11 +14,14 @@ public class TravelPackageController : ControllerBase
     private readonly TravelPackageService _service;
     private readonly IMapper _mapper;
     private readonly ImgbbService _imgbbService;
-    public TravelPackageController(TravelPackageService service, IMapper mapper, ImgbbService imgbbService)
+    private readonly IUserService _userService;
+    
+    public TravelPackageController(TravelPackageService service, IMapper mapper, ImgbbService imgbbService, IUserService userService)
     {
         _service = service;
         _mapper = mapper;
         _imgbbService = imgbbService;
+        _userService = userService;
     }
 
     /// <summary>
@@ -29,6 +33,20 @@ public class TravelPackageController : ControllerBase
     {
         try
         {
+            // Verificar se o usuário existe e obter sua role
+            var user = await _userService.GetByIdAsync(create.UserId);
+            if (user == null)
+            {
+                return BadRequest("Usuário não encontrado.");
+            }
+
+            // Verificar se o usuário tem permissão para criar pacotes (apenas Admin ou Support)
+            // A propriedade Role é string, então comparamos com os valores correspondentes
+            if (user.Role != Role.Admin.ToString() && user.Role != Role.Support.ToString())
+            {
+                return Forbid("Apenas usuários com perfil de Administrador ou Suporte podem criar pacotes de viagem.");
+            }
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
