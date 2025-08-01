@@ -6,7 +6,7 @@ namespace Viagium.Services.Interfaces;
 
 public interface IPaymentService
 {
-    Task<Payment> AddPaymentAsync(Reservation reservation);
+    Task<Payment> AddPaymentAsync(AsaasPaymentDTO asaasPaymentDTO);
     Task<string> CreateUserAsync(AsaasUserDTO user);
     Task<string> GetBankSlipByDocumentNumber(string documentNumber);
     Task<string> GetPixQrCodeByCpfAsync(string documentNumber);

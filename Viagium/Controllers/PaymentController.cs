@@ -29,11 +29,11 @@ public class PaymentController : ControllerBase
     /// <remarks>Exemplo: POST /api/payment/CreatePayment</remarks>
     [HttpPost("CreatePayment")] //envia a informação de pagamento para a api do Asaas
     [Consumes("application/x-www-form-urlencoded")]
-    public async Task<IActionResult> CreatePayment([FromForm] Reservation reservation)
+    public async Task<IActionResult> CreatePayment([FromForm] AsaasPaymentDTO asaasPaymentDTO)
     {
         try
         {
-            var payment = await _paymentService.AddPaymentAsync(reservation);
+            var payment = await _paymentService.AddPaymentAsync(asaasPaymentDTO);
 
             return Ok(new
             {
@@ -81,7 +81,9 @@ public class PaymentController : ControllerBase
             });
         }
     }
-    
+    /// <summary>
+    /// Gera o QR Code do PIX para um CPF específico.
+    /// </summary>
     [HttpPost("GetPixQrCodeByCpf")]
     [Consumes("application/x-www-form-urlencoded")]
     public async Task<IActionResult> GetPixQrCodeByCpf([FromForm] string cpf)
@@ -99,6 +101,9 @@ public class PaymentController : ControllerBase
         }
     }
     
+    /// <summary>
+    /// Gera o boleto bancário para download com base no número do documento.
+    /// </summary>
     [HttpPost("GetBankSlipByDocumentNumber")]
     [Consumes("application/x-www-form-urlencoded")]
     public async Task<IActionResult> GetBankSlipByDocumentNumber([FromForm] string documentNumber)

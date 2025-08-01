@@ -24,31 +24,30 @@ public class PaymentService : IPaymentService
         _asaasBaseUrl = Environment.GetEnvironmentVariable("ASAAS_BASE_URL") ?? string.Empty;
     }
 
-    public async Task<Payment> AddPaymentAsync(Reservation reservation)
+    public async Task<Payment> AddPaymentAsync(AsaasPaymentDTO asaasPaymentDTO)
     {
         // Monta o payload apenas com dados do cliente já existente e do pagamento
         DateTime dataPagamento = DateTime.Now;
-        if (reservation.Payment?.PaymentMethod == PaymentMethodType.PIX)
+        if (asaasPaymentDTO.PaymentMethod == PaymentMethodType.PIX)
         {
             dataPagamento = DateTime.Now.AddDays(1);
         }
-        if (reservation.Payment?.PaymentMethod == PaymentMethodType.CREDIT_CARD || reservation.Payment?.PaymentMethod == PaymentMethodType.DEBIT_CARD)
+        if (asaasPaymentDTO.PaymentMethod == PaymentMethodType.CREDIT_CARD || asaasPaymentDTO.PaymentMethod == PaymentMethodType.DEBIT_CARD)
         {
             dataPagamento = DateTime.Now.AddDays(1);
         }
-        if (reservation.Payment?.PaymentMethod == PaymentMethodType.BOLETO)
+        if (asaasPaymentDTO.PaymentMethod == PaymentMethodType.BOLETO)
         {
             dataPagamento = DateTime.Now.AddDays(30);
         }
 
         var newPayment = new
         {
-            customer = reservation.User?.AsaasApiId, // O cliente já deve existir na Asaas
-            value = reservation.TotalPrice,
-            billingType = reservation.Payment?.PaymentMethod.ToString(),
+            customer = asaasPaymentDTO.AsaasApiId, // O cliente já deve existir na Asaas
+            value = asaasPaymentDTO.TotalPrice,
+            billingType = asaasPaymentDTO.PaymentMethod.ToString(),
             dueDate = dataPagamento,
-            observation = "Pagamento referente à reserva{}",
-            reservation.ReservationId
+            observation = $"Pagamento referente à reserva{asaasPaymentDTO.ReservationId}",
         };
 
         var paymentJson = JsonSerializer.Serialize(newPayment);
@@ -88,10 +87,10 @@ public class PaymentService : IPaymentService
         // Salva o pagamento localmente após sucesso na API
         var payment = new Payment
         {
-            ReservationId = reservation.ReservationId,
-            PaymentMethod = reservation.Payment!.PaymentMethod,
-            Amount = reservation.TotalPrice,
-            CardLastFourDigits = reservation.Payment?.CardLastFourDigits,
+            ReservationId = asaasPaymentDTO.ReservationId,
+            PaymentMethod = asaasPaymentDTO.PaymentMethod,
+            Amount = asaasPaymentDTO.TotalPrice,
+            CardLastFourDigits = asaasPaymentDTO.CardLastFourDigits,
             PaymentIdAsaas = asaasPaymentId,
             Status = "Pending",
             PaidAt = null,
@@ -214,7 +213,6 @@ public class PaymentService : IPaymentService
         var paymentsData = paymentsJson.RootElement.GetProperty("data");
         if (paymentsData.GetArrayLength() == 0)
             throw new Exception("Nenhum boleto pendente encontrado para este cliente.");
-        var paymentId = paymentsData[0].GetProperty("id").GetString();
 
         // 3. Buscar o link do boleto para download
         var boletoUrl = paymentsData[0].GetProperty("bankSlipUrl").GetString();

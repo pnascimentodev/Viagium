@@ -177,6 +177,11 @@ namespace Viagium.ProfileAutoMapper
                 .ForMember(dest => dest.IsActive, opt => opt.Ignore())
                 .ForMember(dest => dest.HashPassword, opt => opt.Ignore())
                 .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore());
+            CreateMap<Reservation, AsaasPaymentDTO>()
+                .ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => src.TotalPrice))
+                .ForMember(dest => dest.ReservationId, opt => opt.MapFrom(src => src.ReservationId))
+                .ForMember(dest => dest.AsaasApiId, opt => opt.MapFrom(src => src.User!.AsaasApiId != null ? src.User.AsaasApiId : null))
+                .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src => src.Payment != null ? src.Payment.PaymentMethod : default));
         }
     }
 }
