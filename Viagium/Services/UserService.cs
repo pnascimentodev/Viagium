@@ -162,7 +162,8 @@ public class UserService : IUserService
         return await ExceptionHandler.ExecuteWithHandling(async () =>
         {
             var users = await _unitOfWork.UserRepository.GetAllAsync();
-            return users.Select(user => new UserDTO
+            var clients = users.Where(user => user.Role == Role.Client).ToList();
+            return clients.Select(user => new UserDTO
             {
                 UserId = user.UserId,
                 FirstName = user.FirstName,
@@ -185,7 +186,8 @@ public class UserService : IUserService
         return await ExceptionHandler.ExecuteWithHandling(async () =>
         {
             var users = await _unitOfWork.UserRepository.GetAllActiveAsync();
-            return users.Select(user => new UserDTO
+            var client = users.Where(u => (u.Role == Role.Client) && u.IsActive && u.DeletedAt == null).ToList();
+            return client.Select(user => new UserDTO
             {
                 UserId = user.UserId,
                 FirstName = user.FirstName,
