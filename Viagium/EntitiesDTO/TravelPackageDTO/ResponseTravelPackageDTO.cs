@@ -21,6 +21,8 @@ namespace Viagium.EntitiesDTO.TravelPackageDTO
         public string OriginCountry { get; set; }
         public string DestinationCity { get; set; }
         public string DestinationCountry { get; set; }
+        public DateTime? CreatedAt { get; set; } = DateTime.Now;
+        public bool IsActive { get; set; } = true;
         public List<HotelWithAddressDTO> Hotels { get; set; } = new List<HotelWithAddressDTO>();
         public PackageScheduleDTO PackageSchedule { get; set; }
     }

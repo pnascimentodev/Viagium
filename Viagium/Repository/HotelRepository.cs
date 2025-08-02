@@ -131,6 +131,20 @@ public class HotelRepository : IHotelRepository
         return _mapper.Map<IEnumerable<HotelWithAddressDTO>>(hotels);
     }
     
+    public async Task<IEnumerable<HotelWithAddressDTO>> GetAllActiveAsync()
+    {
+        var hotels = await _context.Hotels
+            .Where(h => h.IsActive)
+            .Include(h => h.Address)
+            .Include(h => h.Affiliate)
+                .ThenInclude(a => a.Address)
+            .Include(h => h.HotelAmenity)
+                .ThenInclude(ha => ha.Amenity)
+            .Include(h => h.RoomTypes)
+            .ToListAsync();
+        return _mapper.Map<IEnumerable<HotelWithAddressDTO>>(hotels);
+    }
+    
     public async Task UpdateAsync(HotelWithAddressDTO hotelWithAddressDTO)
     {
         var hotel = await _context.Hotels

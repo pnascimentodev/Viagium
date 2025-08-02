@@ -14,4 +14,5 @@ public interface IHotelService
     Task<IEnumerable<HotelWithAddressDTO>> GetByAmenityAsync(int amenityId);
     Task<IEnumerable<HotelWithAddressDTO>> GetByCityAsync(string city);
     Task<IEnumerable<HotelWithAddressDTO>> GetByAmenitiesAsync(List<int> amenityIds);
+    Task<IEnumerable<HotelWithAddressDTO>> GetAllActiveAsync();
 }

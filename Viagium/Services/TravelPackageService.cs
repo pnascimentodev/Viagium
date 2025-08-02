@@ -66,6 +66,11 @@ namespace Viagium.Services
             return await _travelPackageRepository.ListAllAsync();
         }
 
+        public async Task<List<ResponseTravelPackageDTO>> ListAllActiveAsync()
+        {
+            return await _travelPackageRepository.ListAllActiveAsync();
+        }
+
         public async Task<ResponseTravelPackageDTO?> UpdateAsync(ResponseTravelPackageDTO responseTravelPackageDTO)
         {
             var hasReservation = await _context.Reservations.AnyAsync(r => r.TravelPackageId == responseTravelPackageDTO.TravelPackageId);

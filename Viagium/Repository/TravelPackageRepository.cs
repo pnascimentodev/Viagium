@@ -313,7 +313,6 @@ public class TravelPackageRepository : ITravelPackageRepository
     {
         var now = DateTime.Now;
         var packages = await _context.TravelPackages
-            .Where(tp => tp.IsActive)
             .Include(tp => tp.PackageSchedules)
             .Include(tp => tp.OriginAddress)
             .Include(tp => tp.DestinationAddress)
@@ -720,6 +719,50 @@ public class TravelPackageRepository : ITravelPackageRepository
         travelPackage.Price = price > 0 ? price : 0;
         await _context.SaveChangesAsync();
         return await GetByIdAsync(travelPackageId);
+    }
+
+    public async Task<List<ResponseTravelPackageDTO>> ListAllActiveAsync()
+    {
+        var packages = await _context.TravelPackages
+            .Where(tp => tp.IsActive)
+            .Include(tp => tp.PackageSchedules)
+            .Include(tp => tp.OriginAddress)
+            .Include(tp => tp.DestinationAddress)
+            .Include(tp => tp.PackageHotels)
+                .ThenInclude(ph => ph.Hotel)
+                    .ThenInclude(h => h.Address)
+            .ToListAsync();
+        var result = new List<ResponseTravelPackageDTO>();
+        foreach (var pkg in packages)
+        {
+            var hotels = pkg.PackageHotels?.Select(ph => ph.Hotel).Where(h => h != null).ToList() ?? new List<Models.Hotel>();
+            var hotelDtos = hotels.Select(hotel => _mapper.Map<HotelWithAddressDTO>(hotel)).ToList();
+            var schedule = pkg.PackageSchedules?.FirstOrDefault();
+            result.Add(new ResponseTravelPackageDTO
+            {
+                TravelPackageId = pkg.TravelPackageId,
+                Title = pkg.Title,
+                Description = pkg.Description,
+                ImageUrl = pkg.ImageUrl,
+                VehicleType = pkg.VehicleType,
+                Duration = pkg.Duration,
+                MaxPeople = pkg.MaxPeople,
+                OriginalPrice = pkg.OriginalPrice,
+                Price = pkg.Price,
+                PackageTax = pkg.PackageTax,
+                CupomDiscount = pkg.CupomDiscount,
+                DiscountValue = pkg.DiscountValue,
+                OriginCity = pkg.OriginAddress?.City,
+                OriginCountry = pkg.OriginAddress?.Country,
+                DestinationCity = pkg.DestinationAddress?.City,
+                DestinationCountry = pkg.DestinationAddress?.Country,
+                Hotels = hotelDtos,
+                PackageSchedule = _mapper.Map<PackageScheduleDTO>(schedule),
+                IsActive = pkg.IsActive,
+                CreatedAt = pkg.CreatedAt
+            });
+        }
+        return result;
     }
 
     private static string Normalize(string value)
