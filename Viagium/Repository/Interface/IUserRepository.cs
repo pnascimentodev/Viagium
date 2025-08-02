@@ -17,4 +17,5 @@ public interface IUserRepository
     Task<User>GetEmailByForgotPasswordAsync(string email, bool includeDeleted = false);
     Task<User> UpdatePasswordAsync(int id, string newPassword);
     Task<User> ForgotPasswordAsync(int id, string newPassword);
+    Task<List<User>> GetAllActiveAsync();
 }

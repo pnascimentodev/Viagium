@@ -174,9 +174,33 @@ public class UserService : IUserService
                 Role = user.Role.ToString(),
                 IsActive = user.IsActive,
                 HashPassword = user.HashPassword,
+                CreatedAt = user.CreatedAt,
                 UpdatedAt = user.UpdatedAt ?? DateTime.Now
             }).ToList();
         }, "buscar todos usuários");
+    }
+
+    public async Task<List<UserDTO>> GetAllActiveAsync()
+    {
+        return await ExceptionHandler.ExecuteWithHandling(async () =>
+        {
+            var users = await _unitOfWork.UserRepository.GetAllActiveAsync();
+            return users.Select(user => new UserDTO
+            {
+                UserId = user.UserId,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                DocumentNumber = user.DocumentNumber,
+                BirthDate = user.BirthDate,
+                Phone = user.Phone,
+                Role = user.Role.ToString(),
+                IsActive = user.IsActive,
+                HashPassword = user.HashPassword,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt ?? DateTime.Now
+            }).ToList();
+        }, "buscar usuários ativos");
     }
 
     public async Task UpdateAsync(UserUpdateDto userUpdateDto, string password)

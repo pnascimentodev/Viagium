@@ -17,5 +17,6 @@ namespace Viagium.Services
         Task<List<ResponseTravelPackageDTO>> ActivateAsync(int id);
         Task<List<ResponseTravelPackageDTO>> CreateDiscountAsync(int travelPackageId, decimal discountPercentage, DateTime startDate, DateTime endDate);
         Task<List<ResponseTravelPackageDTO>> DesactivateDiscountAsync(int travelPackageId);
+        Task<List<ResponseTravelPackageDTO>> ListAllActiveAsync();
     }
 }

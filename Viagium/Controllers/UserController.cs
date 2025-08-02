@@ -94,7 +94,7 @@ public class UserController : ControllerBase
     }
 
     /// <summary>
-    /// Lista todos os usuários cadastrados.
+    /// Lista todos os usuários ativos e inativos cadastrados.
     /// </summary>
     /// <remarks>Exemplo: GET /api/user</remarks>
     // busca todos os usuários
@@ -104,6 +104,24 @@ public class UserController : ControllerBase
         try
         {
             var users = await _userService.GetAllAsync();
+            return Ok(users);
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
+
+    /// <summary>
+    /// Lista todos os usuários ativos.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/user/active</remarks>
+    [HttpGet("active")]
+    public async Task<IActionResult> GetAllActive()
+    {
+        try
+        {
+            var users = await _userService.GetAllActiveAsync();
             return Ok(users);
         }
         catch (Exception ex)

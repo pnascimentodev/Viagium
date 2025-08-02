@@ -60,13 +60,24 @@ public class TravelPackageController : ControllerBase
     }
 
     /// <summary>
-    /// Lista todos os pacotes de viagem.
+    /// Lista todos os pacotes ativos e inativos de viagem.
     /// </summary>
     /// <remarks>Exemplo: GET /api/TravelPackage/list</remarks>
     [HttpGet("list")]
     public async Task<IActionResult> ListAll()
     {
         var result = await _service.ListAllAsync();
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Lista todos os pacotes de viagem ativos.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/TravelPackage/list-active</remarks>
+    [HttpGet("list-active")]
+    public async Task<IActionResult> ListAllActive()
+    {
+        var result = await _service.ListAllActiveAsync();
         return Ok(result);
     }
 

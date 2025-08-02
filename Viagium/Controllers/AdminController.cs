@@ -97,7 +97,7 @@ public class AdminController : ControllerBase
     }
 
     /// <summary>
-    /// Lista todos os administradores.
+    /// Lista todos os administradores ativos e inativos.
     /// </summary>
     /// <remarks>Exemplo: GET /api/admin</remarks>
     [HttpGet]

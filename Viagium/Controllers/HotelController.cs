@@ -126,7 +126,7 @@ public class HotelController : ControllerBase
     }
 
     /// <summary>
-    /// Lista todos os hotéis cadastrados.
+    /// Lista todos os hotéis ativos e inativos cadastrados.
     /// </summary>
     /// <remarks>Exemplo: GET /api/hotel</remarks>
     [HttpGet]
@@ -144,7 +144,27 @@ public class HotelController : ControllerBase
             return StatusCode(500, $"Erro ao buscar hotéis: {ex.Message}");
         }
     }
-    
+
+    /// <summary>
+    /// Lista todos os hotéis ativos cadastrados.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/hotel/active</remarks>
+    [HttpGet("active")]
+    public async Task<IActionResult> GetAllActive()
+    {
+        try
+        {
+            var hotels = await _hotelService.GetAllActiveAsync();
+            if (hotels == null || !hotels.Any())
+                return NotFound("Nenhum hotel ativo encontrado.");
+            return Ok(hotels);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Erro ao buscar hotéis ativos: {ex.Message}");
+        }
+    }
+
     /// <summary>
     /// Busca hotéis por cidade.
     /// </summary>
@@ -166,5 +186,4 @@ public class HotelController : ControllerBase
         var hotels = await _hotelService.GetByAmenitiesAsync(amenityIds);
         return Ok(hotels);
     }
-    
 }

@@ -68,6 +68,12 @@ public class HotelService : IHotelService
         }, "busca todos os hotéis");
     }
     
+    public async Task<IEnumerable<HotelWithAddressDTO>> GetAllActiveAsync()
+    {
+        var hotels = await _unitOfWork.HotelRepository.GetAllActiveAsync();
+        return hotels;
+    }
+    
     public async Task UpdateAsync(HotelWithAddressDTO hotelWithAddressDTO)
     {
         await ExceptionHandler.ExecuteWithHandling(async () =>
