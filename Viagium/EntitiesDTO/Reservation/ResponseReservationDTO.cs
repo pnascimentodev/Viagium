@@ -5,6 +5,7 @@ namespace Viagium.EntitiesDTO.Reservation
 {
     public class ResponseReservationDTO
     {
+        public int ReservationId { get; set; }
         // Dados do usuário
         public UserDTO? User { get; set; }
 
