@@ -15,7 +15,7 @@ namespace Viagium.EntitiesDTO.Reservation
         // Id do hotel
         [Required]
         public int HotelId { get; set; }
-        
+
         // Id do quarto do hotel escolhido
         [Required]
         public int RoomTypeId { get; set; }

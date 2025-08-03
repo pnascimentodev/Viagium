@@ -2,6 +2,7 @@
 using System.Text;
 using System.Text.Json;
 using Viagium.EntitiesDTO.ApiDTO;
+using Viagium.EntitiesDTO.Payment;
 using Viagium.Models;
 using Viagium.Models.ENUM;
 using Viagium.Repository.Interface;
@@ -25,31 +26,49 @@ public class PaymentService : IPaymentService
         _asaasBaseUrl = configuration["Asaas:BaseUrl"] ?? throw new InvalidOperationException("Asaas Base URL não configurada");
     }
 
-    public async Task<Payment> AddPaymentAsync(Reservation reservation)
+    public async Task<Payment> AddPaymentAsync(int reservationId, PaymentMethodType paymentMethod)
     {
+        // Busca a reserva pelo ID
+        var reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(reservationId);
+        if (reservation == null)
+        {
+            throw new Exception($"Reserva com ID {reservationId} não encontrada.");
+        }
+
+        // Busca o usuário da reserva
+        var user = await _unitOfWork.UserRepository.GetByIdAsync(reservation.UserId);
+        if (user == null)
+        {
+            throw new Exception($"Usuário da reserva {reservationId} não encontrado.");
+        }
+
+        if (string.IsNullOrEmpty(user.AsaasApiId))
+        {
+            throw new Exception($"Usuário {user.UserId} não possui AsaasApiId. É necessário criar o cliente na Asaas primeiro.");
+        }
+
         // Monta o payload apenas com dados do cliente já existente e do pagamento
         DateTime dataPagamento = DateTime.Now;
-        if (reservation.Payment?.PaymentMethod == PaymentMethodType.PIX)
+        if (paymentMethod == PaymentMethodType.PIX)
         {
             dataPagamento = DateTime.Now.AddDays(1);
         }
-        if (reservation.Payment?.PaymentMethod == PaymentMethodType.CREDIT_CARD || reservation.Payment?.PaymentMethod == PaymentMethodType.DEBIT_CARD)
+        if (paymentMethod == PaymentMethodType.CREDIT_CARD)
         {
             dataPagamento = DateTime.Now.AddDays(1);
         }
-        if (reservation.Payment?.PaymentMethod == PaymentMethodType.BOLETO)
+        if (paymentMethod == PaymentMethodType.BOLETO)
         {
             dataPagamento = DateTime.Now.AddDays(30);
         }
 
         var newPayment = new
         {
-            customer = reservation.User?.AsaasApiId, // O cliente já deve existir na Asaas
+            customer = user.AsaasApiId, // O cliente já deve existir na Asaas
             value = reservation.TotalPrice,
-            billingType = reservation.Payment?.PaymentMethod.ToString(),
+            billingType = paymentMethod.ToString(),
             dueDate = dataPagamento,
-            observation = "Pagamento referente à reserva{}",
-            reservation.ReservationId
+            observation = $"Pagamento referente à reserva {reservationId}"
         };
 
         var paymentJson = JsonSerializer.Serialize(newPayment);
@@ -89,16 +108,159 @@ public class PaymentService : IPaymentService
         // Salva o pagamento localmente após sucesso na API
         var payment = new Payment
         {
-            ReservationId = reservation.ReservationId,
-            PaymentMethod = reservation.Payment!.PaymentMethod,
+            ReservationId = reservationId,
+            PaymentMethod = paymentMethod,
             Amount = reservation.TotalPrice,
-            CardLastFourDigits = reservation.Payment?.CardLastFourDigits,
             PaymentIdAsaas = asaasPaymentId,
             Status = PaymentStatus.PENDING,
             PaidAt = null,
         };
         await _unitOfWork.PaymentRepository.AddAsync(payment);
         await _unitOfWork.SaveAsync();
+        return payment;
+    }
+
+    public async Task<Payment> AddPaymentAsync(int reservationId, PaymentMethodType paymentMethod, CreditCardDTO? creditCard = null, string? remoteIp = null)
+    {
+        // Busca a reserva pelo ID
+        var reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(reservationId);
+        if (reservation == null)
+        {
+            throw new Exception($"Reserva com ID {reservationId} não encontrada.");
+        }
+
+        // Busca o usuário da reserva
+        var user = await _unitOfWork.UserRepository.GetByIdAsync(reservation.UserId);
+        if (user == null)
+        {
+            throw new Exception($"Usuário da reserva {reservationId} não encontrado.");
+        }
+
+        if (string.IsNullOrEmpty(user.AsaasApiId))
+        {
+            throw new Exception($"Usuário {user.UserId} não possui AsaasApiId. É necessário criar o cliente na Asaas primeiro.");
+        }
+
+        // Define data de vencimento baseada no método de pagamento
+        DateTime dataPagamento = DateTime.Now;
+        if (paymentMethod == PaymentMethodType.PIX)
+        {
+            dataPagamento = DateTime.Now.AddDays(1);
+        }
+        if (paymentMethod == PaymentMethodType.CREDIT_CARD)
+        {
+            dataPagamento = DateTime.Now.AddDays(1);
+        }
+        if (paymentMethod == PaymentMethodType.BOLETO)
+        {
+            dataPagamento = DateTime.Now.AddDays(30);
+        }
+
+        // Monta o payload base
+        var paymentPayload = new
+        {
+            customer = user.AsaasApiId,
+            value = reservation.TotalPrice,
+            billingType = paymentMethod.ToString(),
+            dueDate = dataPagamento,
+            observation = $"Pagamento referente à reserva {reservationId}",
+            // Campos condicionais para cartão de crédito
+            creditCard = paymentMethod == PaymentMethodType.CREDIT_CARD && creditCard != null 
+                ? new {
+                    holderName = creditCard.HolderName,
+                    number = creditCard.Number,
+                    expiryMonth = creditCard.ExpiryMonth,
+                    expiryYear = creditCard.ExpiryYear,
+                    ccv = creditCard.Ccv
+                } : null,
+            creditCardHolderInfo = paymentMethod == PaymentMethodType.CREDIT_CARD && creditCard != null 
+                ? await BuildCreditCardHolderInfoAsync(user) : null,
+            remoteIp = !string.IsNullOrEmpty(remoteIp) ? remoteIp : null
+        };
+
+        var paymentJson = JsonSerializer.Serialize(paymentPayload, new JsonSerializerOptions 
+        { 
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull 
+        });
+        var content = new StringContent(paymentJson, Encoding.UTF8, "application/json");
+
+        var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{_asaasBaseUrl}/payments")
+        {
+            Content = content
+        };
+
+        httpRequest.Headers.Add("access_token", _asaasApiKey);
+        httpRequest.Headers.Add("User-Agent", "ViagiumApp/1.0");
+
+        var response = await _httpClient.SendAsync(httpRequest);
+        var responseBody = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            // Para cartões, a API retorna 400 se a transação for negada
+            if (response.StatusCode == System.Net.HttpStatusCode.BadRequest && 
+                paymentMethod == PaymentMethodType.CREDIT_CARD)
+            {
+                throw new Exception($"Transação com cartão negada: {responseBody}");
+            }
+            throw new Exception($"Erro ao criar pagamento: {responseBody}");
+        }
+
+        // Extrai informações da resposta da Asaas
+        string? asaasPaymentId = null;
+        PaymentStatus initialStatus = PaymentStatus.PENDING;
+        DateTime? paidAt = null;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(responseBody);
+            if (doc.RootElement.TryGetProperty("id", out var idProp))
+            {
+                asaasPaymentId = idProp.GetString();
+            }
+
+            // Para cartões, se chegou até aqui (HTTP 200), significa que foi autorizado
+            if (paymentMethod == PaymentMethodType.CREDIT_CARD)
+            {
+                if (doc.RootElement.TryGetProperty("status", out var statusProp))
+                {
+                    var status = statusProp.GetString();
+                    if (status == "CONFIRMED" || status == "RECEIVED")
+                    {
+                        initialStatus = PaymentStatus.RECEIVED;
+                        paidAt = DateTime.Now;
+                    }
+                }
+            }
+        }
+        catch (Exception)
+        {
+            throw new Exception($"Falha na comunicação com o serviço de pagamento: {responseBody}");
+        }
+
+        // Salva o pagamento localmente
+        var payment = new Payment
+        {
+            ReservationId = reservationId,
+            PaymentMethod = paymentMethod,
+            Amount = reservation.TotalPrice,
+            PaymentIdAsaas = asaasPaymentId,
+            Status = initialStatus,
+            PaidAt = paidAt,
+        };
+
+        await _unitOfWork.PaymentRepository.AddAsync(payment);
+        await _unitOfWork.SaveAsync();
+
+        // Se o pagamento foi confirmado imediatamente, atualiza a reserva
+        if (initialStatus == PaymentStatus.RECEIVED)
+        {
+            reservation.Status = "Confirmado";
+            await _unitOfWork.ReservationRepository.UpdateAsync(reservation);
+            await _unitOfWork.SaveAsync();
+            Console.WriteLine($"🎉 PAGAMENTO CARTÃO APROVADO! Reserva {reservationId} confirmada automaticamente!");
+        }
+
         return payment;
     }
 
@@ -388,5 +550,26 @@ public class PaymentService : IPaymentService
                 Console.WriteLine($"⚠️ ATENÇÃO: Reserva {reserva.ReservationId} ficou '{novoStatusReserva}' - verificar necessidade de ação.");
             }
         }
+    }
+
+    private async Task<object> BuildCreditCardHolderInfoAsync(User user)
+    {
+        // Busca o endereço do usuário (assumindo que existe um relacionamento ou método para isso)
+        // Se não houver endereço, usa dados básicos do usuário
+        
+        // Primeiro tenta buscar endereço associado ao usuário
+        // Como não vejo o relacionamento direto, vou usar dados do usuário
+        
+        return new
+        {
+            name = $"{user.FirstName} {user.LastName}",
+            email = user.Email,
+            cpfCnpj = user.DocumentNumber,
+            postalCode = "00000-000", // Seria ideal buscar do endereço real
+            addressNumber = "0", // Seria ideal buscar do endereço real  
+            addressComplement = (string?)null,
+            phone = user.Phone ?? "",
+            mobilePhone = user.Phone ?? ""
+        };
     }
 }

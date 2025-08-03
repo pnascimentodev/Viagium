@@ -210,6 +210,9 @@ builder.Services.AddSingleton<ITokenBlacklistService, InMemoryTokenBlacklistServ
 // Adiciona o serviço de sincronização automática de pagamentos
 builder.Services.AddHostedService<PaymentSyncBackgroundService>();
 
+// Adiciona o serviço de atualização automática de status das reservas
+builder.Services.AddHostedService<ReservationStatusBackgroundService>();
+
 var app = builder.Build(); 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
