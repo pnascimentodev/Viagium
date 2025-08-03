@@ -162,7 +162,8 @@ public class UserService : IUserService
         return await ExceptionHandler.ExecuteWithHandling(async () =>
         {
             var users = await _unitOfWork.UserRepository.GetAllAsync();
-            return users.Select(user => new UserDTO
+            var clients = users.Where(user => user.Role == Role.Client).ToList();
+            return clients.Select(user => new UserDTO
             {
                 UserId = user.UserId,
                 FirstName = user.FirstName,
@@ -174,9 +175,34 @@ public class UserService : IUserService
                 Role = user.Role.ToString(),
                 IsActive = user.IsActive,
                 HashPassword = user.HashPassword,
+                CreatedAt = user.CreatedAt,
                 UpdatedAt = user.UpdatedAt ?? DateTime.Now
             }).ToList();
         }, "buscar todos usuários");
+    }
+
+    public async Task<List<UserDTO>> GetAllActiveAsync()
+    {
+        return await ExceptionHandler.ExecuteWithHandling(async () =>
+        {
+            var users = await _unitOfWork.UserRepository.GetAllActiveAsync();
+            var client = users.Where(u => (u.Role == Role.Client) && u.IsActive && u.DeletedAt == null).ToList();
+            return client.Select(user => new UserDTO
+            {
+                UserId = user.UserId,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                DocumentNumber = user.DocumentNumber,
+                BirthDate = user.BirthDate,
+                Phone = user.Phone,
+                Role = user.Role.ToString(),
+                IsActive = user.IsActive,
+                HashPassword = user.HashPassword,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt ?? DateTime.Now
+            }).ToList();
+        }, "buscar usuários ativos");
     }
 
     public async Task UpdateAsync(UserUpdateDto userUpdateDto, string password)

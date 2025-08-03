@@ -22,8 +22,7 @@ namespace Viagium.Models
         [Display(Name = "Estado")]
         public string State { get; set; } = string.Empty;
 
-        [Display(Name = "CEP")]
-        [RegularExpression(@"^\d{5}-\d{3}$", ErrorMessage = "O CEP deve estar no formato 00000-000.")]
+        [Display(Name = "CEP/Código Postal")]
         public string ZipCode { get; set; } = string.Empty;
         
         [Required(ErrorMessage = "O país é obrigatório.")]
@@ -33,7 +32,6 @@ namespace Viagium.Models
         [Display(Name = "Data de Criação")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         
-        [ForeignKey("Affiliate")]
         [Display(Name = "Id do Afiliado")]
         public int? AffiliateId { get; set; }
         public Affiliate? Affiliate { get; set; }

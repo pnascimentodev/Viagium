@@ -17,6 +17,8 @@ public class HotelCreateFormDTO
     [Required]
     public string Cnpj { get; set; } = string.Empty;
     [Required]
+    public string InscricaoEstadual { get; set; } = string.Empty;
+    [Required]
     public string Cadastur { get; set; } = string.Empty;
     [Required]
     [DataType(DataType.Date)]

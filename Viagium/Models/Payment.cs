@@ -21,10 +21,11 @@ public class Payment
     
     public string? PaymentIdAsaas { get; set; }
 
-    public string Status { get; set; } = "Pending";
+    public PaymentStatus Status { get; set; } = PaymentStatus.PENDING;
     
     [Required]
     public decimal? Amount { get; set; }
     
-    public DateTime? PaidAt { get; set; } = DateTime.Now;
+    // ✅ CORREÇÃO: PaidAt deve ser null até o pagamento ser confirmado
+    public DateTime? PaidAt { get; set; } = null;
 }

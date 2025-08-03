@@ -10,5 +10,4 @@ public class AsaasPaymentDTO
     [DataType(DataType.Date)]
     public DateTime PaymentDate { get; set; }
     public string? CardLastFourDigits { get; set; }
-    public int ReservationId { get; set; }
 }

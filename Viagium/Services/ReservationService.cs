@@ -31,16 +31,14 @@ namespace Viagium.Services
                 Validator.ValidateObject(reservation, new ValidationContext(reservation), true);
                 ValidateCustomRules(reservation);
 
-                //PaymentId esta null porem quando for criado o pagamento,
-                //ele será atualizado para gerar um PaymentId de pagamento???
-                //Como estava antes???
-
-
                 // Validar se o hotel existe antes de criar a reserva
                 var hotelExists = await _unitOfWork.HotelRepository.GetByIdAsync(createReservationDto.HotelId);
                 if (hotelExists == null)
                     throw new KeyNotFoundException($"Hotel com ID {createReservationDto.HotelId} não encontrado.");
 
+                // ✅ CALCULAR PREÇO TOTAL AUTOMATICAMENTE
+                reservation.TotalPrice = await CalculateTotalPriceAsync(createReservationDto);
+                
                 reservation.IsActive = true; // Define a reserva como ativa
                 reservation.HotelId = createReservationDto.HotelId; // Define o HotelId diretamente na reserva
                 reservation.RoomTypeId = createReservationDto.RoomTypeId; // Define o RoomTypeId diretamente na reserva
@@ -206,10 +204,10 @@ namespace Viagium.Services
             if (reservation.Payment == null)
                 throw new KeyNotFoundException("Pagamento não encontrado para esta reserva.");
 
-            var paymentStatus = reservation.Payment.Status.ToLower();
-            if (paymentStatus == "approved" && reservation.Status != "completed")
+            var paymentStatus = reservation.Payment.Status.ToString().ToLower();
+            if (paymentStatus == "received" && reservation.Status != "Confirmado")
             {
-                reservation.Status = "completed";
+                reservation.Status = "Confirmado";
                 await _unitOfWork.ReservationRepository.UpdateAsync(reservation);
                 await _unitOfWork.SaveAsync();
             }
@@ -263,6 +261,7 @@ namespace Viagium.Services
             }, "desativação de reserva");
         }
 
+
         public async Task<IEnumerable<ResponseReservationDTO>> GetByUserIdAsync(int userId)
         {
             return await ExceptionHandler.ExecuteWithHandling(async () =>
@@ -297,6 +296,75 @@ namespace Viagium.Services
                 }
                 return dtos;
             }, "busca reservas por usuário");
+
+        /// <summary>
+        /// Calcula o preço total da reserva baseado no TravelPackage e RoomType
+        /// Implementa a mesma lógica do frontend para consistência
+        /// </summary>
+        private async Task<decimal> CalculateTotalPriceAsync(CreateReservationDTO createReservationDto)
+        {
+            try
+            {
+                // 1. Buscar dados do TravelPackage
+                var travelPackage = await _unitOfWork.TravelPackageRepository.GetByIdAsync(createReservationDto.TravelPackageId);
+                if (travelPackage == null)
+                    throw new KeyNotFoundException($"TravelPackage com ID {createReservationDto.TravelPackageId} não encontrado.");
+
+                // 2. Buscar dados do RoomType
+                var roomType = await _unitOfWork.RoomTypeRepository.GetByIdAsync(createReservationDto.RoomTypeId);
+                if (roomType == null)
+                    throw new KeyNotFoundException($"RoomType com ID {createReservationDto.RoomTypeId} não encontrado.");
+
+                // 3. Calcular número de viajantes
+                var numPessoas = createReservationDto.Travelers?.Count ?? 1;
+
+                // 4. Implementar lógica do frontend
+                
+                // const price = currentPackage ? currentPackage.price * numPessoas : 0;
+                var price = travelPackage.OriginalPrice * numPessoas;
+
+                // const packageTax = currentPackage ? currentPackage.packageTax : 0;
+                var packageTax = travelPackage.PackageTax; // ✅ CORREÇÃO: PackageTax é decimal, não nullable
+
+                // const discountPercent = currentPackage ? currentPackage.discountValue : 0;
+                var discountPercent = travelPackage.DiscountValue; // ✅ CORREÇÃO: DiscountValue é decimal, não nullable
+
+                // const pricePerNight = hotels[hotelIndex]?.roomTypes?.[roomTypeIndex]?.pricePerNight || 0;
+                var pricePerNight = roomType.PricePerNight;
+
+                // const durationNights = currentPackage ? (typeof currentPackage.duration === 'string' ? parseInt(currentPackage.duration) : Number(currentPackage.duration)) : 0;
+                var durationNights = travelPackage.Duration;
+
+                // const acomodationTotal = pricePerNight * (durationNights > 1 ? durationNights - 1 : 0) * numPessoas;
+                var nightsToCharge = durationNights > 1 ? durationNights - 1 : 0;
+                var acomodationTotal = pricePerNight * nightsToCharge * numPessoas;
+
+                // const valorBase = price + packageTax + acomodationTotal;
+                var valorBase = price + packageTax + acomodationTotal;
+
+                // const valorDesconto = cupomAplicado && discountPercent > 0 ? (valorBase * (discountPercent / 100)) : 0;
+                // Aplicar desconto automaticamente se existir
+                var valorDesconto = discountPercent > 0 ? (valorBase * (discountPercent / 100)) : 0;
+
+                // const valorFinal = valorBase - valorDesconto;
+                var valorFinal = valorBase - valorDesconto;
+
+                Console.WriteLine($"💰 Cálculo de preço da reserva:");
+                Console.WriteLine($"   - Preço base do pacote: R$ {price:F2} ({travelPackage.OriginalPrice:F2} x {numPessoas} pessoas)");
+                Console.WriteLine($"   - Taxa do pacote: R$ {packageTax:F2}");
+                Console.WriteLine($"   - Acomodação: R$ {acomodationTotal:F2} ({pricePerNight:F2}/noite x {nightsToCharge} noites x {numPessoas} pessoas)");
+                Console.WriteLine($"   - Valor base: R$ {valorBase:F2}");
+                Console.WriteLine($"   - Desconto ({discountPercent}%): R$ {valorDesconto:F2}");
+                Console.WriteLine($"   - VALOR FINAL: R$ {valorFinal:F2}");
+
+                return valorFinal;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Erro ao calcular preço total: {ex.Message}");
+                throw new Exception($"Erro no cálculo do preço: {ex.Message}");
+            }
+
         }
     }
 }

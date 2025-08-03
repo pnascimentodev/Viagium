@@ -206,6 +206,9 @@ builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Emai
 builder.Services.AddScoped<IEmailService, Viagium.Services.Email.EmailService>();
 builder.Services.AddSingleton<ITokenBlacklistService, InMemoryTokenBlacklistService>();
 
+// Adiciona o serviço de sincronização automática de pagamentos
+builder.Services.AddHostedService<PaymentSyncBackgroundService>();
+
 var app = builder.Build(); 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

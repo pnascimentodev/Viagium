@@ -15,6 +15,8 @@ namespace Viagium.Repository
 
         Task<List<ResponseTravelPackageDTO>> ListAllAsync();
         
+        Task<List<ResponseTravelPackageDTO>> ListAllActiveAsync();
+        
         Task<ResponseTravelPackageDTO?> GetByIdAsync(int id);
         
         Task<ResponseTravelPackageDTO?> GetByNameAsync(string name);

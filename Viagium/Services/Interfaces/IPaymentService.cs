@@ -10,5 +10,6 @@ public interface IPaymentService
     Task<string> CreateUserAsync(AsaasUserDTO user);
     Task<string> GetBankSlipByDocumentNumber(string documentNumber);
     Task<string> GetPixQrCodeByCpfAsync(string documentNumber);
-
+    Task<Payment?> GetPaymentByIdAsync(int paymentId);
+    Task SynchronizePaymentsAsync();
 }

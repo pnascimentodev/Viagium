@@ -113,4 +113,9 @@ public class UserRepository : IUserRepository
             .Where(u => u.Email == email && (includeDeleted || u.IsActive))
             .FirstOrDefaultAsync();
     }
+
+    public async Task<List<User>> GetAllActiveAsync()
+    {
+        return await _context.Set<User>().Where(u => u.IsActive && u.DeletedAt == null).ToListAsync();
+    }
 }
