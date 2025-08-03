@@ -78,5 +78,18 @@ namespace Viagium.Repository
             // ✅ CORREÇÃO: Removido SaveChanges - deve ser feito pelo UnitOfWork
             return existing;
         }
+
+        public async Task<IEnumerable<Reservation>> GetByUserIdAsync(int userId)
+        {
+            return await _context.Reservations
+                .Include(r => r.User)
+                .Include(r => r.Hotel)
+                .Include(r => r.RoomType)
+                .Include(r => r.TravelPackage)
+                .Include(r => r.ReservationRooms)
+                .Include(r => r.Travelers)
+                .Where(r => r.UserId == userId)
+                .ToListAsync();
+        }
     }
 }

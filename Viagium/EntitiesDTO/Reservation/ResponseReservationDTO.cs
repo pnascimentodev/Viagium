@@ -21,5 +21,6 @@ namespace Viagium.EntitiesDTO.Reservation
         public RoomTypeDTO? RoomType { get; set; }
 
         public bool IsActive { get; internal set; }
+        public string Status { get; set; } 
     }
 }
