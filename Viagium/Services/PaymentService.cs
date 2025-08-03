@@ -255,7 +255,7 @@ public class PaymentService : IPaymentService
         // Se o pagamento foi confirmado imediatamente, atualiza a reserva
         if (initialStatus == PaymentStatus.RECEIVED)
         {
-            reservation.Status = "Confirmado";
+            reservation.Status = "confirmed";
             await _unitOfWork.ReservationRepository.UpdateAsync(reservation);
             await _unitOfWork.SaveAsync();
             Console.WriteLine($"🎉 PAGAMENTO CARTÃO APROVADO! Reserva {reservationId} confirmada automaticamente!");
@@ -418,6 +418,8 @@ public class PaymentService : IPaymentService
             if (!root.TryGetProperty("data", out var pagamentos) || pagamentos.GetArrayLength() == 0)
             {
                 Console.WriteLine("ℹ️ Nenhum pagamento encontrado na API Asaas para sincronizar.");
+                // Mesmo sem pagamentos da Asaas, verifica reservas que devem ser finalizadas
+                await CheckAndFinishExpiredReservationsAsync();
                 return;
             }
 
@@ -491,6 +493,9 @@ public class PaymentService : IPaymentService
                 }
             }
 
+            // Verifica reservas que devem ser finalizadas independente de mudanças no pagamento
+            await CheckAndFinishExpiredReservationsAsync();
+
             // Salva todas as alterações de uma vez
             await _unitOfWork.SaveAsync();
             
@@ -517,17 +522,70 @@ public class PaymentService : IPaymentService
         }
     }
 
+    /// <summary>
+    /// Verifica e finaliza reservas confirmadas que já passaram da data de término
+    /// </summary>
+    private async Task CheckAndFinishExpiredReservationsAsync()
+    {
+        try
+        {
+            Console.WriteLine("🔍 Verificando reservas que devem ser finalizadas...");
+            
+            // Busca todas as reservas confirmadas que já passaram da data de fim
+            var allReservations = await _unitOfWork.ReservationRepository.GetAllAsync();
+            var expiredReservations = allReservations
+                .Where(r => r.Status == "confirmed" && r.EndDate < DateTime.Now)
+                .ToList();
+
+            if (expiredReservations.Any())
+            {
+                Console.WriteLine($"📋 Encontradas {expiredReservations.Count} reservas para finalizar.");
+                
+                foreach (var reservation in expiredReservations)
+                {
+                    try
+                    {
+                        var statusAnterior = reservation.Status;
+                        reservation.Status = "finished";
+                        await _unitOfWork.ReservationRepository.UpdateAsync(reservation);
+                        
+                        Console.WriteLine($"🏁 RESERVA FINALIZADA! ID: {reservation.ReservationId} | Viagem concluída em {reservation.EndDate:dd/MM/yyyy}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"❌ Erro ao finalizar reserva {reservation.ReservationId}: {ex.Message}");
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("✅ Nenhuma reserva precisa ser finalizada no momento.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erro ao verificar reservas para finalização: {ex.Message}");
+        }
+    }
+
     private async Task UpdateReservationStatusAsync(Reservation reserva, PaymentStatus statusPagamento, PaymentStatus statusAnterior)
     {
         string statusAnteriorReserva = reserva.Status;
         string novoStatusReserva = statusPagamento switch
         {
-            PaymentStatus.PENDING => "Pending",
-            PaymentStatus.RECEIVED => "Confirmado",
-            PaymentStatus.OVERDUE => "Vencido", 
-            PaymentStatus.CANCELED => "Cancelado",
+            PaymentStatus.PENDING => "pending",
+            PaymentStatus.RECEIVED => "confirmed",
+            PaymentStatus.OVERDUE => "cancelled", 
+            PaymentStatus.CANCELED => "cancelled",
             _ => reserva.Status // Mantém status atual se não reconhecido
         };
+
+        // Verifica se a reserva deve ser marcada como finalizada
+        // Se a data de fim já passou e o status é "confirmed", marca como "finished"
+        if (reserva.EndDate < DateTime.Now && novoStatusReserva == "confirmed")
+        {
+            novoStatusReserva = "finished";
+        }
 
         // Só atualiza se o status da reserva realmente mudou
         if (statusAnteriorReserva != novoStatusReserva)
@@ -539,15 +597,21 @@ public class PaymentService : IPaymentService
             Console.WriteLine($"🏨 Reserva {reserva.ReservationId}: '{statusAnteriorReserva}' → '{novoStatusReserva}'");
             
             // Log especial para confirmações
-            if (novoStatusReserva == "Confirmado")
+            if (novoStatusReserva == "confirmed")
             {
                 Console.WriteLine($"🎉 RESERVA CONFIRMADA! ID: {reserva.ReservationId} | Valor: R$ {reserva.TotalPrice:F2}");
             }
             
-            // Log para problemas
-            if (novoStatusReserva == "Vencido" || novoStatusReserva == "Cancelado")
+            // Log para finalizações
+            if (novoStatusReserva == "finished")
             {
-                Console.WriteLine($"⚠️ ATENÇÃO: Reserva {reserva.ReservationId} ficou '{novoStatusReserva}' - verificar necessidade de ação.");
+                Console.WriteLine($"🏁 RESERVA FINALIZADA! ID: {reserva.ReservationId} | Viagem concluída em {reserva.EndDate:dd/MM/yyyy}");
+            }
+            
+            // Log para problemas
+            if (novoStatusReserva == "cancelled")
+            {
+                Console.WriteLine($"⚠️ ATENÇÃO: Reserva {reserva.ReservationId} foi cancelada - verificar necessidade de ação.");
             }
         }
     }
