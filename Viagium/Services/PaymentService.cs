@@ -93,7 +93,7 @@ public class PaymentService : IPaymentService
             Amount = reservation.TotalPrice,
             CardLastFourDigits = reservation.Payment?.CardLastFourDigits,
             PaymentIdAsaas = asaasPaymentId,
-            Status = "Pending",
+            Status = PaymentStatus.PENDING,
             PaidAt = null,
         };
         await _unitOfWork.PaymentRepository.AddAsync(payment);
@@ -222,7 +222,11 @@ public class PaymentService : IPaymentService
             throw new Exception("Não foi possível obter o link do boleto para download.");
         
         return boletoUrl;
+    }
 
+    public async Task<Payment?> GetPaymentByIdAsync(int paymentId)
+    {
+        return await _unitOfWork.PaymentRepository.GetPaymentByIdAsync(paymentId);
     }
 
     public async Task SincronizarPagamentos()
@@ -244,25 +248,37 @@ public class PaymentService : IPaymentService
             foreach (var pagamento in pagamentos.EnumerateArray())
             {
                 var id = pagamento.GetProperty("id").GetString();
-                var status = pagamento.GetProperty("status").GetString();
+                var statusString = pagamento.GetProperty("status").GetString();
                 var valor = pagamento.GetProperty("value").GetDecimal();
 
                 var pagamentoLocal = await _unitOfWork.PaymentRepository.GetByAsaasIdAsync(id!);
                 if (pagamentoLocal != null)
                 {
-                    pagamentoLocal.Status = status!;
-                    pagamentoLocal.Amount = valor;
-                    await _unitOfWork.PaymentRepository.FinalizePaymentAsync(pagamentoLocal);
-
-                    // Se o pagamento foi confirmado, atualizar a reserva para Confirmado
-                    if (status == "RECEIVED")
+                    // Converte string para enum
+                    if (Enum.TryParse<PaymentStatus>(statusString, true, out var novoStatus))
                     {
+                        var statusAnterior = pagamentoLocal.Status;
+                        pagamentoLocal.Status = novoStatus;
+                        pagamentoLocal.Amount = valor;
+
+                        // Atualiza data de pagamento quando confirmado
+                        if (novoStatus == PaymentStatus.RECEIVED && statusAnterior != PaymentStatus.RECEIVED)
+                        {
+                            pagamentoLocal.PaidAt = DateTime.Now;
+                        }
+
+                        await _unitOfWork.PaymentRepository.FinalizePaymentAsync(pagamentoLocal);
+
+                        // Atualiza status da reserva baseado no status do pagamento
                         var reserva = await _unitOfWork.ReservationRepository.GetByIdAsync(pagamentoLocal.ReservationId);
                         if (reserva != null)
                         {
-                            reserva.Status = "Confirmado";
-                            await _unitOfWork.ReservationRepository.UpdateAsync(reserva);
+                            await AtualizarStatusReserva(reserva, novoStatus);
                         }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Status desconhecido recebido da Asaas: {statusString}");
                     }
                 }
             }
@@ -272,6 +288,27 @@ public class PaymentService : IPaymentService
         catch (Exception ex)
         {
             Console.WriteLine($"Erro ao sincronizar pagamentos: {ex.Message}");
+        }
+    }
+
+    private async Task AtualizarStatusReserva(Reservation reserva, PaymentStatus statusPagamento)
+    {
+        string novoStatusReserva = statusPagamento switch
+        {
+            PaymentStatus.PENDING => "Pending",
+            PaymentStatus.RECEIVED => "Confirmado",
+            PaymentStatus.OVERDUE => "Vencido",
+            PaymentStatus.CANCELED => "Cancelado",
+            _ => reserva.Status // Mantém status atual se não reconhecido
+        };
+
+        if (reserva.Status != novoStatusReserva)
+        {
+            reserva.Status = novoStatusReserva;
+            await _unitOfWork.ReservationRepository.UpdateAsync(reserva);
+            
+            // Log da mudança de status
+            Console.WriteLine($"Reserva {reserva.ReservationId}: Status alterado de '{reserva.Status}' para '{novoStatusReserva}'");
         }
     }
 }

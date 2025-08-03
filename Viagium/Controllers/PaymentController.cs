@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Viagium.EntitiesDTO.ApiDTO;
 using Viagium.EntitiesDTO.User;
 using Viagium.Models;
+using Viagium.Models.ENUM;
 using Viagium.Services;
 
 namespace Viagium.Controllers;
@@ -39,8 +40,8 @@ public class PaymentController : ControllerBase
             {
                 mensagem = "Pagamento criado com sucesso!",
                 pagamentoId = payment.PaymentId,
-                status = payment.Status,
-                metodo = payment.PaymentMethod,
+                status = payment.Status.ToString(),
+                metodo = payment.PaymentMethod.ToString(),
                 valor = payment.Amount
             });
         }
@@ -114,5 +115,71 @@ public class PaymentController : ControllerBase
         {
             return StatusCode(500, new { erro = "Erro ao obter boleto para download", detalhes = ex.Message });
         }
+    }
+    
+    /// <summary>
+    /// Consulta o status atual de um pagamento pelo ID interno.
+    /// </summary>
+    [HttpGet("status/{paymentId}")]
+    public async Task<IActionResult> GetPaymentStatus(int paymentId)
+    {
+        try
+        {
+            var payment = await _paymentService.GetPaymentByIdAsync(paymentId);
+            if (payment == null)
+                return NotFound(new { erro = "Pagamento não encontrado." });
+
+            return Ok(new
+            {
+                pagamentoId = payment.PaymentId,
+                status = payment.Status.ToString(),
+                statusDescricao = GetStatusDescription(payment.Status),
+                valor = payment.Amount,
+                metodoPagamento = payment.PaymentMethod.ToString(),
+                dataPagamento = payment.PaidAt,
+                reservaId = payment.ReservationId
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                erro = "Erro ao consultar status do pagamento",
+                detalhes = ex.Message
+            });
+        }
+    }
+
+    /// <summary>
+    /// Força a sincronização manual dos pagamentos com a API Asaas.
+    /// </summary>
+    [HttpPost("sincronizar")]
+    public async Task<IActionResult> SincronizarPagamentos()
+    {
+        try
+        {
+            await _paymentService.SincronizarPagamentos();
+            return Ok(new { mensagem = "Sincronização executada com sucesso!" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                erro = "Erro ao sincronizar pagamentos",
+                detalhes = ex.Message
+            });
+        }
+    }
+
+    private static string GetStatusDescription(PaymentStatus status)
+    {
+        return status switch
+        {
+            PaymentStatus.PENDING => "Pagamento criado, aguardando",
+            PaymentStatus.RECEIVED => "Pagamento confirmado/recebido",
+            PaymentStatus.OVERDUE => "Pagamento vencido",
+            PaymentStatus.CANCELED => "Pagamento cancelado",
+            _ => "Status desconhecido"
+        };
     }
 }

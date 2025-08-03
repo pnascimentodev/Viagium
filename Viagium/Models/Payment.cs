@@ -21,7 +21,7 @@ public class Payment
     
     public string? PaymentIdAsaas { get; set; }
 
-    public string Status { get; set; } = "Pending";
+    public PaymentStatus Status { get; set; } = PaymentStatus.PENDING;
     
     [Required]
     public decimal? Amount { get; set; }
