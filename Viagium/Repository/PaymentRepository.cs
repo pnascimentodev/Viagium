@@ -32,11 +32,10 @@ public class PaymentRepository : IPaymentRepository
 
     public async Task FinalizePaymentAsync(Payment payment)
     {
+        // ✅ CORREÇÃO: Apenas atualiza a entidade, não salva diretamente
         _context.Payments.Update(payment);
-        await _context.SaveChangesAsync();
+        // Removido: await _context.SaveChangesAsync(); - isso deve ser feito pelo UnitOfWork
     }
-
-
 
 
 }

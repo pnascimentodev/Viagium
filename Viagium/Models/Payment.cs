@@ -26,5 +26,6 @@ public class Payment
     [Required]
     public decimal? Amount { get; set; }
     
-    public DateTime? PaidAt { get; set; } = DateTime.Now;
+    // ✅ CORREÇÃO: PaidAt deve ser null até o pagamento ser confirmado
+    public DateTime? PaidAt { get; set; } = null;
 }

@@ -31,7 +31,6 @@ public class Reservation
     
     public required ICollection<Traveler> Travelers { get; set; }
     
-    [ForeignKey("Payment")]
     public int? PaymentId { get; set; }
     public Payment? Payment { get; set; }
     public required ICollection<ReservationRoom> ReservationRooms { get; set; }

@@ -6,6 +6,7 @@ using Viagium.Models;
 using Viagium.Models.ENUM;
 using Viagium.Repository.Interface;
 using Viagium.Services.Interfaces;
+using Microsoft.Extensions.Configuration;
 
 namespace Viagium.Services;
 
@@ -16,12 +17,12 @@ public class PaymentService : IPaymentService
     private readonly HttpClient _httpClient;
     private readonly IUnitOfWork _unitOfWork;
 
-    public PaymentService(IHttpClientFactory httpClientFactory, IUnitOfWork unitOfWork)
+    public PaymentService(IHttpClientFactory httpClientFactory, IUnitOfWork unitOfWork, IConfiguration configuration)
     {
         _httpClient = httpClientFactory.CreateClient();
         _unitOfWork = unitOfWork;
-        _asaasApiKey = Environment.GetEnvironmentVariable("ASAAS_API_KEY") ?? string.Empty;
-        _asaasBaseUrl = Environment.GetEnvironmentVariable("ASAAS_BASE_URL") ?? string.Empty;
+        _asaasApiKey = configuration["Asaas:ApiKey"] ?? throw new InvalidOperationException("Asaas API Key não configurada");
+        _asaasBaseUrl = configuration["Asaas:BaseUrl"] ?? throw new InvalidOperationException("Asaas Base URL não configurada");
     }
 
     public async Task<Payment> AddPaymentAsync(Reservation reservation)
@@ -229,86 +230,163 @@ public class PaymentService : IPaymentService
         return await _unitOfWork.PaymentRepository.GetPaymentByIdAsync(paymentId);
     }
 
-    public async Task SincronizarPagamentos()
+    public async Task SynchronizePaymentsAsync()
     {
         try
         {
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _asaasApiKey);
-            var response = await _httpClient.GetAsync($"{_asaasBaseUrl}/payments");
-            response.EnsureSuccessStatusCode();
+            Console.WriteLine("🔄 Iniciando sincronização de pagamentos...");
+            
+            // ✅ CORREÇÃO: Usar access_token ao invés de Authorization Bearer
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_asaasBaseUrl}/payments?limit=100&offset=0");
+            request.Headers.Add("access_token", _asaasApiKey);
+            request.Headers.Add("User-Agent", "ViagiumApp/1.0");
+            
+            var response = await _httpClient.SendAsync(request);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorBody = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"❌ Erro HTTP {response.StatusCode}: {errorBody}");
+                throw new Exception($"Erro ao consultar API Asaas: {response.StatusCode} - {errorBody}");
+            }
 
             var json = await response.Content.ReadAsStringAsync();
             var root = JsonDocument.Parse(json).RootElement;
+            
             if (!root.TryGetProperty("data", out var pagamentos) || pagamentos.GetArrayLength() == 0)
             {
-                Console.WriteLine("Nenhum pagamento para sincronizar.");
+                Console.WriteLine("ℹ️ Nenhum pagamento encontrado na API Asaas para sincronizar.");
                 return;
             }
 
+            int pagamentosProcessados = 0;
+            int pagamentosAtualizados = 0;
+
             foreach (var pagamento in pagamentos.EnumerateArray())
             {
-                var id = pagamento.GetProperty("id").GetString();
-                var statusString = pagamento.GetProperty("status").GetString();
-                var valor = pagamento.GetProperty("value").GetDecimal();
-
-                var pagamentoLocal = await _unitOfWork.PaymentRepository.GetByAsaasIdAsync(id!);
-                if (pagamentoLocal != null)
+                try
                 {
+                    var id = pagamento.GetProperty("id").GetString();
+                    var statusString = pagamento.GetProperty("status").GetString();
+                    var valor = pagamento.GetProperty("value").GetDecimal();
+                    
+                    // Busca pagamento local pelo ID da Asaas
+                    var pagamentoLocal = await _unitOfWork.PaymentRepository.GetByAsaasIdAsync(id!);
+                    if (pagamentoLocal == null)
+                    {
+                        Console.WriteLine($"⚠️ Pagamento {id} não encontrado localmente - ignorando.");
+                        continue;
+                    }
+
+                    pagamentosProcessados++;
+
                     // Converte string para enum
                     if (Enum.TryParse<PaymentStatus>(statusString, true, out var novoStatus))
                     {
                         var statusAnterior = pagamentoLocal.Status;
-                        pagamentoLocal.Status = novoStatus;
-                        pagamentoLocal.Amount = valor;
-
-                        // Atualiza data de pagamento quando confirmado
-                        if (novoStatus == PaymentStatus.RECEIVED && statusAnterior != PaymentStatus.RECEIVED)
+                        
+                        // Só atualiza se o status realmente mudou
+                        if (statusAnterior != novoStatus)
                         {
-                            pagamentoLocal.PaidAt = DateTime.Now;
-                        }
+                            Console.WriteLine($"📊 Pagamento {id}: {statusAnterior} → {novoStatus}");
+                            
+                            pagamentoLocal.Status = novoStatus;
+                            pagamentoLocal.Amount = valor;
 
-                        await _unitOfWork.PaymentRepository.FinalizePaymentAsync(pagamentoLocal);
+                            // Atualiza data de pagamento apenas quando confirmado pela primeira vez
+                            if (novoStatus == PaymentStatus.RECEIVED && statusAnterior != PaymentStatus.RECEIVED)
+                            {
+                                pagamentoLocal.PaidAt = DateTime.Now;
+                                Console.WriteLine($"💰 Pagamento {id} confirmado às {DateTime.Now:dd/MM/yyyy HH:mm}");
+                            }
 
-                        // Atualiza status da reserva baseado no status do pagamento
-                        var reserva = await _unitOfWork.ReservationRepository.GetByIdAsync(pagamentoLocal.ReservationId);
-                        if (reserva != null)
-                        {
-                            await AtualizarStatusReserva(reserva, novoStatus);
+                            // Atualiza no banco
+                            await _unitOfWork.PaymentRepository.FinalizePaymentAsync(pagamentoLocal);
+
+                            // Busca e atualiza a reserva
+                            var reserva = await _unitOfWork.ReservationRepository.GetByIdAsync(pagamentoLocal.ReservationId);
+                            if (reserva != null)
+                            {
+                                await UpdateReservationStatusAsync(reserva, novoStatus, statusAnterior);
+                            }
+                            else
+                            {
+                                Console.WriteLine($"⚠️ Reserva {pagamentoLocal.ReservationId} não encontrada para o pagamento {id}");
+                            }
+
+                            pagamentosAtualizados++;
                         }
                     }
                     else
                     {
-                        Console.WriteLine($"Status desconhecido recebido da Asaas: {statusString}");
+                        Console.WriteLine($"❌ Status desconhecido recebido da Asaas: '{statusString}' para pagamento {id}");
                     }
                 }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ Erro ao processar pagamento individual: {ex.Message}");
+                    // Continue processando outros pagamentos mesmo se um falhar
+                }
             }
+
+            // Salva todas as alterações de uma vez
             await _unitOfWork.SaveAsync();
-            Console.WriteLine("Pagamentos sincronizados com sucesso!");
+            
+            Console.WriteLine($"✅ Sincronização concluída!");
+            Console.WriteLine($"📈 Estatísticas:");
+            Console.WriteLine($"   - Pagamentos processados: {pagamentosProcessados}");
+            Console.WriteLine($"   - Pagamentos atualizados: {pagamentosAtualizados}");
+            Console.WriteLine($"   - Última sincronização: {DateTime.Now:dd/MM/yyyy HH:mm:ss}");
+        }
+        catch (HttpRequestException httpEx)
+        {
+            Console.WriteLine($"🌐 Erro de conectividade com a API Asaas: {httpEx.Message}");
+            throw new Exception("Falha na comunicação com o serviço de pagamentos. Tente novamente mais tarde.");
+        }
+        catch (JsonException jsonEx)
+        {
+            Console.WriteLine($"📄 Erro ao processar resposta da API Asaas: {jsonEx.Message}");
+            throw new Exception("Formato de resposta inválido da API de pagamentos.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erro ao sincronizar pagamentos: {ex.Message}");
+            Console.WriteLine($"💥 Erro geral ao sincronizar pagamentos: {ex.Message}");
+            throw new Exception($"Erro interno na sincronização: {ex.Message}");
         }
     }
 
-    private async Task AtualizarStatusReserva(Reservation reserva, PaymentStatus statusPagamento)
+    private async Task UpdateReservationStatusAsync(Reservation reserva, PaymentStatus statusPagamento, PaymentStatus statusAnterior)
     {
+        string statusAnteriorReserva = reserva.Status;
         string novoStatusReserva = statusPagamento switch
         {
             PaymentStatus.PENDING => "Pending",
             PaymentStatus.RECEIVED => "Confirmado",
-            PaymentStatus.OVERDUE => "Vencido",
+            PaymentStatus.OVERDUE => "Vencido", 
             PaymentStatus.CANCELED => "Cancelado",
             _ => reserva.Status // Mantém status atual se não reconhecido
         };
 
-        if (reserva.Status != novoStatusReserva)
+        // Só atualiza se o status da reserva realmente mudou
+        if (statusAnteriorReserva != novoStatusReserva)
         {
             reserva.Status = novoStatusReserva;
             await _unitOfWork.ReservationRepository.UpdateAsync(reserva);
             
-            // Log da mudança de status
-            Console.WriteLine($"Reserva {reserva.ReservationId}: Status alterado de '{reserva.Status}' para '{novoStatusReserva}'");
+            // Logs detalhados para auditoria
+            Console.WriteLine($"🏨 Reserva {reserva.ReservationId}: '{statusAnteriorReserva}' → '{novoStatusReserva}'");
+            
+            // Log especial para confirmações
+            if (novoStatusReserva == "Confirmado")
+            {
+                Console.WriteLine($"🎉 RESERVA CONFIRMADA! ID: {reserva.ReservationId} | Valor: R$ {reserva.TotalPrice:F2}");
+            }
+            
+            // Log para problemas
+            if (novoStatusReserva == "Vencido" || novoStatusReserva == "Cancelado")
+            {
+                Console.WriteLine($"⚠️ ATENÇÃO: Reserva {reserva.ReservationId} ficou '{novoStatusReserva}' - verificar necessidade de ação.");
+            }
         }
     }
 }

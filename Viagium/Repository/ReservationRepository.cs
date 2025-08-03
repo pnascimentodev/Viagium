@@ -64,8 +64,9 @@ namespace Viagium.Repository
 
         public async Task UpdateAsync(Reservation reservation)
         {
+            // ✅ CORREÇÃO: Apenas atualiza a entidade, não salva diretamente
             _context.Reservations.Update(reservation);
-            await _context.SaveChangesAsync();
+            // Removido: await _context.SaveChangesAsync(); - isso deve ser feito pelo UnitOfWork
         }
         public async Task<Reservation> DeactivateAsync(int id)
         {
@@ -74,7 +75,7 @@ namespace Viagium.Repository
                 throw new KeyNotFoundException("Reserva não encontrada para desativação.");
             existing.IsActive = false;
             _context.Reservations.Update(existing);
-            await _context.SaveChangesAsync();
+            // ✅ CORREÇÃO: Removido SaveChanges - deve ser feito pelo UnitOfWork
             return existing;
         }
     }

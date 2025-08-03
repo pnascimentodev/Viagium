@@ -158,7 +158,7 @@ public class PaymentController : ControllerBase
     {
         try
         {
-            await _paymentService.SincronizarPagamentos();
+            await _paymentService.SynchronizePaymentsAsync();
             return Ok(new { mensagem = "Sincronização executada com sucesso!" });
         }
         catch (Exception ex)

@@ -32,7 +32,6 @@ namespace Viagium.Models
         [Display(Name = "Data de Criação")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         
-        [ForeignKey("Affiliate")]
         [Display(Name = "Id do Afiliado")]
         public int? AffiliateId { get; set; }
         public Affiliate? Affiliate { get; set; }

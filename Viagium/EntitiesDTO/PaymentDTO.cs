@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Viagium.Models;
+using Viagium.Models.ENUM;
 
 namespace Viagium.EntitiesDTO;
 
@@ -9,15 +10,16 @@ public class PaymentDTO
     public ReservationDTO? Reservation { get; set; }
     
     [Required]
-    public string? PaymentMethod { get; set; }
+    public PaymentMethodType PaymentMethod { get; set; }
     
     [StringLength(4)]
     public string? CardLastFourDigits { get; set; }
 
-    public string Status { get; set; } = "Pending";
+    public PaymentStatus Status { get; set; } = PaymentStatus.PENDING;
     
     [Required]
     public decimal Amount { get; set; }
     
-    public DateTime? PaidAt { get; set; } = DateTime.Now;
+    // ✅ CORREÇÃO: PaidAt deve ser null até o pagamento ser confirmado
+    public DateTime? PaidAt { get; set; } = null;
 }

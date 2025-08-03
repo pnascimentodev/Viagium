@@ -55,7 +55,7 @@ public class Affiliate
 
     // Relacionamento: Um afiliado pode registrar vários hotéis
     public ICollection<Hotel> Hotels { get; set; } = new List<Hotel>();
-    // Relacionamento: Um afiliado pode ter um endereço
+ 
     [Display(Name = "Id do Endereço")]
     [ForeignKey("Address")]
     [Required]
