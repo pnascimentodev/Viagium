@@ -39,6 +39,9 @@ namespace Viagium.Services
                 // ✅ CALCULAR PREÇO TOTAL AUTOMATICAMENTE
                 reservation.TotalPrice = await CalculateTotalPriceAsync(createReservationDto);
                 
+                // ✅ CALCULAR DATAS AUTOMATICAMENTE BASEADO NO TRAVELPACKAGE
+                await SetReservationDatesAsync(reservation, createReservationDto.TravelPackageId);
+                
                 reservation.IsActive = true; // Define a reserva como ativa
                 reservation.HotelId = createReservationDto.HotelId; // Define o HotelId diretamente na reserva
                 reservation.RoomTypeId = createReservationDto.RoomTypeId; // Define o RoomTypeId diretamente na reserva
@@ -273,7 +276,8 @@ namespace Viagium.Services
                 foreach (var reservation in reservations)
                 {
                     var dto = _mapper.Map<ResponseReservationDTO>(reservation);
-                    var travelers = await _unitOfWork.TravelerRepository.GetByReservationIdAsync(reservation.ReservationId);
+                    var travelers =
+                        await _unitOfWork.TravelerRepository.GetByReservationIdAsync(reservation.ReservationId);
                     dto.Travelers = _mapper.Map<List<TravelerDTO>>(travelers);
                     dto.IsActive = reservation.IsActive;
                     if (dto.Hotel == null && reservation.HotelId.HasValue)
@@ -284,18 +288,23 @@ namespace Viagium.Services
                             dto.Hotel = _mapper.Map<HotelDTO>(hotelData);
                         }
                     }
+
                     if (dto.RoomType == null && reservation.RoomTypeId.HasValue)
                     {
-                        var roomTypeData = await _unitOfWork.RoomTypeRepository.GetByIdAsync(reservation.RoomTypeId.Value);
+                        var roomTypeData =
+                            await _unitOfWork.RoomTypeRepository.GetByIdAsync(reservation.RoomTypeId.Value);
                         if (roomTypeData != null)
                         {
                             dto.RoomType = _mapper.Map<RoomTypeDTO>(roomTypeData);
                         }
                     }
+
                     dtos.Add(dto);
                 }
+
                 return dtos;
             }, "busca reservas por usuário");
+        }
 
         /// <summary>
         /// Calcula o preço total da reserva baseado no TravelPackage e RoomType
@@ -365,6 +374,75 @@ namespace Viagium.Services
                 throw new Exception($"Erro no cálculo do preço: {ex.Message}");
             }
 
+        }
+
+        /// <summary>
+        /// Define as datas StartDate e EndDate da reserva baseado no PackageSchedule
+        /// StartDate = PackageSchedule.StartDate (data programada do pacote)
+        /// EndDate = StartDate + Duration do TravelPackage
+        /// </summary>
+        private async Task SetReservationDatesAsync(Reservation reservation, int travelPackageId)
+        {
+            try
+            {
+                // 1. Buscar dados do TravelPackage
+                var travelPackage = await _unitOfWork.TravelPackageRepository.GetByIdAsync(travelPackageId);
+                if (travelPackage == null)
+                    throw new KeyNotFoundException($"TravelPackage com ID {travelPackageId} não encontrado.");
+
+                // 2. Buscar o PackageSchedule ativo para este TravelPackage
+                // Assumindo que existe um método no repository para buscar schedule por TravelPackageId
+                var packageSchedule = await GetActivePackageScheduleAsync(travelPackageId);
+                
+                if (packageSchedule == null)
+                    throw new KeyNotFoundException($"Nenhum PackageSchedule ativo encontrado para o TravelPackage {travelPackageId}.");
+
+                // 3. Definir StartDate baseado no PackageSchedule
+                reservation.StartDate = packageSchedule.StartDate.Date;
+
+                // 4. Calcular EndDate baseado na duração do pacote
+                // EndDate = StartDate + Duration (em dias)
+                reservation.EndDate = reservation.StartDate.AddDays(travelPackage.Duration);
+
+                Console.WriteLine($"📅 Datas da reserva calculadas baseado no PackageSchedule:");
+                Console.WriteLine($"   - Data de início (PackageSchedule): {reservation.StartDate:dd/MM/yyyy}");
+                Console.WriteLine($"   - Data de fim: {reservation.EndDate:dd/MM/yyyy}");
+                Console.WriteLine($"   - Duração total: {travelPackage.Duration} dias");
+                Console.WriteLine($"   - PackageSchedule ID: {packageSchedule.PackageScheduleId}");
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Erro ao calcular datas da reserva: {ex.Message}");
+                throw new Exception($"Erro ao calcular datas da reserva: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Busca o PackageSchedule ativo para um TravelPackage
+        /// Prioriza schedules disponíveis e não fixos
+        /// </summary>
+        private async Task<PackageSchedule?> GetActivePackageScheduleAsync(int travelPackageId)
+        {
+            try
+            {
+                // Buscar PackageSchedules do TravelPackage que estejam disponíveis
+                // Vou implementar uma busca básica - você pode ajustar conforme sua lógica de negócio
+                var schedules = await _unitOfWork.PackageScheduleRepository.GetByTravelPackageIdAsync(travelPackageId);
+                
+                // Priorizar schedules que estão disponíveis e no futuro
+                var activeSchedule = schedules
+                    .Where(s => s.IsAvailable && s.StartDate >= DateTime.Now.Date)
+                    .OrderBy(s => s.StartDate) // Pega o mais próximo
+                    .FirstOrDefault();
+
+                return activeSchedule;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Erro ao buscar PackageSchedule: {ex.Message}");
+                return null;
+            }
         }
     }
 }
