@@ -66,7 +66,7 @@ public class AdminService : IAdminService
     public async Task<AdminDTO?> GetByIdAsync(int id)
     {
         var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
-        if (user == null || user.Role != Role.Admin )
+        if (user == null || (user.Role != Role.Admin && user.Role != Role.Support))
             return null;
         return _mapper.Map<AdminDTO>(user);
     }
@@ -74,14 +74,14 @@ public class AdminService : IAdminService
     public async Task<List<AdminDTO>> GetAllAsync()
     {
         var users = await _unitOfWork.UserRepository.GetAllAsync();
-        var admins = users.Where(u => u.Role == Role.Admin).ToList();
+        var admins = users.Where(u => u.Role == Role.Admin || u.Role == Role.Support).ToList();
         return admins.Select(u => _mapper.Map<AdminDTO>(u)).ToList();
     }
 
     public async Task<List<AdminDTO>> GetAllActiveAsync()
     {
         var users = await _unitOfWork.UserRepository.GetAllAsync();
-        var admins = users.Where(u => (u.Role == Role.Admin) && u.IsActive && u.DeletedAt == null).ToList();
+        var admins = users.Where(u => (u.Role == Role.Admin || u.Role == Role.Support) && u.IsActive && u.DeletedAt == null).ToList();
         return admins.Select(u => _mapper.Map<AdminDTO>(u)).ToList();
     }
 
@@ -91,11 +91,20 @@ public class AdminService : IAdminService
         if (user == null || (user.Role != Role.Admin && user.Role != Role.Support))
             throw new KeyNotFoundException("Admin não encontrado.");
         _mapper.Map(adminUpdateDto, user);
+
         user.Role = user.Role; // Mantém a role
         user.UpdatedAt = DateTime.Now;
-        ValidatePassword(adminUpdateDto.Password);
-        user.HashPassword = PasswordHelper.HashPassword(adminUpdateDto.Password);
+
+        if (!string.IsNullOrWhiteSpace(adminUpdateDto.Password))
+        {
+            ValidatePassword(adminUpdateDto.Password);
+
+            user.HashPassword = PasswordHelper.HashPassword(adminUpdateDto.Password);
+        }
+        
+
         Validator.ValidateObject(user, new ValidationContext(user), true);
+
         await _unitOfWork.UserRepository.UpdateAsync(user);
         await _unitOfWork.SaveAsync();
         return _mapper.Map<AdminDTO>(user);

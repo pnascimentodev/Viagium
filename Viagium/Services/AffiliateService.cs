@@ -179,26 +179,16 @@ public class AffiliateService : IAffiliateService
         }, "busca de afiliados ativos e inativos");
     }
 
-    public Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeactivateAsync(int id)
     {
-        return ExceptionHandler.ExecuteWithHandling(async()=> 
-            {
-            var affiliate = await _unitOfWork.AffiliateRepository.GetByIdAsync(id);
-            
-            if (affiliate == null)
-                throw new KeyNotFoundException("Afiliado não encontrado.");
-            if (!affiliate.IsActive) throw new InvalidOperationException("Afiliado já está inativo.");
-            
-            affiliate.DeletedAt = DateTime.Now;
-            affiliate.IsActive = false;
-            
-            await _unitOfWork.AffiliateRepository.UpdateAsync(affiliate);
-            await _unitOfWork.SaveAsync();
-            
-            return true;
-        }, "exclusão de afiliado");
+        return await _unitOfWork.AffiliateRepository.DeactivateAsync(id);
     }
-    
+
+    public async Task<bool> ActivateAsync(int id)
+    {
+        return await _unitOfWork.AffiliateRepository.ActivateAsync(id);
+    }
+
     public async Task<IEnumerable<Affiliate>> GetByCityAsync(string city)
     {
         return await _unitOfWork.AffiliateRepository.GetByCityAsync(city);
@@ -336,5 +326,5 @@ public class AffiliateService : IAffiliateService
         await _emailService.SendEmailAsync(emailDto);
 
         return _mapper.Map<AffiliateDTO>(affiliate);
-    }
+    }  
 }

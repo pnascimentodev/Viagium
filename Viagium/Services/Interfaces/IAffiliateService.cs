@@ -12,7 +12,8 @@ public interface IAffiliateService
     Task<Affiliate> UpdateAsync(Affiliate affiliate);
     Task<AffiliateDTO> GetByIdAsync(int id);
     Task<IEnumerable<AffiliateDTO>> GetAllAsync();
-    Task<bool> DeleteAsync(int id);
+    Task<bool> DeactivateAsync(int id);
+    Task<bool> ActivateAsync(int id);
     Task<IEnumerable<Affiliate>> GetByCityAsync(string city);
     Task<AffiliateDTO> GetByEmailAsync(string email, bool includeDeleted = false);
     Task SendForgotPasswordEmailAsync(string email);

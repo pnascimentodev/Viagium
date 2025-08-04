@@ -128,7 +128,9 @@ public class TravelPackageRepository : ITravelPackageRepository
             Cnpj = hotel.Cnpj,
             Cadastur = hotel.Cadastur,
             CadasturExpiration = hotel.CadasturExpiration,
+            Star = hotel.Star,
             ImageUrl = hotel.ImageUrl,
+            CreatedAt = hotel.CreatedAt,
             Address = _mapper.Map<AddressDTO>(hotel.Address),
             Amenities = hotel.HotelAmenity?.Select(ha => new AmenityDTO
             {
@@ -370,9 +372,12 @@ public class TravelPackageRepository : ITravelPackageRepository
                 TypeHosting = hotel.TypeHosting,
                 IsActive = hotel.IsActive,
                 Cnpj = hotel.Cnpj,
+                InscricaoEstadual = hotel.InscricaoEstadual,
                 Cadastur = hotel.Cadastur,
                 CadasturExpiration = hotel.CadasturExpiration,
+                Star = hotel.Star,
                 ImageUrl = hotel.ImageUrl,
+                CreatedAt = hotel.CreatedAt,
                 Address = _mapper.Map<AddressDTO>(hotel.Address),
                 Amenities = hotel.HotelAmenity?.Select(ha => new AmenityDTO
                 {
@@ -470,6 +475,7 @@ public class TravelPackageRepository : ITravelPackageRepository
             Cnpj = hotel.Cnpj,
             Cadastur = hotel.Cadastur,
             CadasturExpiration = hotel.CadasturExpiration,
+            Star = hotel.Star,
             ImageUrl = hotel.ImageUrl,
             Address = _mapper.Map<AddressDTO>(hotel.Address),
             Amenities = hotel.HotelAmenity?.Select(ha => new AmenityDTO

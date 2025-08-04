@@ -130,4 +130,32 @@ public class AffiliateRepository : IAffiliateRepository
             .Where(a => includeDeleted || a.IsActive)
             .ToListAsync();
     }
+
+    public async Task<bool> DeactivateAsync(int id)
+    {
+        // Busca o afiliado pelo ID
+        var affiliate = await _context.Affiliates.FindAsync(id);
+        if (affiliate == null)
+            return false;
+        // Marca como inativo e define a data de exclusão
+        affiliate.IsActive = false;
+        affiliate.DeletedAt = DateTime.Now;
+        _context.Affiliates.Update(affiliate);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> ActivateAsync(int id)
+    {
+        // Busca o afiliado pelo ID
+        var affiliate = await _context.Affiliates.FindAsync(id);
+        if (affiliate == null)
+            return false;
+        // Marca como ativo e remove a data de exclusão
+        affiliate.IsActive = true;
+        affiliate.DeletedAt = null;
+        _context.Affiliates.Update(affiliate);
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }

@@ -18,5 +18,6 @@ public interface IAffiliateRepository
     Task<bool> CnpjExistsAsync(string cnpj);
     Task<Affiliate> UpdatePasswordAsync (int id, string newPassword);
     Task<Affiliate?> ForgotPasswordAsync(int id, string newPassword);
-    
+    Task<bool> DeactivateAsync(int id);
+    Task<bool> ActivateAsync(int id);
 }

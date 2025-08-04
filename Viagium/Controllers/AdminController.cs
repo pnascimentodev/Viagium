@@ -69,7 +69,7 @@ public class AdminController : ControllerBase
         {
             var adminDto = await _adminService.GetByIdAsync(id);
             if (adminDto == null)
-                return NotFound("Admin n�o encontrado.");
+                return NotFound("Admin não encontrado.");
             return Ok(adminDto);
         }
         catch (Exception ex)
