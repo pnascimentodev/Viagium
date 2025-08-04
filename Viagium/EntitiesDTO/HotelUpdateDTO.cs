@@ -17,6 +17,7 @@ public class HotelUpdateDTO
     public int? Star { get; set; }
     
     public string? ImageUrl { get; set; }
+    public IFormFile? ImageFile { get; set; }
     public bool? IsActive { get; set; }
     public AddressDTO? Address { get; set; }
     public List<int>? Amenities { get; set; }

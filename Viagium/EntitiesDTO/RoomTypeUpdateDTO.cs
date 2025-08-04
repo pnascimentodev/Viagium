@@ -13,8 +13,8 @@ public class RoomTypeUpdateDTO
     public string Name { get; set; } = string.Empty;
     [Required]
     public string Description { get; set; } = string.Empty;
-    [Required]
-    public string ImageUrl { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; } = string.Empty;
+    public IFormFile? ImageFile { get; set; }
     [Required]
     public decimal PricePerNight { get; set; }
     [Required]
