@@ -8,6 +8,7 @@ using Viagium.Models.ENUM;
 using Viagium.Repository.Interface;
 using Viagium.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
+using Viagium.EntitiesDTO;
 
 namespace Viagium.Services;
 
@@ -120,7 +121,7 @@ public class PaymentService : IPaymentService
         return payment;
     }
 
-    public async Task<Payment> AddPaymentAsync(int reservationId, PaymentMethodType paymentMethod, CreditCardDTO? creditCard = null, string? remoteIp = null)
+    public async Task<Payment> AddPaymentAsync(int reservationId, PaymentMethodType paymentMethod, CreditCardDTO? creditCard = null, string? remoteIp = null, AddressDTO? address = null)
     {
         // Busca a reserva pelo ID
         var reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(reservationId);
@@ -139,6 +140,12 @@ public class PaymentService : IPaymentService
         if (string.IsNullOrEmpty(user.AsaasApiId))
         {
             throw new Exception($"Usuário {user.UserId} não possui AsaasApiId. É necessário criar o cliente na Asaas primeiro.");
+        }
+
+        // Se um endereço foi fornecido e é um pagamento com cartão, salva/atualiza o endereço do usuário
+        if (address != null && paymentMethod == PaymentMethodType.CREDIT_CARD)
+        {
+            await SaveOrUpdateUserAddressAsync(user, address);
         }
 
         // Define data de vencimento baseada no método de pagamento
@@ -174,7 +181,7 @@ public class PaymentService : IPaymentService
                     ccv = creditCard.Ccv
                 } : null,
             creditCardHolderInfo = paymentMethod == PaymentMethodType.CREDIT_CARD && creditCard != null 
-                ? await BuildCreditCardHolderInfoAsync(user) : null,
+                ? await BuildCreditCardHolderInfoAsync(user, address) : null,
             remoteIp = !string.IsNullOrEmpty(remoteIp) ? remoteIp : null
         };
 
@@ -616,24 +623,100 @@ public class PaymentService : IPaymentService
         }
     }
 
-    private async Task<object> BuildCreditCardHolderInfoAsync(User user)
+    private async Task<object> BuildCreditCardHolderInfoAsync(User user, AddressDTO? address)
     {
-        // Busca o endereço do usuário (assumindo que existe um relacionamento ou método para isso)
-        // Se não houver endereço, usa dados básicos do usuário
-        
-        // Primeiro tenta buscar endereço associado ao usuário
-        // Como não vejo o relacionamento direto, vou usar dados do usuário
+        // Usa endereço fornecido ou busca endereço salvo do usuário
+        var addressInfo = address;
+        if (addressInfo == null && user.AddressId.HasValue)
+        {
+            // Busca endereço salvo do usuário
+            var userAddress = await _unitOfWork.AddressRepository.GetByIdAsync(user.AddressId.Value);
+            if (userAddress != null)
+            {
+                addressInfo = new AddressDTO
+                {
+                    ZipCode = userAddress.ZipCode,
+                    AddressNumber = userAddress.AddressNumber,
+                    StreetName = userAddress.StreetName,
+                    Neighborhood = userAddress.Neighborhood,
+                    City = userAddress.City,
+                    State = userAddress.State,
+                    Country = userAddress.Country
+                };
+            }
+        }
         
         return new
         {
             name = $"{user.FirstName} {user.LastName}",
             email = user.Email,
             cpfCnpj = user.DocumentNumber,
-            postalCode = "00000-000", // Seria ideal buscar do endereço real
-            addressNumber = "0", // Seria ideal buscar do endereço real  
-            addressComplement = (string?)null,
+            postalCode = addressInfo?.ZipCode ?? "00000-000",
+            addressNumber = addressInfo?.AddressNumber.ToString() ?? "0",
+            addressComplement = (string?)null, // AddressDTO não tem Complement
             phone = user.Phone ?? "",
             mobilePhone = user.Phone ?? ""
         };
+    }
+
+    private async Task SaveOrUpdateUserAddressAsync(User user, AddressDTO addressDto)
+    {
+        try
+        {
+            Address? userAddress = null;
+            
+            // Se o usuário já tem um endereço, atualiza
+            if (user.AddressId.HasValue)
+            {
+                userAddress = await _unitOfWork.AddressRepository.GetByIdAsync(user.AddressId.Value);
+            }
+            
+            if (userAddress != null)
+            {
+                // Atualiza endereço existente
+                userAddress.StreetName = addressDto.StreetName;
+                userAddress.AddressNumber = addressDto.AddressNumber;
+                userAddress.Neighborhood = addressDto.Neighborhood;
+                userAddress.City = addressDto.City;
+                userAddress.State = addressDto.State;
+                userAddress.ZipCode = addressDto.ZipCode;
+                userAddress.Country = addressDto.Country;
+                
+                await _unitOfWork.AddressRepository.UpdateAsync(userAddress);
+                Console.WriteLine($"📍 Endereço do usuário {user.UserId} atualizado.");
+            }
+            else
+            {
+                // Cria novo endereço
+                userAddress = new Address
+                {
+                    StreetName = addressDto.StreetName,
+                    AddressNumber = addressDto.AddressNumber,
+                    Neighborhood = addressDto.Neighborhood,
+                    City = addressDto.City,
+                    State = addressDto.State,
+                    ZipCode = addressDto.ZipCode,
+                    Country = addressDto.Country,
+                    UserId = user.UserId,
+                    CreatedAt = DateTime.Now
+                };
+                
+                await _unitOfWork.AddressRepository.AddAsync(userAddress);
+                await _unitOfWork.SaveAsync(); // Salva para obter o ID
+                
+                // Associa o endereço ao usuário
+                user.AddressId = userAddress.AdressId;
+                await _unitOfWork.UserRepository.UpdateAsync(user);
+                
+                Console.WriteLine($"📍 Novo endereço criado e associado ao usuário {user.UserId}.");
+            }
+            
+            await _unitOfWork.SaveAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erro ao salvar/atualizar endereço do usuário {user.UserId}: {ex.Message}");
+            throw;
+        }
     }
 }

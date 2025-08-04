@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Viagium.EntitiesDTO;
 using Viagium.EntitiesDTO.ApiDTO;
 using Viagium.EntitiesDTO.Payment;
 using Viagium.EntitiesDTO.User;
@@ -39,11 +40,20 @@ public class PaymentController : ControllerBase
         [FromForm] string? expiryMonth = null,
         [FromForm] string? expiryYear = null,
         [FromForm] string? ccv = null,
-        [FromForm] string? remoteIp = null)
+        [FromForm] string? remoteIp = null,
+        // Campos opcionais de endereço para pagamentos com cartão
+        [FromForm] string? streetName = null,
+        [FromForm] int? addressNumber = null,
+        [FromForm] string? neighborhood = null,
+        [FromForm] string? city = null,
+        [FromForm] string? state = null,
+        [FromForm] string? zipCode = null,
+        [FromForm] string? country = null)
     {
         try
         {
             CreditCardDTO? creditCard = null;
+            AddressDTO? address = null;
 
             // Se for cartão de crédito, valida e monta os dados do cartão
             if (paymentMethod == PaymentMethodType.CREDIT_CARD)
@@ -68,12 +78,28 @@ public class PaymentController : ControllerBase
                     Ccv = ccv
                 };
 
+                // Monta dados do endereço se fornecidos (opcional para cartão)
+                if (!string.IsNullOrEmpty(streetName) && addressNumber.HasValue && 
+                    !string.IsNullOrEmpty(city) && !string.IsNullOrEmpty(zipCode))
+                {
+                    address = new AddressDTO
+                    {
+                        StreetName = streetName,
+                        AddressNumber = addressNumber.Value,
+                        Neighborhood = neighborhood ?? "",
+                        City = city,
+                        State = state ?? "",
+                        ZipCode = zipCode,
+                        Country = country ?? "Brasil"
+                    };
+                }
+
                 // Valida os dados do cartão
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
             }
 
-            var payment = await _paymentService.AddPaymentAsync(reservationId, paymentMethod, creditCard, remoteIp);
+            var payment = await _paymentService.AddPaymentAsync(reservationId, paymentMethod, creditCard, remoteIp, address);
 
             return Ok(new
             {
@@ -83,7 +109,8 @@ public class PaymentController : ControllerBase
                 statusDescricao = GetStatusDescription(payment.Status),
                 metodo = payment.PaymentMethod.ToString(),
                 valor = payment.Amount,
-                processadoImediatamente = paymentMethod == PaymentMethodType.CREDIT_CARD
+                processadoImediatamente = paymentMethod == PaymentMethodType.CREDIT_CARD,
+                enderecoSalvo = address != null ? "Endereço salvo para o usuário" : "Nenhum endereço fornecido"
             });
         }
         catch (Exception ex)

@@ -144,6 +144,14 @@ public class AppDbContext : DbContext
             .HasForeignKey<Hotel>(h => h.AddressId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        //Relacionamento User - Address (N:1) - Opcional para pagamentos com cartão
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.Address)
+            .WithOne(ad => ad.User)
+            .HasForeignKey<User>(u => u.AddressId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false); // Relacionamento opcional
+
         //Relacionamento entre RoomType e Room (1:N)
         modelBuilder.Entity<RoomType>()
             .HasMany(rt => rt.Rooms)
