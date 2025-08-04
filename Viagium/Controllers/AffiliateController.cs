@@ -14,7 +14,7 @@ namespace Viagium.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+//[Authorize]
 public class AffiliateController : ControllerBase
 {
     private IAuthAffiliateService _authAffiliateService;
@@ -34,7 +34,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/affiliate/create</remarks>
     [HttpPost("create")]
-    [AllowAnonymous]
+    //[AllowAnonymous]
     public async Task<IActionResult> CreateAffiliate([FromBody] AffiliateCreateDto affiliateCreateDto)
     {
         try
@@ -89,11 +89,11 @@ public class AffiliateController : ControllerBase
     }
 
     /// <summary>
-    /// Lista todos os afiliados cadastrados.
+    /// Lista todos os afiliados cadastrados (ativos).
     /// </summary>
     /// <remarks>Exemplo: GET /api/affiliate</remarks>
     [HttpGet]
-    [AllowAnonymous]
+    //[AllowAnonymous]
     public async Task<IActionResult> GetAll()
     {
         try
@@ -108,15 +108,15 @@ public class AffiliateController : ControllerBase
     }
 
     /// <summary>
-    /// Exclui um afiliado pelo ID.
+    /// Desativa um afiliado pelo ID.
     /// </summary>
-    /// <remarks>Exemplo: DELETE /api/affiliate/1</remarks>
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
+    /// <remarks>Exemplo: DELETE /api/affiliate/deactivate/1</remarks>
+    [HttpDelete("deactivate/{id}")]
+    public async Task<IActionResult> Deactivate(int id)
     {
         try
         {
-            var result = await _affiliateService.DeleteAsync(id);
+            var result = await _affiliateService.DeactivateAsync(id);
             if (result)
                 return NoContent();
             return NotFound();
@@ -127,6 +127,25 @@ public class AffiliateController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Ativa um afiliado pelo ID.
+    /// </summary>
+    /// <remarks>Exemplo: PUT /api/affiliate/activate/1</remarks>
+    [HttpPut("activate/{id}")]
+    public async Task<IActionResult> Activate(int id)
+    {
+        try
+        {
+            var result = await _affiliateService.ActivateAsync(id);
+            if (result)
+                return NoContent();
+            return NotFound();
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
 
     /// <summary>
     /// Busca afiliados por cidade.
@@ -152,7 +171,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/affiliate/login</remarks>
     [HttpPost("login")]
-    [AllowAnonymous]
+    //[AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequest)
     {
         try
@@ -200,7 +219,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/affiliate/forgot-password</remarks>
     [HttpPost("forgot-password")]
-    [AllowAnonymous]
+    //[AllowAnonymous]
     public async Task<IActionResult> SendForgotPasswordEmailAsync([FromBody] string email)
     {
         try
@@ -276,7 +295,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/affiliate/all-adm</remarks>
     [HttpGet("all-adm")]
-    [AllowAnonymous]
+    //[AllowAnonymous]
     public async Task<IActionResult> GetAllAdm()
     {
         try

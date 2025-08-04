@@ -296,6 +296,7 @@ namespace Viagium.Services
                 }
                 return dtos;
             }, "busca reservas por usuário");
+        }
 
         /// <summary>
         /// Calcula o preço total da reserva baseado no TravelPackage e RoomType
