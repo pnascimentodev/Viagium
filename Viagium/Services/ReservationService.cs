@@ -324,8 +324,9 @@ namespace Viagium.Services
                 if (roomType == null)
                     throw new KeyNotFoundException($"RoomType com ID {createReservationDto.RoomTypeId} não encontrado.");
 
-                // 3. Calcular número de viajantes
-                var numPessoas = createReservationDto.Travelers?.Count ?? 1;
+                // 3. ✅ CORREÇÃO: Calcular número total de pessoas (usuário principal + viajantes adicionais)
+                var numTravelersAdicionais = createReservationDto.Travelers?.Count ?? 0;
+                var numPessoas = 1 + numTravelersAdicionais; // 1 (usuário principal) + viajantes adicionais
 
                 // 4. Implementar lógica do frontend
                 
@@ -359,6 +360,9 @@ namespace Viagium.Services
                 var valorFinal = valorBase - valorDesconto;
 
                 Console.WriteLine($"💰 Cálculo de preço da reserva:");
+                Console.WriteLine($"   - Usuário principal: 1 pessoa");
+                Console.WriteLine($"   - Viajantes adicionais: {numTravelersAdicionais} pessoas");
+                Console.WriteLine($"   - TOTAL DE PESSOAS: {numPessoas}");
                 Console.WriteLine($"   - Preço base do pacote: R$ {price:F2} ({travelPackage.OriginalPrice:F2} x {numPessoas} pessoas)");
                 Console.WriteLine($"   - Taxa do pacote: R$ {packageTax:F2}");
                 Console.WriteLine($"   - Acomodação: R$ {acomodationTotal:F2} ({pricePerNight:F2}/noite x {nightsToCharge} noites x {numPessoas} pessoas)");
