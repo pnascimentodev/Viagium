@@ -1,0 +1,197 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reserva Confirmada - Viagium</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .email-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        .title {
+            color: #1f2937;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+        .content {
+            margin-bottom: 25px;
+        }
+        .reservation-details {
+            background-color: #f0f7ff;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #e6f3ff;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #e6f3ff;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #2563eb;
+        }
+        .detail-value {
+            color: #1f2937;
+        }
+        .highlight {
+            background-color: #22c55e;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .button {
+            display: inline-block;
+            background-color: #2563eb;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 14px;
+            color: #6b7280;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="logo">✈️ Viagium</div>
+            <h1 class="title">🎉 Reserva Confirmada!</h1>
+        </div>
+
+        <div class="content">
+            <p>Olá <strong>{NOME}</strong>! 👋</p>
+            
+            <div class="highlight">
+                ✅ Sua reserva foi confirmada com sucesso!<br>
+                Tudo pronto para sua viagem dos sonhos!
+            </div>
+
+            <p>Parabéns! Sua reserva está oficialmente confirmada. Agora é só fazer as malas e se preparar para momentos inesquecíveis!</p>
+
+            <div class="reservation-details">
+                <h3 style="margin-top: 0; color: #2563eb;">📋 Detalhes da sua reserva:</h3>
+                
+                <div class="detail-row">
+                    <span class="detail-label">🎫 Código da Reserva:</span>
+                    <span class="detail-value">#{CODIGO_RESERVA}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">🏨 Hotel:</span>
+                    <span class="detail-value">{NOME_HOTEL}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">🌍 Destino:</span>
+                    <span class="detail-value">{DESTINO}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">🛏️ Tipo de Quarto:</span>
+                    <span class="detail-value">{TIPO_QUARTO}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">🗝️ Número do Quarto:</span>
+                    <span class="detail-value">{NUMERO_QUARTO}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">📅 Check-in:</span>
+                    <span class="detail-value">{DATA_CHECKIN}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">📅 Check-out:</span>
+                    <span class="detail-value">{DATA_CHECKOUT}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">👥 Hóspedes:</span>
+                    <span class="detail-value">{NUMERO_HOSPEDES} pessoa(s)</span>
+                </div>
+                
+                <div class="detail-row" style="border-bottom: none; margin-top: 15px; font-size: 18px;">
+                    <span class="detail-label">💰 Valor Total:</span>
+                    <span class="detail-value" style="color: #22c55e; font-weight: bold;">R$ {VALOR_TOTAL}</span>
+                </div>
+            </div>
+
+            <h3 style="color: #2563eb;">🏨 Informações do Hotel:</h3>
+            <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                <p><strong>📍 Endereço:</strong> {ENDERECO_HOTEL}</p>
+                <p><strong>📞 Telefone:</strong> {TELEFONE_HOTEL}</p>
+                <p><strong>🕐 Check-in:</strong> A partir das 14:00h</p>
+                <p><strong>🕐 Check-out:</strong> Até às 12:00h</p>
+            </div>
+
+            <h3 style="color: #2563eb;">🚀 Próximos passos:</h3>
+            <ul style="color: #374151;">
+                <li><strong>📧 Guarde este email</strong> - Este email serve como seu voucher</li>
+                <li><strong>🆔 Prepare sua documentação</strong> - Tenha um documento oficial com foto</li>
+                <li><strong>🧳 Faça sua bagagem</strong> - Verifique o clima do destino</li>
+                <li><strong>📱 Salve os contatos</strong> - Anote o telefone do hotel e nosso WhatsApp</li>
+            </ul>
+
+            <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b; margin: 20px 0;">
+                <strong>💡 Dica:</strong> Chegue ao hotel com antecedência no dia do check-in e tenha este email salvo no seu celular como comprovante da reserva.
+            </div>
+
+            <p><strong>📞 Precisa de ajuda?</strong></p>
+            <p>Nossa equipe está sempre pronta para ajudar:</p>
+            <p>
+                📱 <strong>WhatsApp:</strong> (11) 99999-9999<br>
+                📧 <strong>Email:</strong> suporte@viagium.com<br>
+                🕐 <strong>Horário:</strong> Segunda a Sexta, 9h às 18h
+            </p>
+        </div>
+
+        <div class="footer">
+            <p><strong>Viagium</strong> - Sua jornada, nossa paixão ✈️</p>
+            <p>Tenha uma viagem incrível e não esqueça de compartilhar suas experiências conosco!</p>
+            <p style="font-size: 12px; color: #9ca3af; margin-top: 20px;">
+                Reserva confirmada em: {DATA_CONFIRMACAO}<br>
+                Código da reserva: #{CODIGO_RESERVA}
+            </p>
+        </div>
+    </div>
+</body>
+</html>

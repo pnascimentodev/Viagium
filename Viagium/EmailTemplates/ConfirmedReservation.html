@@ -1,26 +1,165 @@
-﻿<html>
+﻿<!DOCTYPE html>
+<html>
 <head>
     <title>Reserva Confirmada - Viagium</title>
 </head>
 <body style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px; color: #333;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05);">
-        <h1 style="color: #003194;">Olá, {NOME}!</h1>
-        <p>Sua reserva foi confirmada com sucesso! Agora é oficial: seu próximo destino já está te esperando. 🌴✨</p>
+<div style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05);">
 
-        <p><strong>📌 Resumo da reserva:</strong></p>
-        <ul>
-            <li>Destino: {DESTINO}</li>
-            <li>Tipo de quarto: {TIPO_QUARTO}</li>
-            <li>Check-in: {DATA_CHECKIN}</li>
-            <li>Check-out: {DATA_CHECKOUT}</li>
-            <li>Hóspedes: {NUM_HOSPEDES}</li>
-        </ul>
-
-        <p>Você receberá todas as informações detalhadas por aqui, mas se precisar de ajuda em qualquer etapa, é só nos chamar.</p>
-
-        <p style="margin-top: 30px;">Boa viagem e aproveite ao máximo! 🚀</p>
-
-        <p style="color: #777;">Com carinho,<br><strong>Equipe Viagium</strong></p>
+    <div style="text-align: center; margin-bottom: 20px;">
+        <img src="https://res.cloudinary.com/dnuhmdhlu/image/upload/v1753579754/LOGO_VIAGIUM__1_cgsqzh.png" alt="Logo Viagium" style="max-width: 150px; height: auto;" />
     </div>
+
+    <h1 style="color: #003194; text-align: center;">🎊 Reserva Confirmada, {NOME}!</h1>
+
+    <div style="background: linear-gradient(135deg, #003194 0%, #0066cc 100%); color: white; padding: 25px; border-radius: 10px; text-align: center; margin: 25px 0;">
+        <h2 style="margin: 0 0 10px 0; font-size: 24px;">✅ Sua viagem está confirmada!</h2>
+        <p style="margin: 0; font-size: 16px; opacity: 0.9;">Tudo pronto para você viver momentos inesquecíveis!</p>
+    </div>
+
+    <p style="font-size: 16px; line-height: 1.6;">Parabéns! Sua reserva foi confirmada com sucesso. Agora é só fazer as malas e se preparar para uma experiência incrível! 🌟</p>
+
+    <h3 style="color: #003194; border-bottom: 2px solid #f0f7ff; padding-bottom: 10px;">🏨 Detalhes da sua reserva:</h3>
+
+    <div style="background-color: #f0f7ff; padding: 25px; border-radius: 10px; margin: 20px 0; border: 2px solid #e6f3ff;">
+        <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+            <div style="flex: 1; min-width: 200px;">
+                <p style="margin: 0 0 8px 0; font-weight: bold; color: #003194;">🏨 Hotel:</p>
+                <p style="margin: 0 0 15px 0; font-size: 16px;">{NOME_HOTEL}</p>
+
+                <p style="margin: 0 0 8px 0; font-weight: bold; color: #003194;">🌍 Destino:</p>
+                <p style="margin: 0 0 15px 0; font-size: 16px;">{DESTINO}</p>
+
+                <p style="margin: 0 0 8px 0; font-weight: bold; color: #003194;">🛏️ Acomodação:</p>
+                <p style="margin: 0; font-size: 16px;">{TIPO_QUARTO}</p>
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <p style="margin: 0 0 8px 0; font-weight: bold; color: #003194;">📅 Check-in:</p>
+                <p style="margin: 0 0 15px 0; font-size: 16px;">{DATA_CHECKIN}</p>
+
+                <p style="margin: 0 0 8px 0; font-weight: bold; color: #003194;">📅 Check-out:</p>
+                <p style="margin: 0 0 15px 0; font-size: 16px;">{DATA_CHECKOUT}</p>
+
+                <p style="margin: 0 0 8px 0; font-weight: bold; color: #003194;">👥 Hóspedes:</p>
+                <p style="margin: 0; font-size: 16px;">{NUMERO_HOSPEDES} pessoa(s)</p>
+            </div>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid #e6f3ff; margin: 20px 0;">
+
+        <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+            <div style="flex: 1; min-width: 200px;">
+                <p style="margin: 0 0 8px 0; font-weight: bold; color: #003194;">🎫 Código da Reserva:</p>
+                <p style="margin: 0 0 15px 0; font-size: 18px; font-weight: bold; color: #ff9900;">{CODIGO_RESERVA}</p>
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <p style="margin: 0 0 8px 0; font-weight: bold; color: #003194;">💰 Valor Total:</p>
+                <p style="margin: 0; font-size: 18px; font-weight: bold; color: #00cc88;">R$ {VALOR_TOTAL}</p>
+            </div>
+        </div>
+    </div>
+
+    <h3 style="color: #003194; border-bottom: 2px solid #f0f7ff; padding-bottom: 10px;">📞 Informações do hotel:</h3>
+
+    <div style="background-color: #f8fffe; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e6fff9;">
+        <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+            <div style="flex: 1; min-width: 200px;">
+                <p style="margin: 0 0 8px 0; font-weight: bold; color: #00cc88;">📍 Endereço:</p>
+                <p style="margin: 0 0 15px 0; font-size: 14px;">{ENDERECO_HOTEL}</p>
+
+                <p style="margin: 0 0 8px 0; font-weight: bold; color: #00cc88;">📞 Telefone:</p>
+                <p style="margin: 0; font-size: 14px;">{TELEFONE_HOTEL}</p>
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <p style="margin: 0 0 8px 0; font-weight: bold; color: #00cc88;">🕐 Check-in:</p>
+                <p style="margin: 0 0 15px 0; font-size: 14px;">A partir das 14:00H (Horário Local do Hotel)</p>
+
+                <p style="margin: 0 0 8px 0; font-weight: bold; color: #00cc88;">🕐 Check-out:</p>
+                <p style="margin: 0; font-size: 14px;">Até às A partir das 12:00H (Horário Local do Hotel)</p>
+            </div>
+        </div>
+    </div>
+
+    <h3 style="color: #003194; border-bottom: 2px solid #f0f7ff; padding-bottom: 10px;">🚀 Próximos passos:</h3>
+
+    <div style="background-color: #f8fffe; border-left: 4px solid #00cc88; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+        <p style="margin: 0 0 15px 0; font-weight: bold; color: #00cc88;">📧 1. Guarde este email</p>
+        <p style="margin: 0; font-size: 14px;">Este email serve como seu voucher. Apresente-o no check-in do hotel.</p>
+    </div>
+
+    <div style="background-color: #fff8f0; border-left: 4px solid #ff9900; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+        <p style="margin: 0 0 15px 0; font-weight: bold; color: #ff9900;">🆔 2. Prepare sua documentação</p>
+        <p style="margin: 0; font-size: 14px;">Tenha em mãos um documento oficial com foto para o check-in.</p>
+    </div>
+
+<!--    <div style="background-color: #f0f7ff; border-left: 4px solid #003194; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">-->
+<!--        <p style="margin: 0 0 15px 0; font-weight: bold; color: #003194;">📱 3. Baixe nosso app</p>-->
+<!--        <p style="margin: 0; font-size: 14px;">Tenha acesso offline aos seus vouchers e receba notificações importantes.</p>-->
+<!--    </div>-->
+
+<!--    <div style="text-align: center; margin: 40px 0;">-->
+<!--        <a href="#" style="display: inline-block; background-color: #003194; color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 12px rgba(0,49,148,0.3); margin-right: 10px;">-->
+<!--            📱 Baixar Voucher-->
+<!--        </a>-->
+<!--        <a href="#" style="display: inline-block; background-color: #00cc88; color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 12px rgba(0,204,136,0.3);">-->
+<!--            🗺️ Ver no Mapa-->
+<!--        </a>-->
+<!--    </div>-->
+
+    <div style="background: linear-gradient(135deg, #ff9900 0%, #ffcc00 100%); color: white; padding: 20px; border-radius: 10px; margin: 25px 0; text-align: center;">
+        <h3 style="margin: 0 0 10px 0;">📸 Dica especial!</h3>
+        <p style="margin: 0; font-size: 16px;">Fotografe todos os momentos especiais! Depois você poderá compartilhar sua experiência conosco na sua avaliação!</p>
+    </div>
+
+    <h3 style="color: #003194; border-bottom: 2px solid #f0f7ff; padding-bottom: 10px;">📋 Informações importantes:</h3>
+
+    <ul style="list-style: none; padding: 0;">
+        <li style="padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+            <strong>🆔 Documentação</strong> - Leve um documento oficial com foto para o check-in
+        </li>
+        <li style="padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+            <strong>💳 Cartão de crédito</strong> - Alguns hotéis solicitam cartão para garantia (não será cobrado)
+        </li>
+        <li style="padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+            <strong>🧳 Bagagem</strong> - Verifique as políticas de bagagem do hotel
+        </li>
+        <li style="padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+            <strong>🚗 Estacionamento</strong> - Consulte disponibilidade e tarifas diretamente com o hotel
+        </li>
+        <li style="padding: 10px 0;">
+            <strong>📞 Contato direto</strong> - Para alterações, entre em contato conosco, não diretamente com o hotel
+        </li>
+    </ul>
+
+
+   
+
+    <h3 style="color: #003194; border-bottom: 2px solid #f0f7ff; padding-bottom: 10px;">📞 Precisa de ajuda?</h3>
+    <p>Nossa equipe está sempre pronta para ajudar com qualquer dúvida sobre sua reserva:</p>
+
+    <div style="background-color: #f0f7ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <p style="margin: 0 0 10px 0;"><strong>💬 WhatsApp:</strong> (11) 99999-9999</p>
+        <p style="margin: 0 0 10px 0;"><strong>📧 Email:</strong> reservas@viagium.com</p>
+        <p style="margin: 0 0 10px 0;"><strong>🕐 Horário:</strong> Segunda a Sexta, 9h às 18h</p>
+    </div>
+
+    <p style="margin-top: 30px; text-align: center; font-size: 18px; color: #003194;">
+        <strong>Desejamos uma viagem incrível! 🌟</strong>
+    </p>
+
+    <p style="color: #777; text-align: center;">
+        Aproveite cada momento da sua estadia! ✈️🏨<br>
+        <strong>Equipe Viagium</strong>
+    </p>
+
+    <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+    
+
+    <p style="font-size: 11px; color: #ccc; text-align: center; margin-top: 20px;">
+        Este email confirma sua reserva no Viagium.<br>
+        Código da reserva: {CODIGO_RESERVA} | Data da confirmação: {DATA_CONFIRMACAO}
+    </p>
+
+</div>
 </body>
 </html>
