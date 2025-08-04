@@ -1,18 +1,20 @@
 ﻿using Viagium.Services.Interfaces;
 using Viagium.Repository.Interface;
 using Viagium.Models.ENUM;
+using Viagium.EntitiesDTO.Email;
 
 namespace Viagium.Services;
 
 /// <summary>
-/// Serviço em background para atualizar automaticamente o status das reservas
-/// quando EndDate ultrapassar a data atual (apenas para reservas com pagamento confirmado)
+/// Serviço em background para monitorar e atualizar automaticamente o status das reservas
+/// e disparar ações automáticas como envio de emails de review
 /// </summary>
 public class ReservationStatusBackgroundService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<ReservationStatusBackgroundService> _logger;
     private readonly TimeSpan _checkInterval;
+    private readonly Dictionary<int, string> _lastKnownStatuses = new();
 
     public ReservationStatusBackgroundService(
         IServiceProvider serviceProvider, 
@@ -22,36 +24,39 @@ public class ReservationStatusBackgroundService : BackgroundService
         _serviceProvider = serviceProvider;
         _logger = logger;
         
-        // Intervalo configurável: padrão 1 hora
-        var intervalHours = configuration["RESERVATION_STATUS_CHECK_INTERVAL_HOURS"];
-        _checkInterval = TimeSpan.FromHours(int.TryParse(intervalHours, out var hours) ? hours : 1);
+        // Intervalo configurável: padrão 1 minuto para monitoramento em tempo real
+        var intervalMinutes = configuration["RESERVATION_STATUS_CHECK_INTERVAL_MINUTES"];
+        _checkInterval = TimeSpan.FromMinutes(int.TryParse(intervalMinutes, out var minutes) ? minutes : 1);
         
-        _logger.LogInformation($"🏨 Serviço de atualização de status de reservas iniciado. Intervalo: {_checkInterval.TotalHours} horas");
+        _logger.LogInformation($"🏨 Serviço de monitoramento de reservas iniciado. Intervalo: {_checkInterval.TotalMinutes} minutos");
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // Aguarda 1 minuto antes de iniciar para garantir que a aplicação esteja totalmente inicializada
-        await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+        // Aguarda 30 segundos antes de iniciar
+        await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
+        
+        // Carrega status inicial das reservas
+        await LoadInitialReservationStatuses();
         
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                _logger.LogInformation("⏰ Iniciando verificação de status das reservas...");
+                _logger.LogDebug("⏰ Verificando mudanças de status das reservas...");
                 
-                // Cria um novo escopo para resolver os serviços
                 using var scope = _serviceProvider.CreateScope();
                 var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                var environment = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
                 
-                await UpdateExpiredReservationsAsync(unitOfWork);
+                await MonitorReservationStatusChanges(unitOfWork, emailService, environment);
+                await UpdateExpiredReservationsAsync(unitOfWork, emailService, environment);
                 
-                _logger.LogInformation($"✅ Verificação concluída. Próxima em {_checkInterval.TotalHours} horas.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Erro durante verificação de status das reservas");
-                // Não para o serviço, continua tentando nos próximos ciclos
             }
 
             try
@@ -60,28 +65,131 @@ public class ReservationStatusBackgroundService : BackgroundService
             }
             catch (OperationCanceledException)
             {
-                // Cancellation foi solicitado, sair do loop
                 break;
             }
         }
         
-        _logger.LogInformation("🛑 Serviço de atualização de status de reservas interrompido.");
+        _logger.LogInformation("🛑 Serviço de monitoramento de reservas interrompido.");
     }
 
     /// <summary>
-    /// Atualiza reservas expiradas para status "Finished"
+    /// Carrega o status inicial de todas as reservas ativas
     /// </summary>
-    private async Task UpdateExpiredReservationsAsync(IUnitOfWork unitOfWork)
+    private async Task LoadInitialReservationStatuses()
     {
         try
         {
-            Console.WriteLine("🔍 Verificando reservas expiradas...");
+            using var scope = _serviceProvider.CreateScope();
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
             
-            // Buscar todas as reservas ativas
             var allReservations = await unitOfWork.ReservationRepository.GetAllAsync();
             
+            foreach (var reservation in allReservations.Where(r => r.IsActive))
+            {
+                _lastKnownStatuses[reservation.ReservationId] = reservation.Status ?? "unknown";
+            }
+            
+            _logger.LogInformation($"📋 Status inicial carregado para {_lastKnownStatuses.Count} reservas");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Erro ao carregar status inicial das reservas");
+        }
+    }
+
+    /// <summary>
+    /// Monitora mudanças de status das reservas em tempo real
+    /// </summary>
+    private async Task MonitorReservationStatusChanges(IUnitOfWork unitOfWork, IEmailService emailService, IWebHostEnvironment environment)
+    {
+        var allReservations = await unitOfWork.ReservationRepository.GetAllAsync();
+        var activeReservations = allReservations.Where(r => r.IsActive).ToList();
+        
+        foreach (var reservation in activeReservations)
+        {
+            var currentStatus = reservation.Status ?? "unknown";
+            var reservationId = reservation.ReservationId;
+            
+            // Verifica se é uma nova reserva
+            if (!_lastKnownStatuses.ContainsKey(reservationId))
+            {
+                _lastKnownStatuses[reservationId] = currentStatus;
+                continue;
+            }
+            
+            var previousStatus = _lastKnownStatuses[reservationId];
+            
+            // Detecta mudança de status
+            if (previousStatus != currentStatus)
+            {
+                _logger.LogInformation($"🔄 Status mudou - Reserva {reservationId}: '{previousStatus}' → '{currentStatus}'");
+                
+                // Atualiza o status conhecido
+                _lastKnownStatuses[reservationId] = currentStatus;
+                
+                // Executa ações baseadas na mudança de status
+                await HandleStatusChange(reservation, previousStatus, currentStatus, emailService, environment, unitOfWork);
+            }
+        }
+        
+        // Remove reservas que não estão mais ativas
+        var inactiveReservationIds = _lastKnownStatuses.Keys
+            .Where(id => !activeReservations.Any(r => r.ReservationId == id))
+            .ToList();
+        
+        foreach (var id in inactiveReservationIds)
+        {
+            _lastKnownStatuses.Remove(id);
+        }
+    }
+
+    /// <summary>
+    /// Executa ações específicas baseadas na mudança de status
+    /// </summary>
+    private async Task HandleStatusChange(
+        Models.Reservation reservation, 
+        string previousStatus, 
+        string currentStatus,
+        IEmailService emailService,
+        IWebHostEnvironment environment,
+        IUnitOfWork unitOfWork)
+    {
+        try
+        {
+            switch (currentStatus.ToLower())
+            {
+                case "confirmed":
+                case "confirmado":
+                    _logger.LogInformation($"🎉 RESERVA CONFIRMADA! ID: {reservation.ReservationId}");
+                    break;
+                    
+                case "finished":
+                case "finalizada":
+                    _logger.LogInformation($"🏁 RESERVA FINALIZADA! ID: {reservation.ReservationId}");
+                    await SendReviewRequestEmail(reservation, emailService, environment, unitOfWork);
+                    break;
+                    
+                case "cancelled":
+                case "cancelada":
+                    _logger.LogInformation($"❌ RESERVA CANCELADA! ID: {reservation.ReservationId}");
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"❌ Erro ao processar mudança de status da reserva {reservation.ReservationId}");
+        }
+    }
+
+    /// <summary>
+    /// Atualiza reservas expiradas para status "finished" e envia emails de review
+    /// </summary>
+    private async Task UpdateExpiredReservationsAsync(IUnitOfWork unitOfWork, IEmailService emailService, IWebHostEnvironment environment)
+    {
+        try
+        {
+            var allReservations = await unitOfWork.ReservationRepository.GetAllAsync();
             var hoje = DateTime.Now.Date;
-            int reservasVerificadas = 0;
             int reservasFinalizadas = 0;
 
             foreach (var reserva in allReservations)
@@ -89,10 +197,9 @@ public class ReservationStatusBackgroundService : BackgroundService
                 try
                 {
                     // Verificar apenas reservas ativas e confirmadas
-                    if (!reserva.IsActive || reserva.Status != "Confirmado")
+                    var statusLower = reserva.Status?.ToLower();
+                    if (!reserva.IsActive || (statusLower != "confirmado" && statusLower != "confirmed"))
                         continue;
-
-                    reservasVerificadas++;
 
                     // Verificar se EndDate já passou
                     if (reserva.EndDate.Date < hoje)
@@ -102,46 +209,97 @@ public class ReservationStatusBackgroundService : BackgroundService
                         
                         if (hasConfirmedPayment)
                         {
-                            // Atualizar status para "Finished"
-                            reserva.Status = "Finished";
+                            var statusAnterior = reserva.Status;
+                            
+                            // Atualizar status para "finished"
+                            reserva.Status = "finished";
                             await unitOfWork.ReservationRepository.UpdateAsync(reserva);
+                            
+                            // Atualizar status conhecido
+                            _lastKnownStatuses[reserva.ReservationId] = "finished";
                             
                             reservasFinalizadas++;
                             
-                            Console.WriteLine($"🏁 Reserva {reserva.ReservationId} finalizada automaticamente:");
-                            Console.WriteLine($"   - EndDate: {reserva.EndDate:dd/MM/yyyy}");
-                            Console.WriteLine($"   - Status anterior: Confirmado → Finished");
-                            Console.WriteLine($"   - Pagamento: Confirmado");
-                        }
-                        else
-                        {
-                            Console.WriteLine($"⚠️ Reserva {reserva.ReservationId} expirada mas sem pagamento confirmado - mantendo status atual");
+                            _logger.LogInformation($"🏁 Reserva {reserva.ReservationId} finalizada automaticamente:");
+                            _logger.LogInformation($"   - EndDate: {reserva.EndDate:dd/MM/yyyy}");
+                            _logger.LogInformation($"   - Status: {statusAnterior} → finished");
+                            
+                            // ✅ ENVIAR EMAIL DE REVIEW
+                            await SendReviewRequestEmail(reserva, emailService, environment, unitOfWork);
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"❌ Erro ao processar reserva {reserva.ReservationId}: {ex.Message}");
-                    // Continue processando outras reservas mesmo se uma falhar
+                    _logger.LogError(ex, $"❌ Erro ao processar reserva {reserva.ReservationId}");
                 }
             }
 
-            // Salvar todas as alterações de uma vez
+            // Salvar todas as alterações
             if (reservasFinalizadas > 0)
             {
                 await unitOfWork.SaveAsync();
+                _logger.LogInformation($"📊 {reservasFinalizadas} reservas finalizadas automaticamente");
             }
-            
-            Console.WriteLine($"📊 Verificação de reservas concluída:");
-            Console.WriteLine($"   - Reservas verificadas: {reservasVerificadas}");
-            Console.WriteLine($"   - Reservas finalizadas: {reservasFinalizadas}");
-            Console.WriteLine($"   - Data/hora da verificação: {DateTime.Now:dd/MM/yyyy HH:mm:ss}");
-
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"💥 Erro geral ao verificar reservas expiradas: {ex.Message}");
-            throw;
+            _logger.LogError(ex, "💥 Erro geral ao verificar reservas expiradas");
+        }
+    }
+
+    /// <summary>
+    /// Envia email de solicitação de review quando a reserva é finalizada
+    /// </summary>
+    private async Task SendReviewRequestEmail(
+        Models.Reservation reservation,
+        IEmailService emailService,
+        IWebHostEnvironment environment,
+        IUnitOfWork unitOfWork)
+    {
+        try
+        {
+            // Buscar dados do usuário se necessário
+            if (reservation.User == null)
+            {
+                reservation.User = await unitOfWork.UserRepository.GetByIdAsync(reservation.UserId);
+            }
+
+            if (reservation.User == null)
+            {
+                _logger.LogWarning($"⚠️ Usuário não encontrado para envio de email de review. ReservationId: {reservation.ReservationId}");
+                return;
+            }
+
+            var userEmail = reservation.User.Email;
+            var userName = reservation.User.FirstName;
+
+            // Carrega template de email
+            var templatePath = Path.Combine(environment.ContentRootPath, "EmailTemplates", "User", "ReviewSolicited.html");
+            
+            if (!File.Exists(templatePath))
+            {
+                _logger.LogWarning($"⚠️ Template de email não encontrado: {templatePath}");
+                return;
+            }
+
+            var template = await File.ReadAllTextAsync(templatePath);
+            var emailBody = template.Replace("{NOME}", userName);
+            
+            var emailDto = new SendEmailDTO
+            {
+                To = userEmail,
+                Subject = "✨ Conte-nos sobre sua experiência - Viagium",
+                HtmlBody = emailBody
+            };
+
+            await emailService.SendEmailAsync(emailDto);
+
+            _logger.LogInformation($"📧 Email de solicitação de review enviado para: {userEmail} (Reserva: {reservation.ReservationId})");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"❌ Erro ao enviar email de review para reserva {reservation.ReservationId}");
         }
     }
 
@@ -157,19 +315,18 @@ public class ReservationStatusBackgroundService : BackgroundService
             if (reserva?.Payment == null)
                 return false;
 
-            // Verifica se o pagamento está confirmado (RECEIVED)
             return reserva.Payment.Status == PaymentStatus.RECEIVED;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Erro ao verificar pagamento da reserva {reservationId}: {ex.Message}");
+            _logger.LogError(ex, $"❌ Erro ao verificar pagamento da reserva {reservationId}");
             return false;
         }
     }
 
     public override async Task StopAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("🔄 Parando serviço de atualização de status de reservas...");
+        _logger.LogInformation("🔄 Parando serviço de monitoramento de reservas...");
         await base.StopAsync(stoppingToken);
     }
 }

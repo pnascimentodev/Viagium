@@ -9,6 +9,7 @@ using Viagium.Repository.Interface;
 using Viagium.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Viagium.EntitiesDTO;
+using Viagium.EntitiesDTO.Email;
 
 namespace Viagium.Services;
 
@@ -18,11 +19,15 @@ public class PaymentService : IPaymentService
     private readonly string _asaasBaseUrl;
     private readonly HttpClient _httpClient;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IEmailService _emailService;
+    private readonly IWebHostEnvironment _environment;
 
-    public PaymentService(IHttpClientFactory httpClientFactory, IUnitOfWork unitOfWork, IConfiguration configuration)
+    public PaymentService(IHttpClientFactory httpClientFactory, IUnitOfWork unitOfWork, IConfiguration configuration, IEmailService emailService, IWebHostEnvironment environment)
     {
         _httpClient = httpClientFactory.CreateClient();
         _unitOfWork = unitOfWork;
+        _emailService = emailService;
+        _environment = environment;
         _asaasApiKey = configuration["Asaas:ApiKey"] ?? throw new InvalidOperationException("Asaas API Key não configurada");
         _asaasBaseUrl = configuration["Asaas:BaseUrl"] ?? throw new InvalidOperationException("Asaas Base URL não configurada");
     }
@@ -557,6 +562,9 @@ public class PaymentService : IPaymentService
                         await _unitOfWork.ReservationRepository.UpdateAsync(reservation);
                         
                         Console.WriteLine($"🏁 RESERVA FINALIZADA! ID: {reservation.ReservationId} | Viagem concluída em {reservation.EndDate:dd/MM/yyyy}");
+                        
+                        // ✅ ENVIAR EMAIL DE SOLICITAÇÃO DE REVIEW
+                        await SendReviewRequestEmailAsync(reservation);
                     }
                     catch (Exception ex)
                     {
@@ -613,6 +621,9 @@ public class PaymentService : IPaymentService
             if (novoStatusReserva == "finished")
             {
                 Console.WriteLine($"🏁 RESERVA FINALIZADA! ID: {reserva.ReservationId} | Viagem concluída em {reserva.EndDate:dd/MM/yyyy}");
+                
+                // ✅ ENVIAR EMAIL DE SOLICITAÇÃO DE REVIEW
+                await SendReviewRequestEmailAsync(reserva);
             }
             
             // Log para problemas
@@ -620,6 +631,61 @@ public class PaymentService : IPaymentService
             {
                 Console.WriteLine($"⚠️ ATENÇÃO: Reserva {reserva.ReservationId} foi cancelada - verificar necessidade de ação.");
             }
+        }
+    }
+
+    /// <summary>
+    /// Envia email de solicitação de review para o usuário quando a reserva é finalizada
+    /// </summary>
+    private async Task SendReviewRequestEmailAsync(Reservation reservation)
+    {
+        try
+        {
+            // Buscar dados do usuário se não estiverem carregados
+            if (reservation.User == null)
+            {
+                reservation.User = await _unitOfWork.UserRepository.GetByIdAsync(reservation.UserId);
+            }
+
+            if (reservation.User == null)
+            {
+                Console.WriteLine($"⚠️ Usuário não encontrado para envio de email de review. ReservationId: {reservation.ReservationId}");
+                return;
+            }
+
+            var userName = $"{reservation.User.FirstName} {reservation.User.LastName}";
+            var userEmail = reservation.User.Email;
+
+            // Carregar template de email de review
+            var templatePath = Path.Combine(_environment.ContentRootPath, "EmailTemplates", "User", "ReviewSolicited.html");
+            
+            if (!File.Exists(templatePath))
+            {
+                Console.WriteLine($"⚠️ Template de email não encontrado: {templatePath}");
+                return;
+            }
+
+            var template = await File.ReadAllTextAsync(templatePath);
+            
+            // Substituir placeholder no template
+            var emailBody = template.Replace("{NOME}", reservation.User.FirstName);
+            
+            var emailDto = new SendEmailDTO
+            {
+                To = userEmail,
+                Subject = "✨ Conte-nos sobre sua experiência - Viagium",
+                HtmlBody = emailBody
+            };
+
+            // Enviar email usando o serviço existente
+            await _emailService.SendEmailAsync(emailDto);
+
+            Console.WriteLine($"📧 Email de solicitação de review enviado para: {userEmail} (Reserva: {reservation.ReservationId})");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erro ao enviar email de review para reserva {reservation.ReservationId}: {ex.Message}");
+            // Não relança a exceção para não interromper o fluxo de sincronização
         }
     }
 
