@@ -425,6 +425,8 @@ public class TravelPackageRepository : ITravelPackageRepository
                 OriginCountry = pkg.OriginAddress?.Country,
                 DestinationCity = pkg.DestinationAddress?.City,
                 DestinationCountry = pkg.DestinationAddress?.Country,
+                CreatedAt = pkg.CreatedAt,
+                IsActive = pkg.IsActive,
                 Hotels = hotelDtos,
                 PackageSchedule = _mapper.Map<PackageScheduleDTO>(schedule)
             });
@@ -756,10 +758,10 @@ public class TravelPackageRepository : ITravelPackageRepository
                 OriginCountry = pkg.OriginAddress?.Country,
                 DestinationCity = pkg.DestinationAddress?.City,
                 DestinationCountry = pkg.DestinationAddress?.Country,
+                CreatedAt = pkg.CreatedAt,
+                IsActive = pkg.IsActive,
                 Hotels = hotelDtos,
                 PackageSchedule = _mapper.Map<PackageScheduleDTO>(schedule),
-                IsActive = pkg.IsActive,
-                CreatedAt = pkg.CreatedAt
             });
         }
         return result;
