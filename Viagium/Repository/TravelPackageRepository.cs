@@ -321,6 +321,15 @@ public class TravelPackageRepository : ITravelPackageRepository
             .Include(tp => tp.PackageHotels)
                 .ThenInclude(ph => ph.Hotel)
                     .ThenInclude(h => h.Address)
+            .Include(tp => tp.PackageHotels)
+                .ThenInclude(ph => ph.Hotel)
+                    .ThenInclude(h => h.HotelAmenity)
+                        .ThenInclude(ha => ha.Amenity)
+            .Include(tp => tp.PackageHotels)
+                .ThenInclude(ph => ph.Hotel)
+                    .ThenInclude(h => h.RoomTypes)
+                        .ThenInclude(rt => rt.RoomTypeAmenities)
+                            .ThenInclude(rta => rta.Amenity)
             .ToListAsync();
 
         bool changed = false;
