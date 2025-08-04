@@ -161,10 +161,16 @@ namespace Viagium.ProfileAutoMapper
 
             // Mapeamentos para Review
             CreateMap<Review, ReviewDTO>()
-                .ForMember(dest => dest.Reservation, opt => opt.MapFrom(src => src.Reservation))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
                 .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.Rating))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
+            
+            // ✅ MAPEAMENTO REVERSO ADICIONADO: ReviewDTO -> Review
+            CreateMap<ReviewDTO, Review>()
+                .ForMember(dest => dest.ReviewId, opt => opt.Ignore()) // Será gerado pelo banco
+                .ForMember(dest => dest.Reservation, opt => opt.Ignore()) // Navegação será resolvida pelo EF
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.Now)); // Define data atual
+
             CreateMap<AddressPackageDTO, Address>()
                 .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City))
                 .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country))

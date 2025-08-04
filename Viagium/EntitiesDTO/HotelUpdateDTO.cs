@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 namespace Viagium.EntitiesDTO;
+
 public class HotelUpdateDTO
 {
     public string? Name { get; set; }
@@ -20,4 +21,3 @@ public class HotelUpdateDTO
     public AddressDTO? Address { get; set; }
     public List<int>? Amenities { get; set; }
 }
-

@@ -26,6 +26,23 @@ namespace Viagium.Services
             {
                 throw new ArgumentNullException(nameof(reviewDTO), "Review nao pode ser vazia");
             }
+
+            //Checar se a reserva associada existe
+            review.Reservation = await _unitOfWork.ReservationRepository.GetByIdAsync(review.ReservationId);
+
+            if (review.Reservation == null)
+            {
+                throw new InvalidOperationException("Reservation nao encontrada");
+            }
+
+            //Checar o status da reserva associada esta finalizada
+            var reservation = review.Reservation.Status;
+            if (reservation.ToLower() != "finished")
+            {
+                throw new InvalidOperationException("A reserva associada deve estar finalizada para adicionar uma avaliação.");
+            }
+
+
             await _unitOfWork.ReviewRepository.AddReviewAsync(review);
             await _unitOfWork.SaveAsync();
             return _mapper.Map<ReviewDTO>(review);

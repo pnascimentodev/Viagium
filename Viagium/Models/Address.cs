@@ -44,6 +44,10 @@ namespace Viagium.Models
         [Display(Name = "Id do Pacote de Viagem")]
         public TravelPackage? TravelPackage { get; set; }
         
+        public int? UserId { get; set; }
+        [Display(Name = "Id do Usuário")]
+        public User? User { get; set; }
+        
         [Display(Name = "Id do Endereço de Origem")]
         public int OriginAddressId { get; set; }
         

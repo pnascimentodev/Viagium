@@ -16,10 +16,6 @@ namespace Viagium.EntitiesDTO.Reservation
         [Required]
         public int HotelId { get; set; }
 
-        [Required]
-        [DataType(DataType.Date)]
-        public DateTime StartDate { get; set; }
-
         // Id do quarto do hotel escolhido
         [Required]
         public int RoomTypeId { get; set; }

@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Viagium.EntitiesDTO;
 using Viagium.EntitiesDTO.ApiDTO;
+using Viagium.EntitiesDTO.Payment;
 using Viagium.EntitiesDTO.User;
 using Viagium.Models;
 using Viagium.Models.ENUM;
@@ -30,19 +32,85 @@ public class PaymentController : ControllerBase
     /// <remarks>Exemplo: POST /api/payment/CreatePayment</remarks>
     [HttpPost("CreatePayment")] //envia a informação de pagamento para a api do Asaas
     [Consumes("application/x-www-form-urlencoded")]
-    public async Task<IActionResult> CreatePayment([FromForm] Reservation reservation)
+    public async Task<IActionResult> CreatePayment(
+        [FromForm] int reservationId, 
+        [FromForm] PaymentMethodType paymentMethod,
+        [FromForm] string? holderName = null,
+        [FromForm] string? cardNumber = null,
+        [FromForm] string? expiryMonth = null,
+        [FromForm] string? expiryYear = null,
+        [FromForm] string? ccv = null,
+        [FromForm] string? remoteIp = null,
+        // Campos opcionais de endereço para pagamentos com cartão
+        [FromForm] string? streetName = null,
+        [FromForm] int? addressNumber = null,
+        [FromForm] string? neighborhood = null,
+        [FromForm] string? city = null,
+        [FromForm] string? state = null,
+        [FromForm] string? zipCode = null,
+        [FromForm] string? country = null)
     {
         try
         {
-            var payment = await _paymentService.AddPaymentAsync(reservation);
+            CreditCardDTO? creditCard = null;
+            AddressDTO? address = null;
+
+            // Se for cartão de crédito, valida e monta os dados do cartão
+            if (paymentMethod == PaymentMethodType.CREDIT_CARD)
+            {
+                if (string.IsNullOrEmpty(holderName) || string.IsNullOrEmpty(cardNumber) || 
+                    string.IsNullOrEmpty(expiryMonth) || string.IsNullOrEmpty(expiryYear) || 
+                    string.IsNullOrEmpty(ccv))
+                {
+                    return BadRequest(new
+                    {
+                        erro = "Para pagamentos com cartão de crédito, todos os dados do cartão são obrigatórios",
+                        camposObrigatorios = new[] { "holderName", "cardNumber", "expiryMonth", "expiryYear", "ccv" }
+                    });
+                }
+
+                creditCard = new CreditCardDTO
+                {
+                    HolderName = holderName,
+                    Number = cardNumber,
+                    ExpiryMonth = expiryMonth,
+                    ExpiryYear = expiryYear,
+                    Ccv = ccv
+                };
+
+                // Monta dados do endereço se fornecidos (opcional para cartão)
+                if (!string.IsNullOrEmpty(streetName) && addressNumber.HasValue && 
+                    !string.IsNullOrEmpty(city) && !string.IsNullOrEmpty(zipCode))
+                {
+                    address = new AddressDTO
+                    {
+                        StreetName = streetName,
+                        AddressNumber = addressNumber.Value,
+                        Neighborhood = neighborhood ?? "",
+                        City = city,
+                        State = state ?? "",
+                        ZipCode = zipCode,
+                        Country = country ?? "Brasil"
+                    };
+                }
+
+                // Valida os dados do cartão
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+            }
+
+            var payment = await _paymentService.AddPaymentAsync(reservationId, paymentMethod, creditCard, remoteIp, address);
 
             return Ok(new
             {
                 mensagem = "Pagamento criado com sucesso!",
                 pagamentoId = payment.PaymentId,
                 status = payment.Status.ToString(),
+                statusDescricao = GetStatusDescription(payment.Status),
                 metodo = payment.PaymentMethod.ToString(),
-                valor = payment.Amount
+                valor = payment.Amount,
+                processadoImediatamente = paymentMethod == PaymentMethodType.CREDIT_CARD,
+                enderecoSalvo = address != null ? "Endereço salvo para o usuário" : "Nenhum endereço fornecido"
             });
         }
         catch (Exception ex)

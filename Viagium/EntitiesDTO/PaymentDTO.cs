@@ -7,13 +7,8 @@ namespace Viagium.EntitiesDTO;
 
 public class PaymentDTO
 {
-    public ReservationDTO? Reservation { get; set; }
-    
     [Required]
     public PaymentMethodType PaymentMethod { get; set; }
-    
-    [StringLength(4)]
-    public string? CardLastFourDigits { get; set; }
 
     public PaymentStatus Status { get; set; } = PaymentStatus.PENDING;
     

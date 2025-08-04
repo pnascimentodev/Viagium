@@ -14,7 +14,6 @@ namespace Viagium.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-//[Authorize]
 public class AffiliateController : ControllerBase
 {
     private IAuthAffiliateService _authAffiliateService;
@@ -34,7 +33,6 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/affiliate/create</remarks>
     [HttpPost("create")]
-    //[AllowAnonymous]
     public async Task<IActionResult> CreateAffiliate([FromBody] AffiliateCreateDto affiliateCreateDto)
     {
         try
@@ -93,7 +91,6 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/affiliate</remarks>
     [HttpGet]
-    //[AllowAnonymous]
     public async Task<IActionResult> GetAll()
     {
         try
@@ -171,7 +168,6 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/affiliate/login</remarks>
     [HttpPost("login")]
-    //[AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequest)
     {
         try
@@ -219,7 +215,6 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/affiliate/forgot-password</remarks>
     [HttpPost("forgot-password")]
-    //[AllowAnonymous]
     public async Task<IActionResult> SendForgotPasswordEmailAsync([FromBody] string email)
     {
         try
@@ -256,7 +251,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/affiliate/forgot-password/1</remarks>
     [HttpPost("forgot-password/{id}")]
-    [AllowAnonymous]
+    // [AllowAnonymous]
     public async Task<IActionResult> ForgotPassword(int id, [FromBody] ForgotPasswordDto dto)
     {
         try
@@ -295,7 +290,6 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/affiliate/all-adm</remarks>
     [HttpGet("all-adm")]
-    //[AllowAnonymous]
     public async Task<IActionResult> GetAllAdm()
     {
         try

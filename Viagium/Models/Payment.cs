@@ -16,9 +16,6 @@ public class Payment
     [Required]
     public PaymentMethodType PaymentMethod { get; set; }
     
-    [StringLength(4)]
-    public string? CardLastFourDigits { get; set; }
-    
     public string? PaymentIdAsaas { get; set; }
 
     public PaymentStatus Status { get; set; } = PaymentStatus.PENDING;

@@ -77,6 +77,7 @@ builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<ITravelerRepository, TravelerRepository>();
 builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+builder.Services.AddScoped<IPackageScheduleRepository, PackageScheduleRepository>();
 
 
 // Registra o UnitOfWork e o serviços
@@ -208,6 +209,9 @@ builder.Services.AddSingleton<ITokenBlacklistService, InMemoryTokenBlacklistServ
 
 // Adiciona o serviço de sincronização automática de pagamentos
 builder.Services.AddHostedService<PaymentSyncBackgroundService>();
+
+// Adiciona o serviço de atualização automática de status das reservas
+builder.Services.AddHostedService<ReservationStatusBackgroundService>();
 
 var app = builder.Build(); 
 // Configure the HTTP request pipeline.
