@@ -284,7 +284,11 @@ public class ReservationStatusBackgroundService : BackgroundService
             }
 
             var template = await File.ReadAllTextAsync(templatePath);
-            var emailBody = template.Replace("{NOME}", userName);
+            
+            // ✅ SUBSTITUIR PLACEHOLDERS NO TEMPLATE
+            var emailBody = template
+                .Replace("{NOME}", userName)
+                .Replace("{RESERVATION_ID}", reservation.ReservationId.ToString());
             
             var emailDto = new SendEmailDTO
             {

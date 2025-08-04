@@ -667,8 +667,10 @@ public class PaymentService : IPaymentService
 
             var template = await File.ReadAllTextAsync(templatePath);
             
-            // Substituir placeholder no template
-            var emailBody = template.Replace("{NOME}", reservation.User.FirstName);
+            // ✅ SUBSTITUIR PLACEHOLDERS NO TEMPLATE
+            var emailBody = template
+                .Replace("{NOME}", reservation.User.FirstName)
+                .Replace("{RESERVATION_ID}", reservation.ReservationId.ToString());
             
             var emailDto = new SendEmailDTO
             {
