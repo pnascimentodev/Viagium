@@ -7,7 +7,7 @@ namespace Viagium.EntitiesDTO;
 
 public class ReservationDTO
 {
-    //public int ReservationId { get; set; }
+    public int ReservationId { get; set; }
 
     [Required]
     public int UserId { get; set; }
