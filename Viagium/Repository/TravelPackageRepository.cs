@@ -425,6 +425,7 @@ public class TravelPackageRepository : ITravelPackageRepository
                 OriginCountry = pkg.OriginAddress?.Country,
                 DestinationCity = pkg.DestinationAddress?.City,
                 DestinationCountry = pkg.DestinationAddress?.Country,
+                IsActive = pkg.IsActive,
                 Hotels = hotelDtos,
                 PackageSchedule = _mapper.Map<PackageScheduleDTO>(schedule)
             });
