@@ -400,7 +400,6 @@ public class TravelPackageRepository : ITravelPackageRepository
                 OriginCountry = pkg.OriginAddress?.Country,
                 DestinationCity = pkg.DestinationAddress?.City,
                 DestinationCountry = pkg.DestinationAddress?.Country,
-                CreatedAt = pkg.CreatedAt,
                 IsActive = pkg.IsActive,
                 Hotels = hotelDtos,
                 CreatedAt = pkg.CreatedAt,
