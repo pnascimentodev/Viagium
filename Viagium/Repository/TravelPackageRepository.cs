@@ -403,7 +403,6 @@ public class TravelPackageRepository : ITravelPackageRepository
                 IsActive = pkg.IsActive,
                 Hotels = hotelDtos,
                 CreatedAt = pkg.CreatedAt,
-                IsActive = pkg.IsActive
             });
         }
         return result;
@@ -503,6 +502,7 @@ public class TravelPackageRepository : ITravelPackageRepository
             DestinationCity = travelPackage.DestinationAddress?.City,
             DestinationCountry = travelPackage.DestinationAddress?.Country,
             Hotels = hotelDtos,
+            StartDate = travelPackage.StartDate,
             PackageSchedule = _mapper.Map<PackageScheduleDTO>(schedule)
         };
     }
