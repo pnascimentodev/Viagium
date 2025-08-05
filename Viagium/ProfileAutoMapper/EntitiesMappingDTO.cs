@@ -60,6 +60,12 @@ namespace Viagium.ProfileAutoMapper
                 .ForMember(dest => dest.DestinationAddress, opt => opt.MapFrom(src => src.DestinationAddress))
                 .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.UserId));
             CreateMap<TravelPackageHistory, TravelPackageHistoryDTO>();
+            CreateMap<ResponseTravelPackageDTO, UpdateTravelPackageFormDTO>().ReverseMap();
+            CreateMap<UpdateTravelPackageFormDTO, ResponseTravelPackageDTO>()
+                .ForMember(dest => dest.Hotels, opt => opt.Ignore())
+                .ForMember(dest => dest.PackageSchedule, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.IsActive, opt => opt.Ignore());
             CreateMap<UserUpdateDto, Viagium.Models.User>()
                 .ForMember(dest => dest.DocumentNumber, opt => opt.Ignore())
                 .ForMember(dest => dest.Role, opt => opt.Ignore())
