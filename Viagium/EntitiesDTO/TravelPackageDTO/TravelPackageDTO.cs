@@ -11,13 +11,12 @@ public class TravelPackageDTO
     public AddressPackageDTO? Address { get; set; }
     public int Duration { get; set; }
     public int MaxPeople { get; set; }
+    public int ConfirmedPeople { get; set; } = 0;
     public string VehicleType { get; set; } = string.Empty;
     public decimal OriginalPrice { get; set; }
     public decimal Price { get; set; }
     public decimal PackageTax { get; set; }
     public string CupomDiscount { get; set; } = string.Empty;
     public decimal DiscountValue { get; set; }
-    public PackageScheduleDTO? PackageSchedule { get; set; }
     // Adicione outros campos necessários conforme sua model/entity
 }
-

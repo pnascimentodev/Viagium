@@ -12,6 +12,7 @@ namespace Viagium.EntitiesDTO.TravelPackageDTO
         public string VehicleType { get; set; } = string.Empty;
         public int Duration { get; set; }
         public int MaxPeople { get; set; }
+        public int ConfirmedPeople { get; set; } = 0;
         public decimal OriginalPrice { get; set; }
         public decimal? Price { get; set; }
         public decimal PackageTax { get; set; }
@@ -33,6 +34,5 @@ namespace Viagium.EntitiesDTO.TravelPackageDTO
         public DateTime? CreatedAt { get; set; } = DateTime.Now;
         public bool IsActive { get; set; } = true;
         public List<HotelWithAddressDTO> Hotels { get; set; } = new List<HotelWithAddressDTO>();
-        public PackageScheduleDTO? PackageSchedule { get; set; }
     }
 }

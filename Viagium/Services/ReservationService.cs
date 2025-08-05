@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using Viagium.EntitiesDTO;
 using Viagium.EntitiesDTO.Reservation;
+using Viagium.EntitiesDTO.TravelPackageDTO;
 using Viagium.Models;
 using Viagium.Repository.Interface;
 using Viagium.Services.Interfaces;
@@ -96,6 +97,9 @@ namespace Viagium.Services
                     availableRoom.IsAvailable = false;
                     await _unitOfWork.RoomRepository.UpdateAsync(availableRoom);
                 }
+
+                // ✅ NOVO: Atualizar o número de pessoas confirmadas no TravelPackage
+                await UpdateConfirmedPeopleCountAsync(createReservationDto.TravelPackageId);
 
                 return dto;
 
@@ -259,6 +263,9 @@ namespace Viagium.Services
                 await _unitOfWork.ReservationRepository.UpdateAsync(deactivatedReservation);
                 await _unitOfWork.SaveAsync();
 
+                // ✅ NOVO: Atualizar o número de pessoas confirmadas após cancelar a reserva
+                await UpdateConfirmedPeopleCountAsync(deactivatedReservation.TravelPackageId);
+
                 return deactivatedReservation;
 
             }, "desativação de reserva");
@@ -359,7 +366,7 @@ namespace Viagium.Services
                 // const valorFinal = valorBase - valorDesconto;
                 var valorFinal = valorBase - valorDesconto;
 
-                Console.WriteLine($"💰 Cálculo de preço da reserva:");
+                Console.WriteLine($" Cálculo de preço da reserva:");
                 Console.WriteLine($"   - Usuário principal: 1 pessoa");
                 Console.WriteLine($"   - Viajantes adicionais: {numTravelersAdicionais} pessoas");
                 Console.WriteLine($"   - TOTAL DE PESSOAS: {numPessoas}");
@@ -374,7 +381,7 @@ namespace Viagium.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Erro ao calcular preço total: {ex.Message}");
+                Console.WriteLine($"rro ao calcular preço total: {ex.Message}");
                 throw new Exception($"Erro no cálculo do preço: {ex.Message}");
             }
 
@@ -394,58 +401,87 @@ namespace Viagium.Services
                 if (travelPackage == null)
                     throw new KeyNotFoundException($"TravelPackage com ID {travelPackageId} não encontrado.");
 
-                // 2. Buscar o PackageSchedule ativo para este TravelPackage
-                // Assumindo que existe um método no repository para buscar schedule por TravelPackageId
-                var packageSchedule = await GetActivePackageScheduleAsync(travelPackageId);
-                
-                if (packageSchedule == null)
-                    throw new KeyNotFoundException($"Nenhum PackageSchedule ativo encontrado para o TravelPackage {travelPackageId}.");
+                // 2. Usar a data de início do próprio TravelPackage
+                reservation.StartDate = travelPackage.StartDate.Date;
 
-                // 3. Definir StartDate baseado no PackageSchedule
-                reservation.StartDate = packageSchedule.StartDate.Date;
-
-                // 4. Calcular EndDate baseado na duração do pacote
+                // 3. Calcular EndDate baseado na duração do pacote
                 // EndDate = StartDate + Duration (em dias)
-                reservation.EndDate = reservation.StartDate.AddDays(travelPackage.Duration);
+                reservation.EndDate = reservation.StartDate.AddDays(travelPackage.Duration - 1);
 
-                Console.WriteLine($"📅 Datas da reserva calculadas baseado no PackageSchedule:");
-                Console.WriteLine($"   - Data de início (PackageSchedule): {reservation.StartDate:dd/MM/yyyy}");
+                Console.WriteLine($"Datas da reserva calculadas:");
+                Console.WriteLine($"   - Data de início: {reservation.StartDate:dd/MM/yyyy}");
                 Console.WriteLine($"   - Data de fim: {reservation.EndDate:dd/MM/yyyy}");
                 Console.WriteLine($"   - Duração total: {travelPackage.Duration} dias");
-                Console.WriteLine($"   - PackageSchedule ID: {packageSchedule.PackageScheduleId}");
 
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Erro ao calcular datas da reserva: {ex.Message}");
+                Console.WriteLine($"Erro ao calcular datas da reserva: {ex.Message}");
                 throw new Exception($"Erro ao calcular datas da reserva: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Busca o PackageSchedule ativo para um TravelPackage
-        /// Prioriza schedules disponíveis e não fixos
+        /// Atualiza automaticamente o número de pessoas confirmadas no TravelPackage
+        /// baseado nas reservas ativas e confirmadas
         /// </summary>
-        private async Task<PackageSchedule?> GetActivePackageScheduleAsync(int travelPackageId)
+        private async Task UpdateConfirmedPeopleCountAsync(int travelPackageId)
         {
             try
             {
-                // Buscar PackageSchedules do TravelPackage que estejam disponíveis
-                // Vou implementar uma busca básica - você pode ajustar conforme sua lógica de negócio
-                var schedules = await _unitOfWork.PackageScheduleRepository.GetByTravelPackageIdAsync(travelPackageId);
-                
-                // Priorizar schedules que estão disponíveis e no futuro
-                var activeSchedule = schedules
-                    .Where(s => s.IsAvailable && s.StartDate >= DateTime.Now.Date)
-                    .OrderBy(s => s.StartDate) // Pega o mais próximo
-                    .FirstOrDefault();
+                // 1. Buscar o TravelPackage
+                var travelPackage = await _unitOfWork.TravelPackageRepository.GetByIdAsync(travelPackageId);
+                if (travelPackage == null)
+                {
+                    Console.WriteLine($"⚠️ TravelPackage com ID {travelPackageId} não encontrado para atualizar contador de pessoas");
+                    return;
+                }
 
-                return activeSchedule;
+                // 2. Buscar todas as reservas ativas e confirmadas deste pacote
+                var reservations = await _unitOfWork.ReservationRepository.GetAllAsync();
+                var confirmedReservations = reservations
+                    .Where(r => r.TravelPackageId == travelPackageId && 
+                               r.IsActive && 
+                               (r.Status?.ToLower() == "confirmado" || r.Status?.ToLower() == "confirmed"))
+                    .ToList();
+
+                // 3. Calcular o total de pessoas confirmadas
+                int totalConfirmedPeople = 0;
+                
+                foreach (var reservation in confirmedReservations)
+                {
+                    // Contar o usuário principal (sempre 1 pessoa)
+                    int peopleInReservation = 1;
+                    
+                    // Contar os viajantes adicionais
+                    var travelers = await _unitOfWork.TravelerRepository.GetByReservationIdAsync(reservation.ReservationId);
+                    peopleInReservation += travelers.Count();
+                    
+                    totalConfirmedPeople += peopleInReservation;
+                    
+                    Console.WriteLine($"   📊 Reserva {reservation.ReservationId}: {peopleInReservation} pessoas");
+                }
+
+                // 4. Atualizar o contador no TravelPackage
+                var currentCount = travelPackage.ConfirmedPeople;
+                travelPackage.ConfirmedPeople = totalConfirmedPeople;
+                
+                // 5. Salvar as alterações - converter para ResponseTravelPackageDTO
+                var responseTravelPackageDTO = _mapper.Map<ResponseTravelPackageDTO>(travelPackage);
+                responseTravelPackageDTO.ConfirmedPeople = totalConfirmedPeople;
+                await _unitOfWork.TravelPackageRepository.UpdateAsync(responseTravelPackageDTO);
+                await _unitOfWork.SaveAsync();
+
+                Console.WriteLine($"✅ Pessoas confirmadas no pacote {travelPackageId} atualizado:");
+                Console.WriteLine($"   - Antes: {currentCount} pessoas");
+                Console.WriteLine($"   - Depois: {totalConfirmedPeople} pessoas");
+                Console.WriteLine($"   - Reservas confirmadas: {confirmedReservations.Count}");
+                Console.WriteLine($"   - Vagas restantes: {travelPackage.MaxPeople - totalConfirmedPeople}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Erro ao buscar PackageSchedule: {ex.Message}");
-                return null;
+                Console.WriteLine($"❌ Erro ao atualizar contador de pessoas confirmadas: {ex.Message}");
+                // Não relançar a exceção para não quebrar o fluxo principal de criação da reserva
             }
         }
     }
