@@ -19,7 +19,7 @@ public class RoomTypeDTO
     
     [Required]
     [Display(Name = "URL da Imagem")]
-    public string ImageUrl { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; } = string.Empty;
     
     [Required]
     [Display(Name = "Preço por Noite")]

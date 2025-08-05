@@ -18,7 +18,7 @@ public class RoomType
     
     public string Description { get; set; } = string.Empty;
     
-    public string ImageUrl { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; } = string.Empty;
     
     public decimal PricePerNight { get; set; }
     

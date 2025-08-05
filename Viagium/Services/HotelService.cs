@@ -85,7 +85,7 @@ public class HotelService : IHotelService
         }, "atualização de hotel");
     }
 
-    public async Task UpdateAsync(int id, HotelUpdateDTO hotelUpdateDTO)
+    public async Task UpdateAsync(int id, HotelUpdateDTO? hotelUpdateDTO)
     {
         await ExceptionHandler.ExecuteWithHandling(async () =>
         {
@@ -104,62 +104,28 @@ public class HotelService : IHotelService
                 throw new KeyNotFoundException("Hotel não encontrado.");
 
             // Atualizar apenas os campos que foram fornecidos
-            if (!string.IsNullOrEmpty(hotelUpdateDTO.Name))
-                existingHotel.Name = hotelUpdateDTO.Name;
-            
-            if (!string.IsNullOrEmpty(hotelUpdateDTO.Description))
-                existingHotel.Description = hotelUpdateDTO.Description;
-            
-            if (!string.IsNullOrEmpty(hotelUpdateDTO.ContactNumber))
-                existingHotel.ContactNumber = hotelUpdateDTO.ContactNumber;
-            
-            if (!string.IsNullOrEmpty(hotelUpdateDTO.TypeHosting))
-                existingHotel.TypeHosting = hotelUpdateDTO.TypeHosting;
-            
-            if (!string.IsNullOrEmpty(hotelUpdateDTO.Cnpj))
-                existingHotel.Cnpj = hotelUpdateDTO.Cnpj;
-            
-            if (!string.IsNullOrEmpty(hotelUpdateDTO.InscricaoEstadual))
-                existingHotel.InscricaoEstadual = hotelUpdateDTO.InscricaoEstadual;
-            
-            if (!string.IsNullOrEmpty(hotelUpdateDTO.Cadastur))
-                existingHotel.Cadastur = hotelUpdateDTO.Cadastur;
-            
-            if (hotelUpdateDTO.CadasturExpiration.HasValue)
-                existingHotel.CadasturExpiration = hotelUpdateDTO.CadasturExpiration.Value;
-            
-            if (hotelUpdateDTO.Star.HasValue)
-                existingHotel.Star = hotelUpdateDTO.Star.Value;
-            
-            if (!string.IsNullOrEmpty(hotelUpdateDTO.ImageUrl))
-                existingHotel.ImageUrl = hotelUpdateDTO.ImageUrl;
-            
-            if (hotelUpdateDTO.IsActive.HasValue)
-                existingHotel.IsActive = hotelUpdateDTO.IsActive.Value;
+            existingHotel.Name = !string.IsNullOrEmpty(hotelUpdateDTO.Name) ? hotelUpdateDTO.Name : existingHotel.Name;
+            existingHotel.Description = !string.IsNullOrEmpty(hotelUpdateDTO.Description) ? hotelUpdateDTO.Description : existingHotel.Description;
+            existingHotel.ContactNumber = !string.IsNullOrEmpty(hotelUpdateDTO.ContactNumber) ? hotelUpdateDTO.ContactNumber : existingHotel.ContactNumber;
+            existingHotel.TypeHosting = !string.IsNullOrEmpty(hotelUpdateDTO.TypeHosting) ? hotelUpdateDTO.TypeHosting : existingHotel.TypeHosting;
+            existingHotel.Cnpj = !string.IsNullOrEmpty(hotelUpdateDTO.Cnpj) ? hotelUpdateDTO.Cnpj : existingHotel.Cnpj;
+            existingHotel.InscricaoEstadual = !string.IsNullOrEmpty(hotelUpdateDTO.InscricaoEstadual) ? hotelUpdateDTO.InscricaoEstadual : existingHotel.InscricaoEstadual;
+            existingHotel.Cadastur = !string.IsNullOrEmpty(hotelUpdateDTO.Cadastur) ? hotelUpdateDTO.Cadastur : existingHotel.Cadastur;
+            existingHotel.CadasturExpiration = hotelUpdateDTO.CadasturExpiration.HasValue ? hotelUpdateDTO.CadasturExpiration.Value : existingHotel.CadasturExpiration;
+            existingHotel.Star = hotelUpdateDTO.Star.HasValue ? hotelUpdateDTO.Star.Value : existingHotel.Star;
+            existingHotel.ImageUrl = !string.IsNullOrEmpty(hotelUpdateDTO.ImageUrl) ? hotelUpdateDTO.ImageUrl : existingHotel.ImageUrl;
+            existingHotel.IsActive = hotelUpdateDTO.IsActive.HasValue ? hotelUpdateDTO.IsActive.Value : existingHotel.IsActive;
 
             // Atualizar endereço se fornecido
             if (hotelUpdateDTO.Address != null && existingHotel.Address != null)
             {
-                if (!string.IsNullOrEmpty(hotelUpdateDTO.Address.StreetName))
-                    existingHotel.Address.StreetName = hotelUpdateDTO.Address.StreetName;
-                
-                if (hotelUpdateDTO.Address.AddressNumber > 0)
-                    existingHotel.Address.AddressNumber = hotelUpdateDTO.Address.AddressNumber;
-                
-                if (!string.IsNullOrEmpty(hotelUpdateDTO.Address.Neighborhood))
-                    existingHotel.Address.Neighborhood = hotelUpdateDTO.Address.Neighborhood;
-                
-                if (!string.IsNullOrEmpty(hotelUpdateDTO.Address.City))
-                    existingHotel.Address.City = hotelUpdateDTO.Address.City;
-                
-                if (!string.IsNullOrEmpty(hotelUpdateDTO.Address.State))
-                    existingHotel.Address.State = hotelUpdateDTO.Address.State;
-                
-                if (!string.IsNullOrEmpty(hotelUpdateDTO.Address.ZipCode))
-                    existingHotel.Address.ZipCode = hotelUpdateDTO.Address.ZipCode;
-                
-                if (!string.IsNullOrEmpty(hotelUpdateDTO.Address.Country))
-                    existingHotel.Address.Country = hotelUpdateDTO.Address.Country;
+                existingHotel.Address.StreetName = !string.IsNullOrEmpty(hotelUpdateDTO.Address.StreetName) ? hotelUpdateDTO.Address.StreetName : existingHotel.Address.StreetName;
+                existingHotel.Address.AddressNumber = hotelUpdateDTO.Address.AddressNumber > 0 ? hotelUpdateDTO.Address.AddressNumber : existingHotel.Address.AddressNumber;
+                existingHotel.Address.Neighborhood = !string.IsNullOrEmpty(hotelUpdateDTO.Address.Neighborhood) ? hotelUpdateDTO.Address.Neighborhood : existingHotel.Address.Neighborhood;
+                existingHotel.Address.City = !string.IsNullOrEmpty(hotelUpdateDTO.Address.City) ? hotelUpdateDTO.Address.City : existingHotel.Address.City;
+                existingHotel.Address.State = !string.IsNullOrEmpty(hotelUpdateDTO.Address.State) ? hotelUpdateDTO.Address.State : existingHotel.Address.State;
+                existingHotel.Address.ZipCode = !string.IsNullOrEmpty(hotelUpdateDTO.Address.ZipCode) ? hotelUpdateDTO.Address.ZipCode : existingHotel.Address.ZipCode;
+                existingHotel.Address.Country = !string.IsNullOrEmpty(hotelUpdateDTO.Address.Country) ? hotelUpdateDTO.Address.Country : existingHotel.Address.Country;
             }
 
             // Atualizar amenities se fornecido

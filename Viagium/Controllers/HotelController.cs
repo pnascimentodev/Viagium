@@ -52,12 +52,12 @@ public class HotelController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: PUT /api/hotel/1</remarks>
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] HotelUpdateDTO hotelUpdateDTO)
+    public async Task<IActionResult> Update(int id, [FromForm] HotelUpdateDTO hotelUpdateDTO)
     {
         try
         {
             await _hotelService.UpdateAsync(id, hotelUpdateDTO);
-            return NoContent();
+            return Ok();
         }
         catch (Exception ex)
         {

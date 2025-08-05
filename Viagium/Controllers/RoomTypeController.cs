@@ -93,7 +93,7 @@ public class RoomTypeController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: PUT /api/roomtype</remarks>
     [HttpPut]
-    public async Task<IActionResult> Update([FromBody] RoomTypeUpdateDTO dto)
+    public async Task<IActionResult> Update([FromForm] RoomTypeUpdateDTO dto)
     {
         try
         {
