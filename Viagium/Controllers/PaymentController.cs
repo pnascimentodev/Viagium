@@ -101,7 +101,7 @@ public class PaymentController : ControllerBase
 
             var payment = await _paymentService.AddPaymentAsync(reservationId, paymentMethod, creditCard, remoteIp, address);
 
-            return Ok(new
+            var response = new
             {
                 mensagem = "Pagamento criado com sucesso!",
                 pagamentoId = payment.PaymentId,
@@ -111,14 +111,138 @@ public class PaymentController : ControllerBase
                 valor = payment.Amount,
                 processadoImediatamente = paymentMethod == PaymentMethodType.CREDIT_CARD,
                 enderecoSalvo = address != null ? "Endereço salvo para o usuário" : "Nenhum endereço fornecido"
+            };
+
+            // Se for boleto, busca o link de download e adiciona na resposta
+            if (paymentMethod == PaymentMethodType.BOLETO && !string.IsNullOrEmpty(payment.PaymentIdAsaas))
+            {
+                try
+                {
+                    var boletoUrl = await _paymentService.GetBoletoUrlByPaymentIdAsync(payment.PaymentIdAsaas);
+                    
+                    if (!string.IsNullOrEmpty(boletoUrl))
+                    {
+                        return Ok(new
+                        {
+                            mensagem = "Pagamento criado com sucesso!",
+                            pagamentoId = payment.PaymentId,
+                            status = payment.Status.ToString(),
+                            statusDescricao = GetStatusDescription(payment.Status),
+                            metodo = payment.PaymentMethod.ToString(),
+                            valor = payment.Amount,
+                            processadoImediatamente = false,
+                            enderecoSalvo = address != null ? "Endereço salvo para o usuário" : "Nenhum endereço fornecido",
+                            boletoUrl = boletoUrl,
+                            mensagemBoleto = "Link do boleto gerado com sucesso! Clique no link para fazer o download."
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Se houver erro ao buscar o boleto, apenas loga mas não falha a operação
+                    Console.WriteLine($"⚠️ Erro ao buscar link do boleto: {ex.Message}");
+                }
+            }
+
+            return Ok(response);
+        }
+        catch (ArgumentException ex)
+        {
+            // Erros de validação de argumentos
+            return BadRequest(new
+            {
+                erro = "Dados inválidos",
+                detalhes = ex.Message,
+                tipoErro = "VALIDATION_ERROR"
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Erros de operação inválida (ex: usuário não encontrado, etc.)
+            return BadRequest(new
+            {
+                erro = "Operação inválida",
+                detalhes = ex.Message,
+                tipoErro = "BUSINESS_RULE_ERROR"
+            });
+        }
+        catch (HttpRequestException ex)
+        {
+            // Erros de comunicação com a API externa
+            return StatusCode(502, new
+            {
+                erro = "Erro na comunicação com o serviço de pagamento",
+                detalhes = "Serviço temporariamente indisponível. Tente novamente em alguns minutos.",
+                tipoErro = "EXTERNAL_API_ERROR",
+                detalhesInternos = ex.Message
+            });
+        }
+        catch (Exception ex) when (ex.Message.Contains("Reserva com ID") && ex.Message.Contains("não encontrada"))
+        {
+            // Reserva não encontrada
+            return NotFound(new
+            {
+                erro = "Reserva não encontrada",
+                detalhes = "A reserva especificada não foi encontrada no sistema. Verifique se o ID da reserva está correto.",
+                mensagemFront = "Ops! Não conseguimos encontrar sua reserva. Por favor, verifique os dados e tente novamente.",
+                tipoErro = "NOT_FOUND_ERROR",
+                recurso = "Reserva"
+            });
+        }
+        catch (Exception ex) when (ex.Message.Contains("Usuário") && ex.Message.Contains("não encontrado"))
+        {
+            // Usuário não encontrado
+            return NotFound(new
+            {
+                erro = "Usuário não encontrado",
+                detalhes = "O usuário associado à reserva não foi encontrado no sistema.",
+                mensagemFront = "Ops! Não conseguimos encontrar os dados do usuário. Entre em contato com o suporte.",
+                tipoErro = "NOT_FOUND_ERROR",
+                recurso = "Usuário"
+            });
+        }
+        catch (Exception ex) when (ex.Message.Contains("AsaasApiId"))
+        {
+            // Usuário não possui conta no Asaas
+            return BadRequest(new
+            {
+                erro = "Cliente não cadastrado no sistema de pagamento",
+                detalhes = "É necessário criar uma conta de cliente antes de realizar pagamentos. Entre em contato com o suporte.",
+                tipoErro = "ACCOUNT_NOT_FOUND_ERROR",
+                detalhesInternos = ex.Message
+            });
+        }
+        catch (Exception ex) when (ex.Message.Contains("Transação com cartão negada"))
+        {
+            // Transação com cartão negada
+            return BadRequest(new
+            {
+                erro = "Transação negada",
+                detalhes = "O pagamento com cartão de crédito foi negado. Verifique os dados do cartão ou tente outro cartão.",
+                tipoErro = "PAYMENT_DECLINED_ERROR",
+                detalhesInternos = ex.Message
+            });
+        }
+        catch (Exception ex) when (ex.Message.Contains("Erro ao criar pagamento"))
+        {
+            // Erros específicos da API do Asaas
+            return BadRequest(new
+            {
+                erro = "Erro ao processar pagamento",
+                detalhes = "Não foi possível processar o pagamento. Verifique os dados informados e tente novamente.",
+                tipoErro = "PAYMENT_PROCESSING_ERROR",
+                detalhesInternos = ex.Message
             });
         }
         catch (Exception ex)
         {
+            // Erro genérico não tratado
             return StatusCode(500, new
             {
-                erro = "Erro ao criar pagamento",
-                detalhes = ex.Message
+                erro = "Erro interno do servidor",
+                detalhes = "Ocorreu um erro inesperado. Tente novamente ou entre em contato com o suporte.",
+                tipoErro = "INTERNAL_SERVER_ERROR",
+                detalhesInternos = ex.Message
             });
         }
     }
@@ -159,12 +283,12 @@ public class PaymentController : ControllerBase
             return BadRequest(new { erro = "O CPF é obrigatório." });
         try
         {
-            var qrCode = await _paymentService.GetPixQrCodeByCpfAsync(cpf);
-            return Ok(new { qrCode });
+            var pixData = await _paymentService.GetPixQrCodeByCpfAsync(cpf);
+            return Ok(pixData);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { erro = "Erro ao obter QR Code do PIX", detalhes = ex.Message });
+            return StatusCode(500, new { erro = "Erro ao obter dados do PIX", detalhes = ex.Message });
         }
     }
     

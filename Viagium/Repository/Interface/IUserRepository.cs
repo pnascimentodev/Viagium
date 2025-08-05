@@ -18,4 +18,5 @@ public interface IUserRepository
     Task<User> UpdatePasswordAsync(int id, string newPassword);
     Task<User> ForgotPasswordAsync(int id, string newPassword);
     Task<List<User>> GetAllActiveAsync();
+    Task<User?> GetByDocumentNumberAsync(string documentNumber);
 }
