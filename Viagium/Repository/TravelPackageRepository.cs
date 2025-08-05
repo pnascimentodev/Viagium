@@ -403,7 +403,6 @@ public class TravelPackageRepository : ITravelPackageRepository
                 IsActive = pkg.IsActive,
                 Hotels = hotelDtos,
                 CreatedAt = pkg.CreatedAt,
-                IsActive = pkg.IsActive
             });
         }
         return result;
