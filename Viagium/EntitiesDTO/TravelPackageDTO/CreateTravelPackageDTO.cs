@@ -20,6 +20,11 @@ public class CreateTravelPackageDTO
             public IFormFile Image { get; set; }
 
             [Required]
+            [DataType(DataType.Date)]
+            [Display(Name = "Data de Início")]
+            public DateTime StartDate { get; set; }
+
+            [Required]
             [Range(1, int.MaxValue, ErrorMessage = "A duração deve ser maior que zero")]
             public int Duration { get; set; }
 
@@ -49,7 +54,6 @@ public class CreateTravelPackageDTO
             [Range(0, 100, ErrorMessage = "O valor do desconto manual deve ser entre 0 e 100")]
             public decimal ManualDiscountValue { get; set; } = 0;
 
-            public PackageScheduleDTO PackageSchedule { get; set; } = new PackageScheduleDTO();
 
             [Required]
             public int UserId { get; set; }

@@ -31,8 +31,17 @@ namespace Viagium.Models
             public string ImageUrl { get; set; } = string.Empty;
 
             [Required]
+            [DataType(DataType.Date)]
+            [Display(Name = "Data de Início")]
+            public DateTime StartDate { get; set; }
+
+            [Required]
             [Range(1, int.MaxValue, ErrorMessage = "A duração deve ser maior que zero")]
             public int Duration { get; set; }
+
+            [NotMapped]
+            [Display(Name = "Data de Término")]
+            public DateTime EndDate => StartDate.AddDays(Duration - 1);
 
             [Required]
             [Range(1, int.MaxValue, ErrorMessage = "O máximo de pessoas deve ser maior que zero")]
@@ -66,6 +75,20 @@ namespace Viagium.Models
             public int CreatedBy { get; set; }
             public User? User { get; set; }
 
+            [NotMapped]
+            [Display(Name = "Está disponível?")]
+            public bool IsAvailable
+            {
+                get
+                {
+                    var now = DateTime.Now.Date;
+                    var totalOccupants = Reservations?
+                        .Where(r => r.IsActive)
+                        .Sum(r => r.Travelers?.Count ?? 0) ?? 0;
+                    
+                    return now < StartDate.Date && totalOccupants < MaxPeople && IsActive;
+                }
+            }
 
             public DateTime? CreatedAt { get; set; } = DateTime.Now;
             public DateTime? UpdatedAt { get; set; }

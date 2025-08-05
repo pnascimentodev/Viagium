@@ -89,17 +89,6 @@ public class TravelPackageRepository : ITravelPackageRepository
         }
         await _context.SaveChangesAsync();
 
-        // Salvar o PackageSchedule associado ao pacote
-        var schedule = new PackageSchedule
-        {
-            TravelPackageId = travelPackage.TravelPackageId,
-            StartDate = createTravelPackageDTO.PackageSchedule.StartDate,
-            IsFixed = createTravelPackageDTO.PackageSchedule.IsFixed,
-            IsAvailable = createTravelPackageDTO.PackageSchedule.IsAvailable
-        };
-        await _context.PackageSchedules.AddAsync(schedule);
-        await _context.SaveChangesAsync();
-
         // Buscar hotéis ativos na cidade e país de destino (normalizando para ignorar acentuação e espaços)
         var destCity = Normalize(destinationAddressEntity?.City);
         var destCountry = Normalize(destinationAddressEntity?.Country);
@@ -128,7 +117,9 @@ public class TravelPackageRepository : ITravelPackageRepository
             Cnpj = hotel.Cnpj,
             Cadastur = hotel.Cadastur,
             CadasturExpiration = hotel.CadasturExpiration,
+            Star = hotel.Star,
             ImageUrl = hotel.ImageUrl,
+            CreatedAt = hotel.CreatedAt,
             Address = _mapper.Map<AddressDTO>(hotel.Address),
             Amenities = hotel.HotelAmenity?.Select(ha => new AmenityDTO
             {
@@ -191,8 +182,9 @@ public class TravelPackageRepository : ITravelPackageRepository
             OriginCountry = originAddressEntity?.Country,
             DestinationCity = destinationAddressEntity?.City,
             DestinationCountry = destinationAddressEntity?.Country,
-            Hotels = hotelDtos, // Corrigido para não usar AutoMapper
-            PackageSchedule = _mapper.Map<PackageScheduleDTO>(schedule)
+            Hotels = hotelDtos,
+            StartDate = travelPackage.StartDate,
+            IsAvailable = travelPackage.IsAvailable
         };
         return response;
     }
@@ -210,6 +202,7 @@ public class TravelPackageRepository : ITravelPackageRepository
         // Atualiza os campos do pacote de viagem
         travelPackage.Title = createTravelPackageDTO.Title;
         travelPackage.Description = createTravelPackageDTO.Description;
+        travelPackage.StartDate = createTravelPackageDTO.StartDate;
         travelPackage.VehicleType = createTravelPackageDTO.VehicleType;
         travelPackage.Duration = createTravelPackageDTO.Duration;
         travelPackage.MaxPeople = createTravelPackageDTO.MaxPeople;
@@ -218,6 +211,7 @@ public class TravelPackageRepository : ITravelPackageRepository
         travelPackage.CupomDiscount = createTravelPackageDTO.CupomDiscount;
         travelPackage.DiscountValue = createTravelPackageDTO.DiscountValue;
         travelPackage.ManualDiscountValue = createTravelPackageDTO.ManualDiscountValue;
+        
         // Cálculo do preço final considerando apenas o desconto manual
         decimal price = travelPackage.OriginalPrice;
         if (travelPackage.ManualDiscountValue > 0)
@@ -256,28 +250,6 @@ public class TravelPackageRepository : ITravelPackageRepository
             travelPackage.ImageUrl = imageUrl;
         }
 
-        // Atualiza o PackageSchedule
-        var schedule = await _context.PackageSchedules
-            .FirstOrDefaultAsync(ps => ps.TravelPackageId == travelPackageId);
-
-        if (schedule != null)
-        {
-            schedule.StartDate = createTravelPackageDTO.PackageSchedule.StartDate;
-            schedule.IsFixed = createTravelPackageDTO.PackageSchedule.IsFixed;
-            schedule.IsAvailable = createTravelPackageDTO.PackageSchedule.IsAvailable;
-        }
-        else
-        {
-            schedule = new PackageSchedule
-            {
-                TravelPackageId = travelPackageId,
-                StartDate = createTravelPackageDTO.PackageSchedule.StartDate,
-                IsFixed = createTravelPackageDTO.PackageSchedule.IsFixed,
-                IsAvailable = createTravelPackageDTO.PackageSchedule.IsAvailable
-            };
-            await _context.PackageSchedules.AddAsync(schedule);
-        }
-
         await _context.SaveChangesAsync();
         return true;
     }
@@ -313,25 +285,23 @@ public class TravelPackageRepository : ITravelPackageRepository
     {
         var now = DateTime.Now;
         var packages = await _context.TravelPackages
-            .Include(tp => tp.PackageSchedules)
             .Include(tp => tp.OriginAddress)
             .Include(tp => tp.DestinationAddress)
+            .Include(tp => tp.Reservations)
+                .ThenInclude(r => r.Travelers)
             .Include(tp => tp.PackageHotels)
                 .ThenInclude(ph => ph.Hotel)
                     .ThenInclude(h => h.Address)
+            .Include(tp => tp.PackageHotels)
+                .ThenInclude(ph => ph.Hotel)
+                    .ThenInclude(h => h.HotelAmenity)
+                        .ThenInclude(ha => ha.Amenity)
+            .Include(tp => tp.PackageHotels)
+                .ThenInclude(ph => ph.Hotel)
+                    .ThenInclude(h => h.RoomTypes)
+                        .ThenInclude(rt => rt.RoomTypeAmenities)
+                            .ThenInclude(rta => rta.Amenity)
             .ToListAsync();
-
-        bool changed = false;
-        foreach (var pkg in packages)
-        {
-            var schedule = pkg.PackageSchedules?.FirstOrDefault();
-            if (schedule != null && schedule.IsAvailable && now >= schedule.StartDate)
-            {
-                schedule.IsAvailable = false;
-                changed = true;
-            }
-        }
-        if (changed) await _context.SaveChangesAsync();
 
         var result = new List<ResponseTravelPackageDTO>();
         foreach (var pkg in packages)
@@ -370,9 +340,12 @@ public class TravelPackageRepository : ITravelPackageRepository
                 TypeHosting = hotel.TypeHosting,
                 IsActive = hotel.IsActive,
                 Cnpj = hotel.Cnpj,
+                InscricaoEstadual = hotel.InscricaoEstadual,
                 Cadastur = hotel.Cadastur,
                 CadasturExpiration = hotel.CadasturExpiration,
+                Star = hotel.Star,
                 ImageUrl = hotel.ImageUrl,
+                CreatedAt = hotel.CreatedAt,
                 Address = _mapper.Map<AddressDTO>(hotel.Address),
                 Amenities = hotel.HotelAmenity?.Select(ha => new AmenityDTO
                 {
@@ -406,7 +379,7 @@ public class TravelPackageRepository : ITravelPackageRepository
                 }).ToList() ?? new List<RoomTypeDTO>(),
                 AffiliateId = hotel.AffiliateId
             }).ToList();
-            var schedule = pkg.PackageSchedules?.FirstOrDefault();
+            
             result.Add(new ResponseTravelPackageDTO
             {
                 TravelPackageId = pkg.TravelPackageId,
@@ -421,13 +394,16 @@ public class TravelPackageRepository : ITravelPackageRepository
                 PackageTax = pkg.PackageTax,
                 CupomDiscount = pkg.CupomDiscount,
                 DiscountValue = pkg.DiscountValue,
+                StartDate = pkg.StartDate,
+                IsAvailable = pkg.IsAvailable,
                 OriginCity = pkg.OriginAddress?.City,
                 OriginCountry = pkg.OriginAddress?.Country,
                 DestinationCity = pkg.DestinationAddress?.City,
                 DestinationCountry = pkg.DestinationAddress?.Country,
                 IsActive = pkg.IsActive,
                 Hotels = hotelDtos,
-                PackageSchedule = _mapper.Map<PackageScheduleDTO>(schedule)
+                CreatedAt = pkg.CreatedAt,
+                IsActive = pkg.IsActive
             });
         }
         return result;
@@ -471,6 +447,7 @@ public class TravelPackageRepository : ITravelPackageRepository
             Cnpj = hotel.Cnpj,
             Cadastur = hotel.Cadastur,
             CadasturExpiration = hotel.CadasturExpiration,
+            Star = hotel.Star,
             ImageUrl = hotel.ImageUrl,
             Address = _mapper.Map<AddressDTO>(hotel.Address),
             Amenities = hotel.HotelAmenity?.Select(ha => new AmenityDTO
@@ -555,7 +532,6 @@ public class TravelPackageRepository : ITravelPackageRepository
         if (schedule != null && responseTravelPackageDTO.PackageSchedule != null)
         {
             schedule.StartDate = responseTravelPackageDTO.PackageSchedule.StartDate;
-            schedule.IsFixed = responseTravelPackageDTO.PackageSchedule.IsFixed;
             schedule.IsAvailable = responseTravelPackageDTO.PackageSchedule.IsAvailable;
         }
 
@@ -757,10 +733,10 @@ public class TravelPackageRepository : ITravelPackageRepository
                 OriginCountry = pkg.OriginAddress?.Country,
                 DestinationCity = pkg.DestinationAddress?.City,
                 DestinationCountry = pkg.DestinationAddress?.Country,
+                CreatedAt = pkg.CreatedAt,
+                IsActive = pkg.IsActive,
                 Hotels = hotelDtos,
                 PackageSchedule = _mapper.Map<PackageScheduleDTO>(schedule),
-                IsActive = pkg.IsActive,
-                CreatedAt = pkg.CreatedAt
             });
         }
         return result;
