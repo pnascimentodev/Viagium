@@ -502,6 +502,7 @@ public class TravelPackageRepository : ITravelPackageRepository
             DestinationCity = travelPackage.DestinationAddress?.City,
             DestinationCountry = travelPackage.DestinationAddress?.Country,
             Hotels = hotelDtos,
+            StartDate = travelPackage.StartDate,
             PackageSchedule = _mapper.Map<PackageScheduleDTO>(schedule)
         };
     }
