@@ -82,11 +82,10 @@ namespace Viagium.Models
                 get
                 {
                     var now = DateTime.Now.Date;
-                    var totalOccupants = Reservations?
-                        .Where(r => r.IsActive)
+                    var totalConfirmed = Reservations?
+                        .Where(r => r.Status == "Confirmed" && r.IsActive)
                         .Sum(r => r.Travelers?.Count ?? 0) ?? 0;
-                    
-                    return now < StartDate.Date && totalOccupants < MaxPeople && IsActive;
+                    return now < StartDate.Date && totalConfirmed < MaxPeople && IsActive;
                 }
             }
 

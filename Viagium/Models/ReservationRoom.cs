@@ -20,13 +20,10 @@ public class ReservationRoom
     
     public RoomType? RoomType { get; set; }
     
-    public int NumberOfRooms { get; set; }
-    
-    public decimal PricePerNight { get; set; }
-    
-    public int Nights { get; set; }
-    
-    public decimal TotalPrice { get; set; }
+    [Required]
+    [ForeignKey("Room")]
+    public int RoomId { get; set; }
+    public Room? Room { get; set; }
     
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 }

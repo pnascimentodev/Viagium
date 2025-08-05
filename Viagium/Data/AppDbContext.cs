@@ -222,5 +222,12 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<TravelPackage>()
             .Property(tp => tp.ManualDiscountValue)
             .HasPrecision(18, 2);
+
+        // Relacionamento ReservationRoom - Room (N:1)
+        modelBuilder.Entity<ReservationRoom>()
+            .HasOne(rr => rr.Room)
+            .WithMany()
+            .HasForeignKey(rr => rr.RoomId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
