@@ -465,10 +465,12 @@ namespace Viagium.Services
                 // 4. Atualizar o contador no TravelPackage
                 var currentCount = travelPackage.ConfirmedPeople;
                 travelPackage.ConfirmedPeople = totalConfirmedPeople;
-                
+                // Atualizar disponibilidade
+                travelPackage.IsAvailable = totalConfirmedPeople < travelPackage.MaxPeople;
                 // 5. Salvar as alterações - converter para ResponseTravelPackageDTO
                 var responseTravelPackageDTO = _mapper.Map<ResponseTravelPackageDTO>(travelPackage);
                 responseTravelPackageDTO.ConfirmedPeople = totalConfirmedPeople;
+                responseTravelPackageDTO.IsAvailable = travelPackage.IsAvailable;
                 await _unitOfWork.TravelPackageRepository.UpdateAsync(responseTravelPackageDTO);
                 await _unitOfWork.SaveAsync();
 
