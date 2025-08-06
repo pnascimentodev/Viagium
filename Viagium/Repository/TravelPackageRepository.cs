@@ -522,8 +522,12 @@ public class TravelPackageRepository : ITravelPackageRepository
         travelPackage.PackageTax = responseTravelPackageDTO.PackageTax;
         travelPackage.CupomDiscount = responseTravelPackageDTO.CupomDiscount;
         travelPackage.DiscountValue = responseTravelPackageDTO.DiscountValue;
-        // Atualize outros campos conforme necessário
-
+        
+        // ✅ ADICIONADOS OS CAMPOS ESSENCIAIS PARA O SERVIÇO EM BACKGROUND
+        travelPackage.ConfirmedPeople = responseTravelPackageDTO.ConfirmedPeople;
+        travelPackage.IsAvailable = responseTravelPackageDTO.IsAvailable;
+        travelPackage.UpdatedAt = DateTime.Now;
+        
         await _context.SaveChangesAsync();
         return responseTravelPackageDTO;
     }
