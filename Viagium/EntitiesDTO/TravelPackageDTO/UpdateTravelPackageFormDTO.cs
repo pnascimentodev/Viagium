@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using System.Collections.Generic;
+﻿
 
 namespace Viagium.EntitiesDTO.TravelPackageDTO
 {
@@ -12,9 +11,9 @@ namespace Viagium.EntitiesDTO.TravelPackageDTO
         public string VehicleType { get; set; }
         public int Duration { get; set; }
         public int MaxPeople { get; set; }
-        public int ConfirmedPeople { get; set; } = 0;
+        public int ConfirmedPeople { get; set; }
         public decimal OriginalPrice { get; set; }
-        public decimal? Price { get; set; }
+        public decimal? Price => CalculatedPrice 
         public decimal PackageTax { get; set; }
         public string CupomDiscount { get; set; } = string.Empty;
         public decimal DiscountValue { get; set; } = 0;
@@ -25,5 +24,8 @@ namespace Viagium.EntitiesDTO.TravelPackageDTO
         public string DestinationCountry { get; set; }
         public IFormFile? ImageFile { get; set; }
         // Se necessário, adicione outras propriedades relacionadas a hotéis e agendamento
+        private decimal CalculatedPrice => OriginalPrice - ((ManualDiscountValue / 100) * OriginalPrice);
+  
+
     }
 }
