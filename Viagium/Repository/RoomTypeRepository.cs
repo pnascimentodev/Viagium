@@ -34,6 +34,15 @@ public class RoomTypeRepository : IRoomTypeRepository
             .Include(rt => rt.RoomTypeAmenities)
             .ThenInclude(rta => rta.Amenity)
             .Include(rt => rt.Rooms) // Inclui os quartos relacionados
+            .ToListAsync();
+    }
+
+    public async Task<List<RoomType>> GetAllActiveAsync()
+    {
+        return await _context.RoomTypes
+            .Include(rt => rt.RoomTypeAmenities)
+            .ThenInclude(rta => rta.Amenity)
+            .Include(rt => rt.Rooms) // Inclui os quartos relacionados
             .Where(rt => rt.IsActive)
             .ToListAsync();
     }
