@@ -32,6 +32,8 @@ namespace Viagium.Services
                 Validator.ValidateObject(reservation, new ValidationContext(reservation), true);
                 ValidateCustomRules(reservation);
 
+                reservation.Travelers = new List<Traveler>(); // <- zera os travelers para evitar duplicação
+
                 // Validar se o hotel existe antes de criar a reserva
                 var hotelExists = await _unitOfWork.HotelRepository.GetByIdAsync(createReservationDto.HotelId);
                 if (hotelExists == null)
@@ -61,7 +63,9 @@ namespace Viagium.Services
                         
                         Validator.ValidateObject(traveler, new ValidationContext(traveler), true);
                         await _unitOfWork.TravelerRepository.AddAsync(traveler);
-                    }                    
+                    }
+
+                    await _unitOfWork.SaveAsync();
                 }
 
                 // 3. Buscar a reserva completa com todos os dados para retorno
@@ -353,9 +357,7 @@ namespace Viagium.Services
                 var durationNights = travelPackage.Duration;
 
                 // const acomodationTotal = pricePerNight * (durationNights > 1 ? durationNights - 1 : 0) * numPessoas;
-                var nightsToCharge = durationNights > 1 ? durationNights - 1 : 0;
-                var acomodationTotal = pricePerNight * nightsToCharge * numPessoas;
-
+                var acomodationTotal = pricePerNight * durationNights * numPessoas;
                 // const valorBase = price + packageTax + acomodationTotal;
                 var valorBase = price + packageTax + acomodationTotal;
 
@@ -366,22 +368,10 @@ namespace Viagium.Services
                 // const valorFinal = valorBase - valorDesconto;
                 var valorFinal = valorBase - valorDesconto;
 
-                Console.WriteLine($" Cálculo de preço da reserva:");
-                Console.WriteLine($"   - Usuário principal: 1 pessoa");
-                Console.WriteLine($"   - Viajantes adicionais: {numTravelersAdicionais} pessoas");
-                Console.WriteLine($"   - TOTAL DE PESSOAS: {numPessoas}");
-                Console.WriteLine($"   - Preço base do pacote: R$ {price:F2} ({travelPackage.OriginalPrice:F2} x {numPessoas} pessoas)");
-                Console.WriteLine($"   - Taxa do pacote: R$ {packageTax:F2}");
-                Console.WriteLine($"   - Acomodação: R$ {acomodationTotal:F2} ({pricePerNight:F2}/noite x {nightsToCharge} noites x {numPessoas} pessoas)");
-                Console.WriteLine($"   - Valor base: R$ {valorBase:F2}");
-                Console.WriteLine($"   - Desconto ({discountPercent}%): R$ {valorDesconto:F2}");
-                Console.WriteLine($"   - VALOR FINAL: R$ {valorFinal:F2}");
-
                 return valorFinal;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"rro ao calcular preço total: {ex.Message}");
                 throw new Exception($"Erro no cálculo do preço: {ex.Message}");
             }
 

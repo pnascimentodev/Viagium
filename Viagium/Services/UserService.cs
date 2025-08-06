@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using AutoMapper;
 using Viagium.EntitiesDTO.ApiDTO;
 using Viagium.EntitiesDTO.User;
@@ -263,6 +263,7 @@ public class UserService : IUserService
 
             return new UserDTO
             {
+                UserId = user.UserId,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,

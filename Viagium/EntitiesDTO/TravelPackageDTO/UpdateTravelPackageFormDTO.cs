@@ -22,7 +22,7 @@ namespace Viagium.EntitiesDTO.TravelPackageDTO
         public string OriginCountry { get; set; }
         public string DestinationCity { get; set; }
         public string DestinationCountry { get; set; }
-        public IFormFile ImageFile { get; set; }
+        public IFormFile? ImageFile { get; set; }
         // Se necessário, adicione outras propriedades relacionadas a hotéis e agendamento
         private decimal CalculatedPrice => OriginalPrice - ((ManualDiscountValue / 100) * OriginalPrice);
   
