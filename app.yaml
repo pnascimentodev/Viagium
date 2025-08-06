@@ -1,8 +1,8 @@
-﻿name: viagium-backend
+name: viagium-backend
 services:
   - name: api
     dockerfile_path: Viagium/Dockerfile
-    http_port: 5000
+    http_port: 5028
     envs:
       - key: ASPNETCORE_URLS
         value: http://0.0.0.0:5028
