@@ -263,6 +263,7 @@ public class UserService : IUserService
 
             return new UserDTO
             {
+                UserId = user.UserId,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
@@ -273,6 +274,7 @@ public class UserService : IUserService
                 IsActive = user.IsActive,
                 HashPassword = user.HashPassword
             };
+            //return user;
         }, "ativação de usuário");
     }
 
