@@ -152,19 +152,18 @@ public class TravelPackageAvailabilityBackgroundService : BackgroundService
 
         // 3. Calcular o total de pessoas confirmadas
         int totalConfirmedPeople = 0;
-        
         foreach (var reservation in confirmedReservations)
         {
-            // Contar o usuário principal (sempre 1 pessoa)
-            int peopleInReservation = 1;
-            
-            // Contar os viajantes adicionais
             var travelers = await unitOfWork.TravelerRepository.GetByReservationIdAsync(reservation.ReservationId);
-            peopleInReservation += travelers.Count();
-            
+            var documentNumbers = travelers.Select(t => t.DocumentNumber).ToList();
+            // Adiciona o usuário principal se não estiver nos travelers
+            if (!string.IsNullOrEmpty(reservation.User?.DocumentNumber) && !documentNumbers.Contains(reservation.User.DocumentNumber))
+            {
+                documentNumbers.Add(reservation.User.DocumentNumber);
+            }
+            int peopleInReservation = documentNumbers.Distinct().Count();
             totalConfirmedPeople += peopleInReservation;
-            
-            _logger.LogInformation($"   Reserva {reservation.ReservationId}: 1 usuário + {travelers.Count()} viajantes = {peopleInReservation} pessoas");
+            _logger.LogInformation($"   Reserva {reservation.ReservationId}: {peopleInReservation} pessoas");
         }
 
         // 4. Verificar se houve mudança
@@ -186,12 +185,9 @@ public class TravelPackageAvailabilityBackgroundService : BackgroundService
             // Atualizar campos
             travelPackage.ConfirmedPeople = totalConfirmedPeople;
             travelPackage.IsAvailable = newIsAvailable;
-
-            // Converter para DTO e atualizar
             var responseTravelPackageDTO = mapper.Map<ResponseTravelPackageDTO>(travelPackage);
             responseTravelPackageDTO.ConfirmedPeople = totalConfirmedPeople;
             responseTravelPackageDTO.IsAvailable = newIsAvailable;
-            
             await unitOfWork.TravelPackageRepository.UpdateAsync(responseTravelPackageDTO);
             
             packagesUpdated++;
