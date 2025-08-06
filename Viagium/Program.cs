@@ -77,7 +77,7 @@ builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<ITravelerRepository, TravelerRepository>();
 builder.Services.AddScoped<IRoomRepository, RoomRepository>();
-builder.Services.AddScoped<IPackageScheduleRepository, PackageScheduleRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 
 // Registra o UnitOfWork e o serviços
@@ -207,11 +207,15 @@ builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Emai
 builder.Services.AddScoped<IEmailService, Viagium.Services.Email.EmailService>();
 builder.Services.AddSingleton<ITokenBlacklistService, InMemoryTokenBlacklistService>();
 
+// ✅ SERVIÇOS EM BACKGROUND
 // Adiciona o serviço de sincronização automática de pagamentos
 builder.Services.AddHostedService<PaymentSyncBackgroundService>();
 
-// Adiciona o serviço de atualização automática de status das reservas
+// Adiciona o serviço de monitoramento de status das reservas
 builder.Services.AddHostedService<ReservationStatusBackgroundService>();
+
+// Adiciona o serviço de monitoramento de disponibilidade dos pacotes de viagem
+builder.Services.AddHostedService<TravelPackageAvailabilityBackgroundService>();
 
 var app = builder.Build(); 
 // Configure the HTTP request pipeline.

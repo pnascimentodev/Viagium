@@ -403,6 +403,7 @@ public class TravelPackageRepository : ITravelPackageRepository
                 IsActive = pkg.IsActive,
                 Hotels = hotelDtos,
                 CreatedAt = pkg.CreatedAt,
+                ConfirmedPeople = pkg.ConfirmedPeople,
             });
         }
         return result;
@@ -413,12 +414,10 @@ public class TravelPackageRepository : ITravelPackageRepository
             .Where(tp => tp.IsActive)
             .Include(tp => tp.OriginAddress)
             .Include(tp => tp.DestinationAddress)
-            .Include(tp => tp.PackageSchedules)
             .FirstOrDefaultAsync(tp => tp.TravelPackageId == id);
 
         if (travelPackage == null) return null;
 
-        var schedule = travelPackage.PackageSchedules?.FirstOrDefault();
         var destCity = Normalize(travelPackage.DestinationAddress?.City);
         var destCountry = Normalize(travelPackage.DestinationAddress?.Country);
         var hotelsQuery = _context.Hotels
@@ -502,15 +501,13 @@ public class TravelPackageRepository : ITravelPackageRepository
             DestinationCity = travelPackage.DestinationAddress?.City,
             DestinationCountry = travelPackage.DestinationAddress?.Country,
             Hotels = hotelDtos,
-            StartDate = travelPackage.StartDate,
-            PackageSchedule = _mapper.Map<PackageScheduleDTO>(schedule)
+            StartDate = travelPackage.StartDate
         };
     }
     public async Task<ResponseTravelPackageDTO?> UpdateAsync(ResponseTravelPackageDTO responseTravelPackageDTO)
     {
         // Exemplo de implementação básica (ajuste conforme sua lógica de negócio)
         var travelPackage = await _context.TravelPackages
-            .Include(tp => tp.PackageSchedules)
             .FirstOrDefaultAsync(tp => tp.TravelPackageId == responseTravelPackageDTO.TravelPackageId);
         if (travelPackage == null) return null;
 
@@ -525,16 +522,12 @@ public class TravelPackageRepository : ITravelPackageRepository
         travelPackage.PackageTax = responseTravelPackageDTO.PackageTax;
         travelPackage.CupomDiscount = responseTravelPackageDTO.CupomDiscount;
         travelPackage.DiscountValue = responseTravelPackageDTO.DiscountValue;
-        // Atualize outros campos conforme necessário
-
-        // Atualiza o PackageSchedule (apenas o primeiro, se existir)
-        var schedule = travelPackage.PackageSchedules?.FirstOrDefault();
-        if (schedule != null && responseTravelPackageDTO.PackageSchedule != null)
-        {
-            schedule.StartDate = responseTravelPackageDTO.PackageSchedule.StartDate;
-            schedule.IsAvailable = responseTravelPackageDTO.PackageSchedule.IsAvailable;
-        }
-
+        
+        // ✅ ADICIONADOS OS CAMPOS ESSENCIAIS PARA O SERVIÇO EM BACKGROUND
+        travelPackage.ConfirmedPeople = responseTravelPackageDTO.ConfirmedPeople;
+        travelPackage.IsAvailable = responseTravelPackageDTO.IsAvailable;
+        travelPackage.UpdatedAt = DateTime.Now;
+        
         await _context.SaveChangesAsync();
         return responseTravelPackageDTO;
     }
@@ -548,12 +541,10 @@ public class TravelPackageRepository : ITravelPackageRepository
                     .ThenInclude(h => h.Address)
             .Include(tp => tp.OriginAddress)
             .Include(tp => tp.DestinationAddress)
-            .Include(tp => tp.PackageSchedules)
             .FirstOrDefaultAsync(tp => tp.Title == name);
 
         if (travelPackage == null) return null;
 
-        var schedule = travelPackage.PackageSchedules?.FirstOrDefault();
         return new ResponseTravelPackageDTO
         {
             TravelPackageId = travelPackage.TravelPackageId,
@@ -572,8 +563,7 @@ public class TravelPackageRepository : ITravelPackageRepository
             OriginCountry = travelPackage.OriginAddress?.Country,
             DestinationCity = travelPackage.DestinationAddress?.City,
             DestinationCountry = travelPackage.DestinationAddress?.Country,
-            Hotels = _mapper.Map<List<HotelWithAddressDTO>>(travelPackage.PackageHotels.Select(ph => ph.Hotel).Where(h => h != null)),
-            PackageSchedule = _mapper.Map<PackageScheduleDTO>(schedule)
+            Hotels = _mapper.Map<List<HotelWithAddressDTO>>(travelPackage.PackageHotels.Select(ph => ph.Hotel).Where(h => h != null))
         };
     }
 
@@ -586,12 +576,10 @@ public class TravelPackageRepository : ITravelPackageRepository
                     .ThenInclude(h => h.Address)
             .Include(tp => tp.OriginAddress)
             .Include(tp => tp.DestinationAddress)
-            .Include(tp => tp.PackageSchedules)
             .FirstOrDefaultAsync(tp => tp.DestinationAddress.City == city && tp.DestinationAddress.Country == country);
 
         if (travelPackage == null) return null;
 
-        var schedule = travelPackage.PackageSchedules?.FirstOrDefault();
         return new ResponseTravelPackageDTO
         {
             TravelPackageId = travelPackage.TravelPackageId,
@@ -610,24 +598,18 @@ public class TravelPackageRepository : ITravelPackageRepository
             OriginCountry = travelPackage.OriginAddress?.Country,
             DestinationCity = travelPackage.DestinationAddress?.City,
             DestinationCountry = travelPackage.DestinationAddress?.Country,
-            Hotels = _mapper.Map<List<HotelWithAddressDTO>>(travelPackage.PackageHotels.Select(ph => ph.Hotel).Where(h => h != null)),
-            PackageSchedule = _mapper.Map<PackageScheduleDTO>(schedule)
+            Hotels = _mapper.Map<List<HotelWithAddressDTO>>(travelPackage.PackageHotels.Select(ph => ph.Hotel).Where(h => h != null))
         };
     }
 
     public async Task<List<ResponseTravelPackageDTO>> DesactivateAsync(int id)
     {
         var travelPackage = await _context.TravelPackages
-            .Include(tp => tp.PackageSchedules)
             .FirstOrDefaultAsync(tp => tp.TravelPackageId == id);
         if (travelPackage != null)
         {
             travelPackage.IsActive = false;
             travelPackage.DeletedAt = DateTime.Now;
-            foreach (var schedule in travelPackage.PackageSchedules)
-            {
-                schedule.IsAvailable = false;
-            }
             await _context.SaveChangesAsync();
         }
         return await ListAllAsync();
@@ -636,17 +618,12 @@ public class TravelPackageRepository : ITravelPackageRepository
     public async Task<List<ResponseTravelPackageDTO>> ActivateAsync(int id)
     {
         var travelPackage = await _context.TravelPackages
-            .Include(tp => tp.PackageSchedules)
             .FirstOrDefaultAsync(tp => tp.TravelPackageId == id);
         if (travelPackage != null)
         {
             travelPackage.IsActive = true;
             travelPackage.DeletedAt = null;
             travelPackage.UpdatedAt = DateTime.Now;
-            foreach (var schedule in travelPackage.PackageSchedules)
-            {
-                schedule.IsAvailable = true;
-            }
             await _context.SaveChangesAsync();
         }
         return await ListAllAsync();
@@ -702,7 +679,6 @@ public class TravelPackageRepository : ITravelPackageRepository
     {
         var packages = await _context.TravelPackages
             .Where(tp => tp.IsActive)
-            .Include(tp => tp.PackageSchedules)
             .Include(tp => tp.OriginAddress)
             .Include(tp => tp.DestinationAddress)
             .Include(tp => tp.PackageHotels)
@@ -714,7 +690,6 @@ public class TravelPackageRepository : ITravelPackageRepository
         {
             var hotels = pkg.PackageHotels?.Select(ph => ph.Hotel).Where(h => h != null).ToList() ?? new List<Models.Hotel>();
             var hotelDtos = hotels.Select(hotel => _mapper.Map<HotelWithAddressDTO>(hotel)).ToList();
-            var schedule = pkg.PackageSchedules?.FirstOrDefault();
             result.Add(new ResponseTravelPackageDTO
             {
                 TravelPackageId = pkg.TravelPackageId,
@@ -736,7 +711,6 @@ public class TravelPackageRepository : ITravelPackageRepository
                 CreatedAt = pkg.CreatedAt,
                 IsActive = pkg.IsActive,
                 Hotels = hotelDtos,
-                PackageSchedule = _mapper.Map<PackageScheduleDTO>(schedule),
             });
         }
         return result;

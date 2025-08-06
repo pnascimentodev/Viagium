@@ -47,6 +47,16 @@ namespace Viagium.Models
             [Range(1, int.MaxValue, ErrorMessage = "O máximo de pessoas deve ser maior que zero")]
             public int MaxPeople { get; set; }
             
+            [Display(Name = "Número de pessoas confirmadas")]
+            [Range(0, int.MaxValue, ErrorMessage = "O número de pessoas confirmadas deve ser maior ou igual a zero")]
+            public int ConfirmedPeople { get; set; } = 0;
+            
+            [Display(Name = "Está ativo?")]
+            public bool IsActive { get; set; } = true;
+            
+            [Display(Name = "Está disponível?")]
+            public bool IsAvailable { get; set; } = true;
+            
             [Required]
             public string VehicleType { get; set; } = string.Empty;
 
@@ -75,40 +85,14 @@ namespace Viagium.Models
             public int CreatedBy { get; set; }
             public User? User { get; set; }
 
-            [NotMapped]
-            [Display(Name = "Está disponível?")]
-            public bool IsAvailable
-            {
-                get
-                {
-                    var now = DateTime.Now.Date;
-                    var totalOccupants = Reservations?
-                        .Where(r => r.IsActive)
-                        .Sum(r => r.Travelers?.Count ?? 0) ?? 0;
-                    
-                    return now < StartDate.Date && totalOccupants < MaxPeople && IsActive;
-                }
-            }
+           
 
             public DateTime? CreatedAt { get; set; } = DateTime.Now;
-            public DateTime? UpdatedAt { get; set; }
+            public DateTime? UpdatedAt { get; set; } 
             public DateTime? DeletedAt { get; set; }
-            public bool IsActive { get; set; } = true;
             
-        public virtual ICollection<Reservation>? Reservations { get; set; }
-        public virtual ICollection<PackageSchedule>? PackageSchedules { get; set; }
-        public virtual ICollection<PackageHotel> PackageHotels { get; set; } = new List<PackageHotel>();
-
-        [NotMapped]
-        public string OccupancyInfo {
-            get {
-                if (Reservations == null)
-                    return $"0/{MaxPeople}";
-                var ocupantes = Reservations
-                    .Where(r => r.IsActive)
-                    .Sum(r => r.Travelers?.Count ?? 0);
-                return $"{ocupantes}/{MaxPeople}";
-            }
-        }
+            public virtual ICollection<Reservation>? Reservations { get; set; }
+            public virtual ICollection<PackageHotel> PackageHotels { get; set; } = new List<PackageHotel>();
+        
     }
 }

@@ -12,6 +12,7 @@ namespace Viagium.EntitiesDTO.TravelPackageDTO
         public string VehicleType { get; set; }
         public int Duration { get; set; }
         public int MaxPeople { get; set; }
+        public int ConfirmedPeople { get; set; } = 0;
         public decimal OriginalPrice { get; set; }
         public decimal? Price { get; set; }
         public decimal PackageTax { get; set; }
@@ -26,4 +27,3 @@ namespace Viagium.EntitiesDTO.TravelPackageDTO
         // Se necessário, adicione outras propriedades relacionadas a hotéis e agendamento
     }
 }
-

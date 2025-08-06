@@ -32,6 +32,10 @@ public class CreateTravelPackageDTO
             [Range(1, int.MaxValue, ErrorMessage = "O máximo de pessoas deve ser maior que zero")]
             public int MaxPeople { get; set; }
             
+            [Display(Name = "Número de pessoas confirmadas")]
+            [Range(0, int.MaxValue, ErrorMessage = "O número de pessoas confirmadas deve ser maior ou igual a zero")]
+            public int ConfirmedPeople { get; set; } = 0;
+            
             [Required]
             public string VehicleType { get; set; } = string.Empty;
 
