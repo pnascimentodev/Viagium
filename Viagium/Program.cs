@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -56,6 +57,9 @@ builder.Services.AddSwaggerGen(c =>
             new string[] {}
         }
     });
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -65,8 +69,16 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<ITravelPackageRepository, TravelPackageRepository>();
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
 builder.Services.AddScoped<IRoomTypeRepository, RoomTypeRepository>();
 builder.Services.AddScoped<IAmenityRepository, AmenityRepository>();
+builder.Services.AddScoped<IHotelRepository, HotelRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<ITravelerRepository, TravelerRepository>();
+builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 
 // Registra o UnitOfWork e o serviços
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -77,8 +89,12 @@ builder.Services.AddScoped<IAffiliateRepository, AffiliateRepository>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AddressService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IAmenityService, AmenityService>();
-
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<PaymentService>();
+builder.Services.AddScoped<IHotelService, HotelService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 builder.Services.AddScoped<IRoomTypeService, RoomTypeService>(provider =>
 {
@@ -100,8 +116,7 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"))
 
 
 //Configura a AutoMapper para mapear as entidades para os DTOs
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-builder.Services.AddAutoMapper(typeof(Viagium.EntitiesDTO.EntitiesMappingDTO));
+builder.Services.AddAutoMapper(typeof(Viagium.ProfileAutoMapper.EntitiesMappingProfile));
 
 //Configura do JWT Bearer Authentication
 
@@ -121,14 +136,43 @@ builder.Services.AddAuthentication(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,                      // Valida se o emissor do token é o esperado
-        ValidateAudience = true,                    // Valida se o token foi criado para o público esperado
-        ValidateLifetime = true,                    // Valida se o token não está expirado
-        ValidateIssuerSigningKey = true,            // Valida se a assinatura do token está correta
-
-        ValidIssuer = jwtSettings["Issuer"],       // Define o valor esperado para o emissor do token
-        ValidAudience = jwtSettings["Audience"],   // Define o valor esperado para o público do token
-        IssuerSigningKey = new SymmetricSecurityKey(key)  // Define a chave secreta para validar a assinatura do token
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(key)
+    };
+    // Verificação da blacklist
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var tokenBlacklistService = context.HttpContext.RequestServices.GetRequiredService<ITokenBlacklistService>();
+            var loggerFactory = context.HttpContext.RequestServices.GetService(typeof(ILoggerFactory)) as ILoggerFactory;
+            var logger = loggerFactory?.CreateLogger("JwtBlacklist");
+            var authHeader = context.HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+            logger?.LogInformation("[JWT] OnTokenValidated chamado. Authorization header: {Header}", authHeader);
+            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+            {
+                var rawToken = authHeader.Substring("Bearer ".Length).Trim();
+                logger?.LogInformation("[JWT] Token extraído do header: {Token}", rawToken);
+                if (await tokenBlacklistService.IsTokenBlacklistedAsync(rawToken))
+                {
+                    logger?.LogWarning("[JWT] Token bloqueado por blacklist: {Token}", rawToken);
+                    context.Fail("Token revogado (logout). Faça login novamente.");
+                }
+                else
+                {
+                    logger?.LogInformation("[JWT] Token NÃO está na blacklist: {Token}", rawToken);
+                }
+            }
+            else
+            {
+                logger?.LogWarning("[JWT] Authorization header ausente ou mal formatado.");
+            }
+        }
     };
 });
 
@@ -145,7 +189,33 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod());
 });
 
-builder.Services.AddHttpClient<ImgbbService>();
+builder.Services.AddHttpClient<ImgbbService>(client =>
+{
+    // Configurações otimizadas para upload de imagens
+    client.Timeout = TimeSpan.FromMinutes(2); // Timeout maior para uploads
+    client.DefaultRequestHeaders.Add("User-Agent", "Viagium-App/1.0");
+    client.DefaultRequestHeaders.ConnectionClose = false; // Reutilizar conexões
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
+{
+    // Configurações para melhorar performance
+    MaxConnectionsPerServer = 10,
+    UseCookies = false // Não precisamos de cookies para API
+});
+
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddScoped<IEmailService, Viagium.Services.Email.EmailService>();
+builder.Services.AddSingleton<ITokenBlacklistService, InMemoryTokenBlacklistService>();
+
+// ✅ SERVIÇOS EM BACKGROUND
+// Adiciona o serviço de sincronização automática de pagamentos
+builder.Services.AddHostedService<PaymentSyncBackgroundService>();
+
+// Adiciona o serviço de monitoramento de status das reservas
+builder.Services.AddHostedService<ReservationStatusBackgroundService>();
+
+// Adiciona o serviço de monitoramento de disponibilidade dos pacotes de viagem
+builder.Services.AddHostedService<TravelPackageAvailabilityBackgroundService>();
 
 var app = builder.Build(); 
 // Configure the HTTP request pipeline.

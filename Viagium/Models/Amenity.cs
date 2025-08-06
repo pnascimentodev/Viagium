@@ -6,9 +6,10 @@ public class Amenity
     public string Name { get; set; } = null!;
     public string Slug { get; set; } = null!;
     public string IconName { get; set; } = string.Empty;
+    public string AmenityScope { get; set; }
     
     public ICollection<RoomTypeAmenity> RoomTypeAmenities { get; set; } = new List<RoomTypeAmenity>();
-    public ICollection<HotelTypeAmentity> HotelTypeAmentities { get; set; } = new List<HotelTypeAmentity>();
+    public ICollection<HotelAmenity> HotelAmenity { get; set; } = new List<HotelAmenity>();
 
 
 }

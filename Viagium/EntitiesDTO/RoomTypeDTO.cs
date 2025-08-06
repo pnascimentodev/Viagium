@@ -19,7 +19,7 @@ public class RoomTypeDTO
     
     [Required]
     [Display(Name = "URL da Imagem")]
-    public string ImageUrl { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; } = string.Empty;
     
     [Required]
     [Display(Name = "Preço por Noite")]
@@ -39,5 +39,5 @@ public class RoomTypeDTO
     public DateTime? DeletedAt { get; set; }
     
     public List<RoomDTO>? Rooms { get; set; }
-    public List<AmenityDTO>? Amenities { get; set; }
+    public List<AmenityDTO>? Amenities { get; set; } = new();
 }

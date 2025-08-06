@@ -14,5 +14,6 @@ public class AdminDTO
     public DateTime BirthDate { get; set; }
     public Role Role { get; set; }
     public bool IsActive { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime? DeletedAt { get; set; }
 }

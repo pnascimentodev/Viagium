@@ -7,6 +7,8 @@ using AutoMapper;
 using Viagium.EntitiesDTO.Auth;
 using Viagium.Services.Auth.Affiliate;
 using Viagium.EntitiesDTO.Affiliate;
+using Viagium.EntitiesDTO.User;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Viagium.Controllers;
 
@@ -26,6 +28,10 @@ public class AffiliateController : ControllerBase
     }
     
 
+    /// <summary>
+    /// Cria um novo afiliado.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/affiliate/create</remarks>
     [HttpPost("create")]
     public async Task<IActionResult> CreateAffiliate([FromBody] AffiliateCreateDto affiliateCreateDto)
     {
@@ -43,6 +49,10 @@ public class AffiliateController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Edita um afiliado existente.
+    /// </summary>
+    /// <remarks>Exemplo: PUT /api/affiliate/1</remarks>
     [HttpPut("{id}")]
     public async Task<IActionResult> Editar(int id, [FromBody] Affiliate affiliate)
     {
@@ -58,6 +68,10 @@ public class AffiliateController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Busca um afiliado pelo ID.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/affiliate/1</remarks>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -72,6 +86,10 @@ public class AffiliateController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Lista todos os afiliados cadastrados (ativos).
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/affiliate</remarks>
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -86,12 +104,16 @@ public class AffiliateController : ControllerBase
         }
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
+    /// <summary>
+    /// Desativa um afiliado pelo ID.
+    /// </summary>
+    /// <remarks>Exemplo: DELETE /api/affiliate/deactivate/1</remarks>
+    [HttpDelete("deactivate/{id}")]
+    public async Task<IActionResult> Deactivate(int id)
     {
         try
         {
-            var result = await _affiliateService.DeleteAsync(id);
+            var result = await _affiliateService.DeactivateAsync(id);
             if (result)
                 return NoContent();
             return NotFound();
@@ -102,7 +124,30 @@ public class AffiliateController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Ativa um afiliado pelo ID.
+    /// </summary>
+    /// <remarks>Exemplo: PUT /api/affiliate/activate/1</remarks>
+    [HttpPut("activate/{id}")]
+    public async Task<IActionResult> Activate(int id)
+    {
+        try
+        {
+            var result = await _affiliateService.ActivateAsync(id);
+            if (result)
+                return NoContent();
+            return NotFound();
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
 
+    /// <summary>
+    /// Busca afiliados por cidade.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/affiliate/ByCity/SaoPaulo</remarks>
     [HttpGet("ByCity/{city}")]
     public async Task<IActionResult> GetByCity(string city)
     {
@@ -118,7 +163,10 @@ public class AffiliateController : ControllerBase
         }
     }
     
-    // endpoint de login
+    /// <summary>
+    /// Realiza login do afiliado.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/affiliate/login</remarks>
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequest)
     {
@@ -140,6 +188,11 @@ public class AffiliateController : ControllerBase
             return ExceptionHandler.HandleException(ex);
         }
     }
+
+    /// <summary>
+    /// Busca afiliado pelo e-mail.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/affiliate/by-email?email=exemplo@email.com</remarks>
     [HttpGet("by-email")]
     public async Task<IActionResult> GetByEmail([FromQuery] string email)
     {
@@ -150,6 +203,99 @@ public class AffiliateController : ControllerBase
                 return NotFound("Email não encontrado.");
             var userDto = _mapper.Map<AffiliateDTO>(affiliate);
             return Ok(userDto);
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+
+    }
+    /// <summary>
+    /// Envia e-mail de recuperação de senha para o afiliado.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/affiliate/forgot-password</remarks>
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> SendForgotPasswordEmailAsync([FromBody] string email)
+    {
+        try
+        {
+            await _affiliateService.SendForgotPasswordEmailAsync(email);
+            return Ok(new { message = "Uma mensagem foi enviada com instruções para redefinir a senha." });
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
+
+    /// <summary>
+    /// Atualiza a senha do afiliado.
+    /// </summary>
+    /// <remarks>Exemplo: PUT /api/affiliate/update-password/1</remarks>
+    [HttpPut("update-password/{id}")]
+   public async Task<IActionResult> UpdatePassword(int id, [FromBody] UpdatePasswordDto dto)
+    {
+        try
+        {
+            var updatedAffiliate = await _affiliateService.UpdatePasswordAsync(id, dto);
+            return Ok("Senha atualizada com sucesso.");
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
+
+    /// <summary>
+    /// Redefine a senha do afiliado.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/affiliate/forgot-password/1</remarks>
+    [HttpPost("forgot-password/{id}")]
+    // [AllowAnonymous]
+    public async Task<IActionResult> ForgotPassword(int id, [FromBody] ForgotPasswordDto dto)
+    {
+        try
+        {
+            var user = await _affiliateService.ForgotPasswordAsync(id, dto.NewPassword);
+            if (user == null)
+                return NotFound("Usuário não encontrado para recuperação de senha.");
+            return Ok(user);
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
+
+    /// <summary>
+    /// Realiza logout do afiliado, invalidando o token JWT.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/affiliate/logout</remarks>
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout([FromBody] LogoutRequestDTO request)
+    {
+        try
+        {
+            var result = await _authAffiliateService.LogoutAsync(request.Token);
+            return Ok(new { message = "Logout realizado com sucesso." });
+        }
+        catch (Exception ex)
+        {
+            return ExceptionHandler.HandleException(ex);
+        }
+    }
+
+    /// <summary>
+    /// Lista todos os afiliados (ativos e inativos).
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/affiliate/all-adm</remarks>
+    [HttpGet("all-adm")]
+    public async Task<IActionResult> GetAllAdm()
+    {
+        try
+        {
+            var affiliates = await _affiliateService.GetAllAdmAsync(true);
+            return Ok(affiliates);
         }
         catch (Exception ex)
         {

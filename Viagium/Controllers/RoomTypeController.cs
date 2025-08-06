@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Viagium.EntitiesDTO;
 using Viagium.Services;
 using Viagium.Services.Interfaces;
@@ -18,6 +18,10 @@ public class RoomTypeController : ControllerBase
         _imgbbService = imgbbService;
     }
 
+    /// <summary>
+    /// Cria um novo tipo de quarto.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/roomtype</remarks>
     [HttpPost]
     public async Task<IActionResult> Create([FromForm] RoomTypeCreateFormDTO formDto)
     {
@@ -31,8 +35,10 @@ public class RoomTypeController : ControllerBase
                 PricePerNight = formDto.PricePerNight,
                 MaxOccupancy = formDto.MaxOccupancy,
                 NumberOfRoomsAvailable = formDto.NumberOfRoomsAvailable,
-                Amenities = formDto.Amenities ?? new List<int>()
+                Amenities = formDto.Amenities ?? new List<int>(),
+                RoomsNumber = formDto.RoomsNumber ?? new List<string>()
             };
+
             if (formDto.Image != null)
             {
                 var imageUrl = await _imgbbService.UploadImageAsync(formDto.Image);
@@ -47,6 +53,10 @@ public class RoomTypeController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Busca um tipo de quarto pelo ID.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/roomtype/1</remarks>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -56,6 +66,10 @@ public class RoomTypeController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Lista todos os tipos de quarto cadastrados.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/roomtype</remarks>
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -63,6 +77,10 @@ public class RoomTypeController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Lista tipos de quarto por amenidades.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/roomtype/amenities?amenityIds=1&amp;amenityIds=2</remarks>
     [HttpGet("amenities")]
     public async Task<IActionResult> GetByAmenityId([FromQuery] List<int> amenityIds)
     {
@@ -70,8 +88,12 @@ public class RoomTypeController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Atualiza um tipo de quarto.
+    /// </summary>
+    /// <remarks>Exemplo: PUT /api/roomtype</remarks>
     [HttpPut]
-    public async Task<IActionResult> Update([FromBody] RoomTypeUpdateDTO dto)
+    public async Task<IActionResult> Update([FromForm] RoomTypeUpdateDTO dto)
     {
         try
         {
@@ -84,6 +106,10 @@ public class RoomTypeController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Desativa um tipo de quarto.
+    /// </summary>
+    /// <remarks>Exemplo: DELETE /api/roomtype/1</remarks>
     [HttpDelete("{id}")]
     public async Task<IActionResult> Desativate(int id)
     {
@@ -98,6 +124,10 @@ public class RoomTypeController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Ativa um tipo de quarto.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/roomtype/1/activate</remarks>
     [HttpPost("{id}/activate")]
     public async Task<IActionResult> Activate(int id)
     {
@@ -110,5 +140,27 @@ public class RoomTypeController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
+    }
+
+    /// <summary>
+    /// Lista tipos de quarto que possuem apenas quartos disponíveis.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/roomtype/roomAvaliable</remarks>
+    [HttpGet("roomAvaliable")]
+    public async Task<IActionResult> GetRoomTypesWithAvailableRooms()
+    {
+        var result = await _roomTypeService.GetRoomTypesWithAvailableRoomsAsync();
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Lista tipos de quarto que possuem apenas quartos que não estão disponíveis.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/roomtype/roomUnavailable</remarks>
+    [HttpGet("roomUnavailable")]
+    public async Task<IActionResult> GetRoomTypesWithUnavailableRooms()
+    {
+        var result = await _roomTypeService.GetRoomTypesWithUnavailableRoomsAsync();
+        return Ok(result);
     }
 }

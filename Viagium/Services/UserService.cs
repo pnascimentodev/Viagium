@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using AutoMapper;
-using Viagium.EntitiesDTO;
+using Viagium.EntitiesDTO.ApiDTO;
 using Viagium.EntitiesDTO.User;
 using Viagium.EntitiesDTO.Auth;
 using Viagium.Models;
-using Viagium.Repository;
 using Viagium.Services.Auth;
 using Viagium.Services.Interfaces;
+using Viagium.EntitiesDTO.Email;
 
 using Viagium.Repository.Interface;
 
@@ -19,11 +19,17 @@ public class UserService : IUserService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAuthService _authService;
     private readonly IMapper _mapper;
+    private readonly PaymentService _paymentService;
+    private readonly IEmailService _emailService;
     
-    public UserService(IUnitOfWork unitOfWork, IAuthService authService, IMapper mapper)
+
+    public UserService(IUnitOfWork unitOfWork, IAuthService authService, IEmailService emailService, PaymentService paymentService, IMapper mapper)
+
     {
         _unitOfWork = unitOfWork;
         _authService = authService;
+        _emailService = emailService;
+        _paymentService = paymentService;
         _mapper = mapper;
     }
 
@@ -41,13 +47,16 @@ public class UserService : IUserService
             // Verifica se já existe usuário com o mesmo número de documento
             if (await _unitOfWork.UserRepository.DocumentNumberExistsAsync(userCreateDto.DocumentNumber))
                 throw new ArgumentException("Já existe um usuário cadastrado com este número de documento.");
-
+            
+            var asaasUser = _mapper.Map<AsaasUserDTO>(userCreateDto);
+            var apiId = await _paymentService.CreateUserAsync(asaasUser);
             var user = new User
             {
                 Email = userCreateDto.Email,
                 FirstName = userCreateDto.FirstName,
                 LastName = userCreateDto.LastName,
                 DocumentNumber = userCreateDto.DocumentNumber,
+                AsaasApiId = apiId,
                 BirthDate = userCreateDto.BirthDate,
                 HashPassword = PasswordHelper.HashPassword(password),
                 Phone = userCreateDto.Phone,
@@ -65,22 +74,31 @@ public class UserService : IUserService
             await _unitOfWork.UserRepository.AddAsync(user);
             await _unitOfWork.SaveAsync();
 
-            // Mapeamento simples para UserDTO
+            // Envia e-mail de boas-vindas
+            var htmlBody = File.ReadAllText("EmailTemplates/WelcomeClient.html");
+            var emailDto = new SendEmailDTO
+            {
+                To = user.Email,
+                Subject = "Bem-vindo ao Viagium!",
+                HtmlBody = htmlBody.Replace("{NOME}", user.FirstName)
+            };
+            await _emailService.SendEmailAsync(emailDto);
+            // Retorno manual do DTO
             return new UserDTO
             {
+                UserId = user.UserId,
+                Email = user.Email,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                Email = user.Email,
                 DocumentNumber = user.DocumentNumber,
                 BirthDate = user.BirthDate,
                 Phone = user.Phone,
                 Role = user.Role.ToString(),
                 IsActive = user.IsActive,
-                HashPassword = user.HashPassword
+                HashPassword = user.HashPassword,
+                UpdatedAt = user.UpdatedAt ?? DateTime.Now
             };
-        }, "criação de usuário");
-        
-        
+        }, "criação de usuário");    
     }
 
     public async Task<LoginResponseDTO> LoginAsync(LoginRequestDTO loginRequest)
@@ -124,6 +142,7 @@ public class UserService : IUserService
             if (user == null) return null;
             return new UserDTO
             {
+                UserId = user.UserId,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
@@ -132,7 +151,8 @@ public class UserService : IUserService
                 Phone = user.Phone,
                 Role = user.Role.ToString(),
                 IsActive = user.IsActive,
-                HashPassword = user.HashPassword
+                HashPassword = user.HashPassword,
+                UpdatedAt = user.UpdatedAt ?? DateTime.Now
             };
         }, "buscar usuário por id");
     }
@@ -142,8 +162,10 @@ public class UserService : IUserService
         return await ExceptionHandler.ExecuteWithHandling(async () =>
         {
             var users = await _unitOfWork.UserRepository.GetAllAsync();
-            return users.Select(user => new UserDTO
+            var clients = users.Where(user => user.Role == Role.Client).ToList();
+            return clients.Select(user => new UserDTO
             {
+                UserId = user.UserId,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Email = user.Email,
@@ -152,32 +174,67 @@ public class UserService : IUserService
                 Phone = user.Phone,
                 Role = user.Role.ToString(),
                 IsActive = user.IsActive,
-                HashPassword = user.HashPassword
+                HashPassword = user.HashPassword,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt ?? DateTime.Now
             }).ToList();
         }, "buscar todos usuários");
+    }
+
+    public async Task<List<UserDTO>> GetAllActiveAsync()
+    {
+        return await ExceptionHandler.ExecuteWithHandling(async () =>
+        {
+            var users = await _unitOfWork.UserRepository.GetAllActiveAsync();
+            var client = users.Where(u => (u.Role == Role.Client) && u.IsActive && u.DeletedAt == null).ToList();
+            return client.Select(user => new UserDTO
+            {
+                UserId = user.UserId,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                DocumentNumber = user.DocumentNumber,
+                BirthDate = user.BirthDate,
+                Phone = user.Phone,
+                Role = user.Role.ToString(),
+                IsActive = user.IsActive,
+                HashPassword = user.HashPassword,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt ?? DateTime.Now
+            }).ToList();
+        }, "buscar usuários ativos");
     }
 
     public async Task UpdateAsync(UserUpdateDto userUpdateDto, string password)
     {
         await ExceptionHandler.ExecuteWithHandling(async () =>
         {
-            if (await _unitOfWork.UserRepository.EmailExistsAsync(userUpdateDto.Email, userUpdateDto.UserId))
-                throw new ArgumentException("Já existe outro usuário cadastrado com este e-mail.");
-
-            ValidatePassword(password);
-
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userUpdateDto.UserId);
             if (user == null)
                 throw new KeyNotFoundException("Usuário não encontrado para atualização.");
 
-            user.Email = userUpdateDto.Email;
-            user.FirstName = userUpdateDto.FirstName;
-            user.LastName = userUpdateDto.LastName;
-            user.BirthDate = userUpdateDto.BirthDate;
-            user.HashPassword = PasswordHelper.HashPassword(password);
+            // Atualização parcial: só atualiza campos enviados (não nulos)
+            if (!string.IsNullOrWhiteSpace(userUpdateDto.Email))
+            {
+                if (await _unitOfWork.UserRepository.EmailExistsAsync(userUpdateDto.Email, userUpdateDto.UserId))
+                    throw new ArgumentException("Já existe outro usuário cadastrado com este e-mail.");
+                user.Email = userUpdateDto.Email;
+            }
+            if (!string.IsNullOrWhiteSpace(userUpdateDto.FirstName))
+                user.FirstName = userUpdateDto.FirstName;
+            if (!string.IsNullOrWhiteSpace(userUpdateDto.LastName))
+                user.LastName = userUpdateDto.LastName;
+            if (userUpdateDto.BirthDate.HasValue)
+                user.BirthDate = userUpdateDto.BirthDate.Value;
+            if (!string.IsNullOrWhiteSpace(userUpdateDto.Phone))
+                user.Phone = userUpdateDto.Phone;
+            if (!string.IsNullOrWhiteSpace(userUpdateDto.Password))
+            {
+                ValidatePassword(userUpdateDto.Password);
+                user.HashPassword = PasswordHelper.HashPassword(userUpdateDto.Password);
+            }
+            user.UpdatedAt = DateTime.Now;
 
-            var validationContext = new ValidationContext(userUpdateDto);
-            Validator.ValidateObject(userUpdateDto, validationContext, validateAllProperties: true);
             ValidadeCustomRules(user);
             await _unitOfWork.UserRepository.UpdateAsync(user);
             await _unitOfWork.SaveAsync();
@@ -240,5 +297,100 @@ public class UserService : IUserService
             }
             return _mapper.Map<UserDTO>(user);
         }, "buscar usuário por e-mail");
+    }
+    
+    public async Task<UserDTO> UpdatePasswordAsync(int id, UpdatePasswordDto dto)
+    {
+        return await ExceptionHandler.ExecuteWithHandling(async () =>
+        {
+            ValidatePassword(dto.NewPassword);
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            if (user == null)
+                throw new KeyNotFoundException("Usuário não encontrado para atualização de senha.");
+
+            // Verifica se a senha antiga está correta
+            if (!PasswordHelper.VerifyPassword(dto.OldPassword, user.HashPassword))
+                throw new UnauthorizedAccessException("Senha atual incorreta.");
+
+            user.HashPassword = PasswordHelper.HashPassword(dto.NewPassword);
+            await _unitOfWork.UserRepository.UpdateAsync(user);
+            await _unitOfWork.SaveAsync();
+
+            return new UserDTO
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                DocumentNumber = user.DocumentNumber,
+                BirthDate = user.BirthDate,
+                Phone = user.Phone,
+                Role = user.Role.ToString(),
+                IsActive = user.IsActive,
+                HashPassword = user.HashPassword
+            };
+        }, "atualização de senha do usuário");
+    }
+    
+    public async Task<UserDTO> ForgotPasswordAsync(int id, string newPassword)
+    {
+        return await ExceptionHandler.ExecuteWithHandling(async () =>
+        {
+            ValidatePassword(newPassword);
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            if (user == null)
+                throw new KeyNotFoundException("Usuário não encontrado para recuperação de senha.");
+
+            user.HashPassword = PasswordHelper.HashPassword(newPassword);
+            await _unitOfWork.UserRepository.UpdateAsync(user);
+            await _unitOfWork.SaveAsync();
+
+            // Envia e-mail de sucesso de alteração de senha
+            var htmlBody = File.ReadAllText("EmailTemplates/SucessPasswordClient.html");
+            htmlBody = htmlBody.Replace("{NOME}", user.FirstName);
+            htmlBody = htmlBody.Replace("{DATA}", DateTime.Now.ToString("dd/MM/yyyy"));
+            htmlBody = htmlBody.Replace("{HORA}", DateTime.Now.ToString("HH:mm"));
+            var emailDto = new SendEmailDTO
+            {
+                To = user.Email,
+                Subject = "Senha alterada com sucesso - Viagium",
+                HtmlBody = htmlBody
+            };
+            await _emailService.SendEmailAsync(emailDto);
+
+            return new UserDTO
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                DocumentNumber = user.DocumentNumber,
+                BirthDate = user.BirthDate,
+                Phone = user.Phone,
+                Role = user.Role.ToString(),
+                IsActive = user.IsActive,
+                HashPassword = user.HashPassword
+            };
+        }, "recuperação de senha do usuário");
+    }
+    
+    public async Task SendForgotPasswordEmailAsync(string email)
+    {
+        var user = await _unitOfWork.UserRepository.GetEmailByForgotPasswordAsync(email);
+        if (user == null)
+            throw new KeyNotFoundException("Não foi encontrado nenhum usuário com este e-mail. Valide seus dados");
+
+        // Lê o template do e-mail
+        var htmlBody = File.ReadAllText("EmailTemplates/ForgotPasswordClient.html");
+        htmlBody = htmlBody.Replace("{NOME}", user.FirstName);
+        htmlBody = htmlBody.Replace("{ID}", user.UserId.ToString());
+
+        var emailDto = new SendEmailDTO
+        {
+            To = user.Email,
+            Subject = "Recuperação de senha - Viagium",
+            HtmlBody = htmlBody
+        };
+        await _emailService.SendEmailAsync(emailDto);
     }
 }

@@ -8,5 +8,9 @@ namespace Viagium.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    // Removido: login padr�o
+    /// <summary>
+    /// Realiza o login do usuário (cliente).
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/auth</remarks>
+    // Removido: login padrão
 }

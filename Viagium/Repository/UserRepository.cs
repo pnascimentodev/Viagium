@@ -84,4 +84,38 @@ public class UserRepository : IUserRepository
             .Where(u => u.Email == email && (includeDeleted || u.IsActive))
             .FirstOrDefaultAsync();
     }
+    
+    public async Task<User> UpdatePasswordAsync(int id, string newPassword)
+    {
+        var user = await _context.Set<User>().FindAsync(id);
+        if (user == null)
+            throw new KeyNotFoundException("Usuário não encontrado para atualização de senha.");
+
+        user.HashPassword = newPassword;
+        await _context.SaveChangesAsync();
+        return user;
+    }
+    
+    public async Task<User> ForgotPasswordAsync(int id, string newPassword)
+    {
+        var user = await _context.Set<User>().FindAsync(id);
+        if (user == null)
+            throw new KeyNotFoundException("Usuário não encontrado para recuperação de senha.");
+
+        user.HashPassword = newPassword;
+        await _context.SaveChangesAsync();
+        return user;
+    }
+    
+    public async Task<User> GetEmailByForgotPasswordAsync(string email, bool includeDeleted = false)
+    {
+        return await _context.Set<User>()
+            .Where(u => u.Email == email && (includeDeleted || u.IsActive))
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<List<User>> GetAllActiveAsync()
+    {
+        return await _context.Set<User>().Where(u => u.IsActive && u.DeletedAt == null).ToListAsync();
+    }
 }

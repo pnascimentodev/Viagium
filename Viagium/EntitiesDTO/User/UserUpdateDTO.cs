@@ -9,18 +9,19 @@ namespace Viagium.EntitiesDTO.User
         public int UserId { get; set; }
         
         [EmailAddress]
-        public required string Email { get; set; }
+        public string? Email { get; set; }
         
         [MaxLength(100)]
-        public required string FirstName { get; set; }
+        public string? FirstName { get; set; }
         
         [MaxLength(100)]
-        public required string LastName { get; set; }
+        public string? LastName { get; set; }
         
-        [Required]
-        public DateTime BirthDate { get; set; }
+        public DateTime? BirthDate { get; set; }
 
-        [Required]
-        public required string Password { get; set; }
+        public string? Password { get; set; }
+        
+        [Phone]
+        public string? Phone { get; set; }
     }
 }

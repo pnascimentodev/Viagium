@@ -29,6 +29,11 @@ public class AffiliateRepository : IAffiliateRepository
     {
        return await _context.Affiliates
            .Include(a => a.Address)
+           .Include(a => a.Hotels)
+               .ThenInclude(h => h.Address)
+           .Include(a => a.Hotels)
+               .ThenInclude(h => h.HotelAmenity)
+                   .ThenInclude(ha => ha.Amenity)
            .FirstOrDefaultAsync(a => a.AffiliateId == id);
     }
 
@@ -36,6 +41,11 @@ public class AffiliateRepository : IAffiliateRepository
     {
         return await _context.Affiliates
             .Include(a => a.Address)
+            .Include(a => a.Hotels)
+                .ThenInclude(h => h.Address)
+            .Include(a => a.Hotels)
+                .ThenInclude(h => h.HotelAmenity)
+                    .ThenInclude(ha => ha.Amenity)
             .Where(affiliate => affiliate.IsActive)
             .ToListAsync();
     }
@@ -63,6 +73,8 @@ public class AffiliateRepository : IAffiliateRepository
     public async Task<Affiliate?> GetByEmailAsync(string email, bool includeDeleted = false)
     {
         return await _context.Set<Affiliate>()
+            .Include(a => a.Address)
+            .Include(a => a.Hotels)
             .Where(a => a.Email == email && (includeDeleted || a.IsActive))
             .FirstOrDefaultAsync();
     }
@@ -77,5 +89,73 @@ public class AffiliateRepository : IAffiliateRepository
     {
         return await _context.Affiliates
             .AnyAsync(a => a.Cnpj == cnpj && a.IsActive);
+    }
+    
+    public async Task<Affiliate?> GetEmailByForgotPasswordAsync(string email, bool includeDeleted = false)
+    {
+        return await _context.Set<Affiliate>()
+            .Where(a => a.Email == email && (includeDeleted || a.IsActive))
+            .FirstOrDefaultAsync();
+    }
+    
+    public async Task<Affiliate> UpdatePasswordAsync(int id, string newPassword)
+    {
+        var affiliate = await _context.Affiliates.FindAsync(id);
+    
+        affiliate.HashPassword = newPassword; 
+        await _context.SaveChangesAsync();
+        return affiliate;
+    }
+    
+    public async Task<Affiliate?> ForgotPasswordAsync(int id, string newPassword)
+    {
+        var affiliate = await _context.Affiliates.FindAsync(id);
+        if (affiliate == null)
+            throw new KeyNotFoundException("Afiliado não encontrado para recuperação de senha.");
+
+        affiliate.HashPassword = newPassword; 
+        await _context.SaveChangesAsync();
+        return affiliate;
+    }
+
+    public async Task<IEnumerable<Affiliate>> GetAllAdmAsync(bool includeDeleted)
+    {
+        return await _context.Affiliates
+            .Include(a => a.Address)
+            .Include(a => a.Hotels)
+                .ThenInclude(h => h.Address)
+            .Include(a => a.Hotels)
+                .ThenInclude(h => h.HotelAmenity)
+                    .ThenInclude(ha => ha.Amenity)
+            .Where(a => includeDeleted || a.IsActive)
+            .ToListAsync();
+    }
+
+    public async Task<bool> DeactivateAsync(int id)
+    {
+        // Busca o afiliado pelo ID
+        var affiliate = await _context.Affiliates.FindAsync(id);
+        if (affiliate == null)
+            return false;
+        // Marca como inativo e define a data de exclusão
+        affiliate.IsActive = false;
+        affiliate.DeletedAt = DateTime.Now;
+        _context.Affiliates.Update(affiliate);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> ActivateAsync(int id)
+    {
+        // Busca o afiliado pelo ID
+        var affiliate = await _context.Affiliates.FindAsync(id);
+        if (affiliate == null)
+            return false;
+        // Marca como ativo e remove a data de exclusão
+        affiliate.IsActive = true;
+        affiliate.DeletedAt = null;
+        _context.Affiliates.Update(affiliate);
+        await _context.SaveChangesAsync();
+        return true;
     }
 }

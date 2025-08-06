@@ -10,9 +10,13 @@ public interface IUserService
     Task<UserDTO> AddAsync(UserCreateDTO userCreateDto, string password);
     Task<UserDTO?> GetByIdAsync(int id);
     Task<List<UserDTO>> GetAllAsync();
+    Task<List<UserDTO>> GetAllActiveAsync();
     Task UpdateAsync(UserUpdateDto userUpdateDto, string password);
     Task<LoginResponseDTO> LoginAsync(LoginRequestDTO loginRequest);
     Task<User> DesativateAsync(int id);
     Task<UserDTO> ActivateAsync(int id);
     Task<UserDTO?> GetByEmailAsync(string email, bool includeDeleted = false);
+    Task<UserDTO> UpdatePasswordAsync(int id, UpdatePasswordDto dto);
+    Task<UserDTO> ForgotPasswordAsync(int id, string newPassword);
+    Task SendForgotPasswordEmailAsync(string email);
 }

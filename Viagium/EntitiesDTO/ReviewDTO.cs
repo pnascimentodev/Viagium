@@ -7,10 +7,12 @@ namespace Viagium.EntitiesDTO;
 
 public class ReviewDTO
 {
-
-    public ReservationDTO? Reservation { get; set; } 
+    [Required]
+    public int ReservationId { get; set; }
+    // public ReservationDTO? Reservation { get; set; } 
         
     [Required]
+    [Range(1, 5, ErrorMessage = "Rating must be between 1 and 5.")]
     public int Rating { get; set; }
 
     [Required]

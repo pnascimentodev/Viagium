@@ -13,7 +13,7 @@ public class AppDbContext : DbContext
     
     public DbSet<User> Users { get; set; }
     public DbSet<TravelPackage> TravelPackages { get; set; }
-    public DbSet<Traveler> Travelers { get; set; }
+            public DbSet<Traveler> Travelers { get; set; }
     public DbSet<TravelPackageHistory> TravelPackageHistory { get; set; }
     public DbSet<Review> Reviews { get; set; }
     public DbSet<Reservation> Reservations { get; set; }
@@ -24,10 +24,10 @@ public class AppDbContext : DbContext
     public DbSet<Affiliate> Affiliates { get; set; }
     public DbSet<Address> Addresses { get; set; }
     public DbSet<Room> Rooms { get; set; }
-    public DbSet<HotelTypeAmentity> HotelTypeAmentities { get; set; }
     public DbSet<Amenity> Amenities { get; set; }
     public DbSet<RoomTypeAmenity> RoomTypeAmenities { get; set; }
-    public DbSet<AmentityHotel> AmentityHotel { get; set; }
+    public DbSet<HotelAmenity> HotelAmenities { get; set; }
+    public DbSet<PackageHotel> PackageHotels { get; set; }
 
 
     // Configura o modelo do banco de dados
@@ -63,14 +63,14 @@ public class AppDbContext : DbContext
         // Configura o Review entity
         modelBuilder.Entity<Reservation>() // Configura o Reservation entity
             .HasOne(r => r.TravelPackage) // Configura a relação entre Reservation e TravelPackage
-            .WithMany() // Um TravelPackage pode ter várias Reservations
+            .WithMany(tp => tp.Reservations) // Corrigido: define o lado "muitos" explicitamente
             .HasForeignKey(r => r.TravelPackageId) // Chave estrangeira TravelPackageId na Reservation
             .OnDelete(DeleteBehavior.Restrict); // Impede a exclusão de TravelPackage se houver Reservations associadas
 
         // Hotel - RoomType (1:N)
         modelBuilder.Entity<RoomType>()
             .HasOne(rt => rt.Hotel)
-            .WithMany()
+            .WithMany(h => h.RoomTypes) // Corrigido: define a navegação
             .HasForeignKey(rt => rt.HotelId)
             .OnDelete(DeleteBehavior.Restrict);
 
@@ -88,13 +88,6 @@ public class AppDbContext : DbContext
             .HasForeignKey(rr => rr.ReservationId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Relacionamento TravelPackage - Hotel (N:1)
-        modelBuilder.Entity<TravelPackage>()
-            .HasOne(tp => tp.Hotel)
-            .WithMany()
-            .HasForeignKey(tp => tp.HotelId)
-            .OnDelete(DeleteBehavior.Restrict);
-
         // Relacionamento Affiliate - Hotel (1:N)
         modelBuilder.Entity<Hotel>()
             .HasOne(h => h.Affiliate)
@@ -107,7 +100,24 @@ public class AppDbContext : DbContext
             .HasOne(r => r.Payment)
             .WithOne(p => p.Reservation)
             .HasForeignKey<Reservation>(r => r.PaymentId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false); // Tornando o relacionamento opcional
+
+        // Relacionamento Reservation - Hotel (N:1) - Novo relacionamento direto
+        modelBuilder.Entity<Reservation>()
+            .HasOne(r => r.Hotel)
+            .WithMany(h => h.Reservations)
+            .HasForeignKey(r => r.HotelId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false); // Opcional porque pode ser nulo
+
+        // Relacionamento Reservation - RoomType (N:1) - Relacionamento direto
+        modelBuilder.Entity<Reservation>()
+            .HasOne(r => r.RoomType)
+            .WithMany() // RoomType não precisa de coleção de Reservations
+            .HasForeignKey(r => r.RoomTypeId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false); // Opcional porque pode ser nulo
 
         // Decimais para RoomType e ReservationRoom
         modelBuilder.Entity<RoomType>()
@@ -132,6 +142,14 @@ public class AppDbContext : DbContext
             .WithOne(ad => ad.Hotel)
             .HasForeignKey<Hotel>(h => h.AddressId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        //Relacionamento User - Address (N:1) - Opcional para pagamentos com cartão
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.Address)
+            .WithOne(ad => ad.User)
+            .HasForeignKey<User>(u => u.AddressId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false); // Relacionamento opcional
 
         //Relacionamento entre RoomType e Room (1:N)
         modelBuilder.Entity<RoomType>()
@@ -166,26 +184,36 @@ public class AppDbContext : DbContext
             .WithMany(a => a.RoomTypeAmenities)
             .HasForeignKey(rta => rta.AmenityId);
         
-        modelBuilder.Entity<AmentityHotel>()
-            .HasKey(ah => new { ah.HotelId, ah.AmenityId });
-        modelBuilder.Entity<AmentityHotel>()
-            .HasOne(ah => ah.Hotel)
-            .WithMany(h => h.AmentityHotels)
-            .HasForeignKey(ah => ah.HotelId);
-        modelBuilder.Entity<AmentityHotel>()
-            .HasOne(ah => ah.Amenity)
-            .WithMany()
-            .HasForeignKey(ah => ah.AmenityId);
-        
-        modelBuilder.Entity<HotelTypeAmentity>()
-            .HasKey(hta => new { hta.HotelId, hta.AmenityId });
-        
-        modelBuilder.Entity<HotelTypeAmentity>()
-            .HasOne(hta => hta.Hotel)
-            .WithMany(h => h.HotelTypeAmentity)
-            .HasForeignKey(hta => hta.HotelId);
-        
+        modelBuilder.Entity<HotelAmenity>()
+            .HasKey(ha => new { ha.HotelId, ha.AmenityId });
+
+        modelBuilder.Entity<HotelAmenity>()
+            .HasOne(ha => ha.Hotel)
+            .WithMany(h => h.HotelAmenity)
+            .HasForeignKey(ha => ha.HotelId);
+
+        modelBuilder.Entity<HotelAmenity>()
+            .HasOne(ha => ha.Amenity)
+            .WithMany(a => a.HotelAmenity)
+            .HasForeignKey(ha => ha.AmenityId);
 
 
+        // Chave composta para PackageHotel (TravelPackageId + HotelId)
+        modelBuilder.Entity<PackageHotel>()
+            .HasKey(ph => new { ph.TravelPackageId, ph.HotelId });
+
+        // Configura precisão dos campos decimais em TravelPackage
+        modelBuilder.Entity<TravelPackage>()
+            .Property(tp => tp.OriginalPrice)
+            .HasPrecision(18, 2);
+        modelBuilder.Entity<TravelPackage>()
+            .Property(tp => tp.PackageTax)
+            .HasPrecision(18, 2);
+        modelBuilder.Entity<TravelPackage>()
+            .Property(tp => tp.DiscountValue)
+            .HasPrecision(18, 2);
+        modelBuilder.Entity<TravelPackage>()
+            .Property(tp => tp.ManualDiscountValue)
+            .HasPrecision(18, 2);
     }
 }

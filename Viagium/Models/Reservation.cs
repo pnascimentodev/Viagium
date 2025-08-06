@@ -21,18 +21,33 @@ public class Reservation
     [Required]
     [DataType(DataType.Date)]
     public DateTime StartDate { get; set; }
+    
+    [DataType(DataType.Date)]
+    public DateTime EndDate { get; set; }
  
     [Required]
     public decimal TotalPrice { get; set; }
- 
-    public string Status { get; set; } = "Pending";
+
+    public string Status { get; set; } = "Pending"; //reserva pendente completa canc finalizado(pagou e viajou) 
  
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     
     public required ICollection<Traveler> Travelers { get; set; }
     
-    [ForeignKey("Payment")]
-    public int PaymentId { get; set; }
+    public int? PaymentId { get; set; }
     public Payment? Payment { get; set; }
     public required ICollection<ReservationRoom> ReservationRooms { get; set; }
+
+    //desativar a reserva cancelamento
+    public bool IsActive { get; internal set; }
+
+    [ForeignKey("Hotel")]
+    public int? HotelId { get; set; }
+    public Hotel? Hotel { get; set; }
+
+    [ForeignKey("RoomType")]
+    public int? RoomTypeId { get; set; }
+    public RoomType? RoomType { get; set; }
+
+
 }

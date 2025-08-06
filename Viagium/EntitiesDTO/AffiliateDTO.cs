@@ -46,14 +46,15 @@ public class AffiliateDTO
     [Display(Name = "Data de Atualização")]
     public DateTime? UpdatedAt { get; set; }
 
-    [Display(Name = "Status")]
-    public bool IsActive { get; set; } = true;
-
     [Display(Name = "Data de Exclusão")]
     public DateTime? DeletedAt { get; set; }
-    
-    // Relacionamento: Um afiliado pode ter um endereço
+
+    [Display(Name = "Ativo")]
+    public bool IsActive { get; set; } = true;
+
     [Display(Name = "Id do Endereço")]
     public int AddressId { get; set; }
     public AddressDTO? Address { get; set; }
+
+    public List<HotelWithAddressDTO>? Hotels { get; set; }
 }

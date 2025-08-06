@@ -28,6 +28,21 @@ namespace Viagium.ProfileAutoMapper
                 .ForMember(dest => dest.HashPassword, opt => opt.Ignore());
             CreateMap<Address, AddressListDTO>();
             CreateMap<Hotel, HotelDTO>();
+            CreateMap<Hotel, HotelWithAddressDTO>();
+
+            CreateMap<TravelPackage, ResponseTravelPackageDTO>()
+                .ForMember(dest => dest.OriginCity, opt => opt.MapFrom(src => src.OriginAddress.City))
+                .ForMember(dest => dest.OriginCountry, opt => opt.MapFrom(src => src.OriginAddress.Country))
+                .ForMember(dest => dest.DestinationCity, opt => opt.MapFrom(src => src.DestinationAddress.City))
+                .ForMember(dest => dest.DestinationCountry, opt => opt.MapFrom(src => src.DestinationAddress.Country))
+                .ForMember(dest => dest.ManualDiscountValue, opt => opt.MapFrom(src => src.ManualDiscountValue))
+                .ReverseMap();
+
+            CreateMap<CreateTravelPackageDTO, TravelPackage>()
+                .ForMember(dest => dest.OriginAddress, opt => opt.MapFrom(src => src.OriginAddress))
+                .ForMember(dest => dest.DestinationAddress, opt => opt.MapFrom(src => src.DestinationAddress))
+                .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.UserId))
+                .ForMember(dest => dest.ManualDiscountValue, opt => opt.MapFrom(src => src.ManualDiscountValue));
         }
     }
 }

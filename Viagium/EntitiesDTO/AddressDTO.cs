@@ -24,24 +24,16 @@ public class AddressDTO
     [Display(Name = "Estado")]
     public string State { get; set; } = string.Empty;
     
-    [Required(ErrorMessage = "O CEP � obrigat�rio.")]
-    [Display(Name = "CEP")]
-    [RegularExpression(@"^\d{5}-\d{3}$", ErrorMessage = "O CEP deve estar no formato 00000-000.")]
+    [Required(ErrorMessage = "O CEP/Código Postal é obrigatório.")]
+    [Display(Name = "CEP/Código Postal")]
     public string ZipCode { get; set; } = string.Empty;
     
     [Required(ErrorMessage = "O pa�s � obrigat�rio.")]
     [Display(Name = "Pa�s")]
     public string Country { get; set; } = string.Empty;
     [Display(Name = "Data de Criação")]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-    public int AffiliateId { get; set; }
-    public AffiliateDTO? Affiliate { get; set; } = null;
-
-    public int HotelId { get; set; }
-    public HotelDTO? Hotel { get; set; }
-
-    // Adicionando o campo AddressId para garantir que o id do endereço seja retornado
+    public DateTime? CreatedAt { get; set; }
+    
     [Display(Name = "Id do Endereço")]
-    public int AddressId { get; set; }
+    public int? AddressId { get; set; }
 }

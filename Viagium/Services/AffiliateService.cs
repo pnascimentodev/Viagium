@@ -6,6 +6,8 @@ using Viagium.Repository.Interface;
 using Viagium.Services.Interfaces;
 using Viagium.EntitiesDTO;
 using Viagium.EntitiesDTO.Affiliate;
+using Viagium.EntitiesDTO.Email;
+using Viagium.EntitiesDTO.User;
 
 namespace Viagium.Services;
 
@@ -13,11 +15,13 @@ public class AffiliateService : IAffiliateService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IEmailService _emailService;
     
-    public AffiliateService(IUnitOfWork unitOfWork, IMapper mapper)
+    public AffiliateService(IUnitOfWork unitOfWork, IMapper mapper, IEmailService emailService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _emailService = emailService;
     }
     
     // Método principal de criação - ÚNICO método AddAsync
@@ -69,7 +73,8 @@ public class AffiliateService : IAffiliateService
                 HashPassword = PasswordHelper.HashPassword(password),
                 CreatedAt = DateTime.Now, // Sempre usar DateTime.Now
                 IsActive = true, // Sempre ativo na criação
-                AddressId = address.AdressId
+                AddressId = address.AdressId,
+                Address = null // Garante que não será criado novo Address
             };
 
             // Validações customizadas específicas do negócio
@@ -78,6 +83,22 @@ public class AffiliateService : IAffiliateService
             // Adiciona o afiliado
             await _unitOfWork.AffiliateRepository.AddAsync(affiliate);
             await _unitOfWork.SaveAsync();
+
+            // Atualiza o endereço com o AffiliateId gerado
+            address.AffiliateId = affiliate.AffiliateId;
+            await _unitOfWork.AddressRepository.UpdateAsync(address);
+            await _unitOfWork.SaveAsync();
+
+            // Envia e-mail de boas-vindas para o afiliado
+            var htmlBody = File.ReadAllText("EmailTemplates/Affiliate/WelcomeAffiliate.html");
+            htmlBody = htmlBody.Replace("{NOME}", affiliate.Name);
+            var emailDto = new SendEmailDTO
+            {
+                To = affiliate.Email,
+                Subject = "Bem-vindo ao Viagium!",
+                HtmlBody = htmlBody
+            };
+            await _emailService.SendEmailAsync(emailDto);
             
             // Mapeamento para AffiliateDTO
             return new AffiliateDTO
@@ -91,6 +112,9 @@ public class AffiliateService : IAffiliateService
                 StateRegistration = affiliate.StateRegistration,
                 HashPassword = affiliate.HashPassword,
                 CreatedAt = affiliate.CreatedAt,
+                UpdatedAt = affiliate.UpdatedAt,
+                DeletedAt = affiliate.DeletedAt,
+                IsActive = affiliate.IsActive,
                 AddressId = affiliate.AddressId,
                 Address = new AddressDTO
                 {
@@ -126,64 +150,57 @@ public class AffiliateService : IAffiliateService
     }
 
 
-    public Task<Affiliate> GetByIdAsync(int id)
+    public async Task<AffiliateDTO> GetByIdAsync(int id)
     {
-        return ExceptionHandler.ExecuteWithHandling(async () =>
+        return await ExceptionHandler.ExecuteWithHandling(async () =>
         {
             var affiliate = await _unitOfWork.AffiliateRepository.GetByIdAsync(id);
             if (affiliate == null)
                 throw new KeyNotFoundException("Afiliado não encontrado.");
-            
-            return affiliate;
+            return _mapper.Map<AffiliateDTO>(affiliate);
         }, "busca de afiliado");
     }
 
-    public Task<IEnumerable<Affiliate>> GetAllAsync()
+    public async Task<IEnumerable<AffiliateDTO>> GetAllAsync()
     {
-        return ExceptionHandler.ExecuteWithHandling(async () =>
+        return await ExceptionHandler.ExecuteWithHandling(async () =>
         {
             var affiliates = await _unitOfWork.AffiliateRepository.GetAllAsync();
-            
-            return affiliates;
+            return _mapper.Map<IEnumerable<AffiliateDTO>>(affiliates);
         }, "busca de afiliados");
     }
-
-    public Task<bool> DeleteAsync(int id)
-    {
-        return ExceptionHandler.ExecuteWithHandling(async()=> 
-            {
-            var affiliate = await _unitOfWork.AffiliateRepository.GetByIdAsync(id);
-            
-            if (affiliate == null)
-                throw new KeyNotFoundException("Afiliado não encontrado.");
-            if (!affiliate.IsActive) throw new InvalidOperationException("Afiliado já está inativo.");
-            
-            affiliate.DeletedAt = DateTime.Now;
-            affiliate.IsActive = false;
-            
-            await _unitOfWork.AffiliateRepository.UpdateAsync(affiliate);
-            await _unitOfWork.SaveAsync();
-            
-            return true;
-        }, "exclusão de afiliado");
-    }
     
+    public async Task<IEnumerable<AffiliateDTO>> GetAllAdmAsync(bool includeDeleted)
+    {
+        return await ExceptionHandler.ExecuteWithHandling(async () =>
+        {
+            var affiliates = await _unitOfWork.AffiliateRepository.GetAllAdmAsync(includeDeleted);
+            return _mapper.Map<IEnumerable<AffiliateDTO>>(affiliates);
+        }, "busca de afiliados ativos e inativos");
+    }
+
+    public async Task<bool> DeactivateAsync(int id)
+    {
+        return await _unitOfWork.AffiliateRepository.DeactivateAsync(id);
+    }
+
+    public async Task<bool> ActivateAsync(int id)
+    {
+        return await _unitOfWork.AffiliateRepository.ActivateAsync(id);
+    }
+
     public async Task<IEnumerable<Affiliate>> GetByCityAsync(string city)
     {
         return await _unitOfWork.AffiliateRepository.GetByCityAsync(city);
     }
     
-    public async Task<AffiliateDTO?> GetByEmailAsync(string email, bool unused)
+    public async Task<AffiliateDTO> GetByEmailAsync(string email, bool includeDeleted = false)
     {
         return await ExceptionHandler.ExecuteWithHandling(async () =>
         {
-            // Validação básica do parâmetro de entrada
             if (string.IsNullOrWhiteSpace(email))
                 throw new ArgumentException("Email é obrigatório para busca.");
-
             var affiliate = await _unitOfWork.AffiliateRepository.GetByEmailAsync(email);
-        
-            // Se não encontrar, simplesmente retorna null (comportamento esperado)
             if (affiliate == null)
                 throw new ArgumentException("Email não encontrado.");
 
@@ -241,4 +258,73 @@ public class AffiliateService : IAffiliateService
         // Campos de datas e coleções normalmente não são atualizados manualmente
         return false;
     }
+    
+    public async Task SendForgotPasswordEmailAsync(string email)
+    {
+        var affiliate = await _unitOfWork.AffiliateRepository.GetEmailByForgotPasswordAsync(email);
+        if (affiliate == null)
+            throw new ArgumentException("Não foi encontrado nenhum afiliado com este e-mail. Valide seus dados.");
+        
+        var htmlBody = File.ReadAllText("EmailTemplates/Affiliate/ForgorPasswordAffiliate.html");
+        htmlBody = htmlBody.Replace("{NOME}", affiliate.Name)
+            .Replace("{ID}", affiliate.AffiliateId.ToString());
+        
+        var emailDto = new SendEmailDTO
+        {
+            To = affiliate.Email,
+            Subject = "Recuperação de senha de Afiliado- Viagium",
+            HtmlBody = htmlBody
+        };
+        await _emailService.SendEmailAsync(emailDto);
+    }
+    
+    public async Task<AffiliateDTO> UpdatePasswordAsync(int id, UpdatePasswordDto dto)
+    {
+        var affiliate = await _unitOfWork.AffiliateRepository.UpdatePasswordAsync(id, dto.NewPassword);
+        if (affiliate == null)
+            throw new KeyNotFoundException("Afiliado não encontrado para troca de senha.");
+        // Envia e-mail de confirmação de alteração de senha
+        var htmlBody = File.ReadAllText("EmailTemplates/Affiliate/SucessPasswordAffiliate.html");
+        htmlBody = htmlBody.Replace("{NOME}", affiliate.Name);
+        htmlBody = htmlBody.Replace("{DATA}", DateTime.Now.ToString("dd/MM/yyyy"));
+        htmlBody = htmlBody.Replace("{HORA}", DateTime.Now.ToString("HH:mm"));
+        var emailDto = new SendEmailDTO
+        {
+            To = affiliate.Email,
+            Subject = "Senha alterada com sucesso - Viagium",
+            HtmlBody = htmlBody
+        };
+        await _emailService.SendEmailAsync(emailDto);
+        return _mapper.Map<AffiliateDTO>(affiliate);
+    }
+    
+    public async Task<AffiliateDTO> ForgotPasswordAsync(int id, string newPassword)
+    {
+        // Valida a senha
+        ValidatePassword(newPassword);
+        var affiliate = await _unitOfWork.AffiliateRepository.GetByIdAsync(id);
+        if (affiliate == null)
+            throw new KeyNotFoundException("Afiliado não encontrado para recuperação de senha.");
+
+        // Faz o hash da nova senha
+        affiliate.HashPassword = PasswordHelper.HashPassword(newPassword);
+        await _unitOfWork.AffiliateRepository.UpdateAsync(affiliate);
+        await _unitOfWork.SaveAsync();
+
+        // Envia e-mail de sucesso de alteração de senha
+        var htmlBody = File.ReadAllText("EmailTemplates/Affiliate/SucessPasswordAffiliate.html");
+        htmlBody = htmlBody.Replace("{NOME_AFILIADO}", affiliate.Name)
+                           .Replace("{NOME}", affiliate.Name)
+                           .Replace("{DATA}", DateTime.Now.ToString("dd/MM/yyyy"))
+                           .Replace("{HORA}", DateTime.Now.ToString("HH:mm"));
+        var emailDto = new SendEmailDTO
+        {
+            To = affiliate.Email,
+            Subject = "Senha alterada com sucesso - Viagium",
+            HtmlBody = htmlBody
+        };
+        await _emailService.SendEmailAsync(emailDto);
+
+        return _mapper.Map<AffiliateDTO>(affiliate);
+    }  
 }

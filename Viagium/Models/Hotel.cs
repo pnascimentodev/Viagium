@@ -17,13 +17,47 @@ public class Hotel
     [Display(Name = "Descrição do Hotel")]
     public string Description { get; set; } = string.Empty;
     
-    [Required(ErrorMessage = "A URL da imagem do hotel é obrigatória.")]
+    
     [Display(Name = "URL da Imagem do Hotel")]
     public string ImageUrl { get; set; } = string.Empty;
     
     [Required(ErrorMessage = "O telefone de contato do hotel é obrigatório.")]
     [Display(Name = "Telefone de Contato do Hotel")]
     public string ContactNumber { get; set; } = string.Empty;
+    
+    [Required(ErrorMessage = "O tipo de hospedagem do hotel é obrigatório.")]
+    [Display(Name = "Tipo de Hospedagem")]
+    public string TypeHosting { get; set; } = string.Empty;
+    
+    [Required]
+    [Display(Name = "Hotel Ativo")]
+    public bool IsActive { get; set; } = true;
+    
+    [Required]
+    [Range(1, 5, ErrorMessage = "O número de estrelas deve estar entre 1 e 5.")]
+    [Display(Name = "Número de Estrelas")]
+    public int Star { get; set; } = 1;
+    
+    [Required (ErrorMessage = "O CNPJ do hotel é obrigatório.")]
+    [Display(Name = "Cnpj do Hotel")]
+    public string Cnpj { get; set; } = string.Empty;
+    
+    [Required(ErrorMessage = "A Inscrição Estadual do hotel é obrigatória.")]
+    [Display(Name = "Inscrição Estadual do Hotel")]
+    public string InscricaoEstadual { get; set; } = string.Empty;
+    
+    [Required(ErrorMessage = "O Cadastur do hotel é obrigatório.")]
+    [Display(Name = "Cadastur do Hotel")]
+    public string Cadastur { get; set; } = string.Empty;
+    
+    [Required(ErrorMessage = "A data de expiração do Cadastur é obrigatória.")]
+    [DataType(DataType.Date)]
+    [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}", ApplyFormatInEditMode = true)]
+    [Display(Name = "Data de Expiração do Cadastur")]
+    public DateTime CadasturExpiration { get; set; }
+    
+    [Display(Name = "Cadastur Válido")]
+    public bool CadasturValid => CadasturExpiration > DateTime.Now;
     
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime? UpdatedAt { get; set; }
@@ -36,7 +70,10 @@ public class Hotel
     public int AddressId { get; set; }
     public Address Address { get; set; } = new Address();
     
-    public ICollection<HotelTypeAmentity> HotelTypeAmentity { get; set; } = new List<HotelTypeAmentity>();
-    public ICollection<AmentityHotel> AmentityHotels { get; set; } = new List<AmentityHotel>();
+    public ICollection<HotelAmenity> HotelAmenity { get; set; } = new List<HotelAmenity>();
+    public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
+
+    // Adicionado relacionamento com RoomType
+    public ICollection<RoomType> RoomTypes { get; set; } = new List<RoomType>();
 
 }

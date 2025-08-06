@@ -1,6 +1,6 @@
 ﻿namespace Viagium.Models;
 
-public class HotelTypeAmentity
+public class HotelAmenity
 {
     public int HotelId { get; set; }
     public Hotel Hotel { get; set; } = null!;

@@ -19,6 +19,8 @@ public class RoomTypeCreateFormDTO
     [Required]
     public int NumberOfRoomsAvailable { get; set; }
     public List<int> Amenities { get; set; } = new();
+    // ADICIONAR esta propriedade para receber os números dos quartos
+    public List<string> RoomsNumber { get; set; } = new();
     public IFormFile? Image { get; set; }
 }
 

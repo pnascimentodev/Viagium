@@ -10,5 +10,6 @@ namespace Viagium.EntitiesDTO.User
         public required string LastName { get; set; }
         public required string DocumentNumber { get; set; }
         public DateTime BirthDate { get; set; }
+        public required string Phone { get; set; }
     }
 }

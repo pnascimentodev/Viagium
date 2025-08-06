@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+Ôªøusing System.ComponentModel.DataAnnotations;
 using AutoMapper;
 using Viagium.EntitiesDTO;
 using Viagium.Models;
@@ -32,8 +32,21 @@ public class RoomTypeService : IRoomTypeService
             .Select(a => new RoomTypeAmenity { AmenityId = a.AmenityId, Amenity = a, RoomType = roomType })
             .ToList();
 
+        // PROCESSAR ROOM NUMBERS
+        if (dto.RoomsNumber != null && dto.RoomsNumber.Any())
+        {
+            roomType.Rooms = dto.RoomsNumber.Select((roomNumber, index) => {         
+                return new Room
+                {
+                    RoomNumber = roomNumber,
+                    RoomType = roomType,
+                    IsAvailable = true
+                    
+                };
+            }).ToList();
+        }
+        
         var created = await _roomTypeRepository.AddAsync(roomType);
-        // ForÁa o carregamento dos amenities para o retorno
         return _mapper.Map<RoomTypeDTO>(created);
     }
 
@@ -66,7 +79,7 @@ public class RoomTypeService : IRoomTypeService
     {
         var roomType = await _roomTypeRepository.GetByIdAsync(dto.RoomTypeId);
         if (roomType == null)
-            throw new KeyNotFoundException("Tipo de quarto n„o encontrado para atualizaÁ„o.");
+            throw new KeyNotFoundException("Tipo de quarto n√£o encontrado para atualiza√ß√£o.");
 
         _mapper.Map(dto, roomType);
         Validator.ValidateObject(roomType, new ValidationContext(roomType), true);
@@ -79,7 +92,7 @@ public class RoomTypeService : IRoomTypeService
     {
         var roomType = await _roomTypeRepository.DesativateAsync(id);
         if (roomType == null)
-            throw new KeyNotFoundException("Tipo de quarto n„o encontrado para desativaÁ„o.");
+            throw new KeyNotFoundException("Tipo de quarto n√£o encontrado para desativa√ß√£o.");
 
         return _mapper.Map<RoomTypeDTO>(roomType);
     }
@@ -88,7 +101,19 @@ public class RoomTypeService : IRoomTypeService
     {
         var roomType = await _roomTypeRepository.ActivateAsync(id);
         if (roomType == null)
-            throw new KeyNotFoundException("Tipo de quarto n„o encontrado para ativaÁ„o.");
+            throw new KeyNotFoundException("Tipo de quarto n√£o encontrado para ativa√ß√£o.");
         return _mapper.Map<RoomTypeDTO>(roomType);
+    }
+
+    public async Task<List<RoomTypeDTO>> GetRoomTypesWithAvailableRoomsAsync()
+    {
+        var roomTypes = await _roomTypeRepository.GetRoomTypesWithAvailableRoomsAsync();
+        return roomTypes.Select(rt => _mapper.Map<RoomTypeDTO>(rt)).ToList();
+    }
+
+    public async Task<List<RoomTypeDTO>> GetRoomTypesWithUnavailableRoomsAsync()
+    {
+        var roomTypes = await _roomTypeRepository.GetRoomTypesWithUnavailableRoomsAsync();
+        return roomTypes.Select(rt => _mapper.Map<RoomTypeDTO>(rt)).ToList();
     }
 }

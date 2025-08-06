@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Viagium.Models
 {
@@ -40,6 +41,14 @@ namespace Viagium.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
+        
+        [MaxLength(100)]
+        public string? AsaasApiId { get; set; }
+        
+        // Relacionamento opcional com endereço (usado principalmente para pagamentos com cartão)
+        public int? AddressId { get; set; }
+        [Display(Name = "Endereço")]
+        public Address? Address { get; set; }
         
         public ICollection<TravelPackage> TravelPackages { get; set; }
         public ICollection<Reservation> Reservations { get; set; }

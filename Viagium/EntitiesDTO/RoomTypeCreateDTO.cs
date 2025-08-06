@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Viagium.EntitiesDTO;
@@ -20,4 +20,6 @@ public class RoomTypeCreateDTO
     [Required]
     public int NumberOfRoomsAvailable { get; set; }
     public List<int> Amenities { get; set; } = new();
+    // ADICIONAR esta propriedade também
+    public List<string> RoomsNumber { get; set; } = new();
 }

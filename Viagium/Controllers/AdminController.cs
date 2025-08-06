@@ -21,7 +21,10 @@ public class AdminController : ControllerBase
         _mapper = mapper;
     }
 
-    // Registro de admin
+    /// <summary>
+    /// Realiza o registro de um novo administrador.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/admin/register</remarks>
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] AdminRegisterDTO adminRegisterDto)
     {
@@ -37,7 +40,10 @@ public class AdminController : ControllerBase
         }
     }
 
-    // Login de admin/suporte
+    /// <summary>
+    /// Realiza o login de administrador/suporte.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/admin/auth</remarks>
     [HttpPost("auth")]
     public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequest)
     {
@@ -52,7 +58,10 @@ public class AdminController : ControllerBase
         }
     }
 
-    // Buscar dados do admin
+    /// <summary>
+    /// Busca dados do administrador pelo ID.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/admin/1</remarks>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -60,7 +69,7 @@ public class AdminController : ControllerBase
         {
             var adminDto = await _adminService.GetByIdAsync(id);
             if (adminDto == null)
-                return NotFound("Admin n„o encontrado.");
+                return NotFound("Admin n√£o encontrado.");
             return Ok(adminDto);
         }
         catch (Exception ex)
@@ -69,7 +78,10 @@ public class AdminController : ControllerBase
         }
     }
 
-    // Atualizar dados do admin
+    /// <summary>
+    /// Atualiza dados do administrador.
+    /// </summary>
+    /// <remarks>Exemplo: PUT /api/admin/1</remarks>
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] AdminUpdateDTO adminUpdateDto)
     {
@@ -84,7 +96,10 @@ public class AdminController : ControllerBase
         }
     }
 
-    // Buscar todos os admins
+    /// <summary>
+    /// Lista todos os administradores ativos e inativos.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/admin</remarks>
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -99,7 +114,10 @@ public class AdminController : ControllerBase
         }
     }
 
-    // Buscar todos os admins ativos
+    /// <summary>
+    /// Lista todos os administradores ativos.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/admin/active</remarks>
     [HttpGet("active")]
     public async Task<IActionResult> GetAllActive()
     {
@@ -114,7 +132,10 @@ public class AdminController : ControllerBase
         }
     }
 
-    // Desativar usu·rio
+    /// <summary>
+    /// Desativa um usu√°rio administrador.
+    /// </summary>
+    /// <remarks>Exemplo: DELETE /api/admin/1</remarks>
     [HttpDelete("{id}")]
     public async Task<IActionResult> DesativateUser(int id)
     {
@@ -129,7 +150,10 @@ public class AdminController : ControllerBase
         }
     }
 
-    // Ativar usu·rio
+    /// <summary>
+    /// Ativa um usu√°rio administrador.
+    /// </summary>
+    /// <remarks>Exemplo: POST /api/admin/1/activate</remarks>
     [HttpPost("{id}/activate")]
     public async Task<IActionResult> ActivateUser(int id)
     {

@@ -11,18 +11,33 @@ public class UnitOfWork: IUnitOfWork
     public IUserRepository UserRepository { get; }
     public IAffiliateRepository AffiliateRepository { get; }
     public IAddressRepository AddressRepository { get; }
+    public IReservationRepository ReservationRepository { get; }
+    public IPaymentRepository PaymentRepository { get; }
     public IAmenityRepository AmenityRepository { get; }
+    public IHotelRepository HotelRepository { get; }
+    public IReviewRepository ReviewRepository { get; }
+    public ITravelerRepository TravelerRepository { get; }
+    public IRoomTypeRepository RoomTypeRepository { get; }
+    public IRoomRepository RoomRepository { get; }
 
-    public UnitOfWork(AppDbContext context, ITravelPackageRepository travelPackageRepository, IUserRepository userRepository, IAffiliateRepository affiliateRepository, IAddressRepository addressRepository, IAmenityRepository amenityRepository)
+    public UnitOfWork(AppDbContext context, ITravelPackageRepository travelPackageRepository,
+        IUserRepository userRepository, IAffiliateRepository affiliateRepository, IAddressRepository addressRepository,
+        IReservationRepository reservationRepository, IPaymentRepository paymentRepository, IReviewRepository reviewRepository, IAmenityRepository amenityRepository, IHotelRepository hotelRepository, ITravelerRepository travelerRepository, IRoomTypeRepository roomTypeRepository, IRoomRepository roomRepository)
     {
         _context = context;
         TravelPackageRepository = travelPackageRepository;
         UserRepository = userRepository;
         AffiliateRepository = affiliateRepository;
         AddressRepository = addressRepository;
+        ReservationRepository = reservationRepository;
         AmenityRepository = amenityRepository;
+        HotelRepository = hotelRepository;
+        PaymentRepository = paymentRepository;
+        ReviewRepository = reviewRepository;
+        TravelerRepository = travelerRepository;
+        RoomTypeRepository = roomTypeRepository;
+        RoomRepository = roomRepository;
     }
-
     
     public async Task<int> SaveAsync()
     {
