@@ -9,5 +9,6 @@ services:
         scope: RUN_TIME
     git:
       repo_clone_url: https://github.com/pnascimentodev/Viagium.git
-      branch: developer
-    source_dir: Viagium
+      branch: build/db
+    source_dir: .
+
