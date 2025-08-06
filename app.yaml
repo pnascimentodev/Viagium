@@ -5,7 +5,7 @@ services:
     http_port: 5000
     envs:
       - key: ASPNETCORE_URLS
-        value: http://0.0.0.0:5000
+        value: http://0.0.0.0:5028
         scope: RUN_TIME
     git:
       repo_clone_url: https://github.com/pnascimentodev/Viagium.git
