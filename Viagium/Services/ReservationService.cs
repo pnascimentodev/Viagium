@@ -32,6 +32,8 @@ namespace Viagium.Services
                 Validator.ValidateObject(reservation, new ValidationContext(reservation), true);
                 ValidateCustomRules(reservation);
 
+                reservation.Travelers = new List<Traveler>(); // <- zera os travelers para evitar duplicação
+
                 // Validar se o hotel existe antes de criar a reserva
                 var hotelExists = await _unitOfWork.HotelRepository.GetByIdAsync(createReservationDto.HotelId);
                 if (hotelExists == null)
@@ -61,7 +63,9 @@ namespace Viagium.Services
                         
                         Validator.ValidateObject(traveler, new ValidationContext(traveler), true);
                         await _unitOfWork.TravelerRepository.AddAsync(traveler);
-                    }                    
+                    }
+
+                    await _unitOfWork.SaveAsync();
                 }
 
                 // 3. Buscar a reserva completa com todos os dados para retorno
