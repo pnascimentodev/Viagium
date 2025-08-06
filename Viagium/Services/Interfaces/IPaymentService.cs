@@ -13,7 +13,7 @@ public interface IPaymentService
     Task<Payment> AddPaymentAsync(int reservationId, PaymentMethodType paymentMethod, CreditCardDTO? creditCard = null, string? remoteIp = null, AddressDTO? address = null);
     Task<string> CreateUserAsync(AsaasUserDTO user);
     Task<string> GetBankSlipByDocumentNumber(string documentNumber);
-    Task<string> GetPixQrCodeByCpfAsync(string documentNumber);
+    Task<object> GetPixQrCodeByCpfAsync(string documentNumber);
     Task<Payment?> GetPaymentByIdAsync(int paymentId);
     Task SynchronizePaymentsAsync();
 }

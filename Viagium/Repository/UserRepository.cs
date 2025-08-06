@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Viagium.Data;
-using Viagium.EntitiesDTO;
 using Viagium.Models;
 
 namespace Viagium.Repository;
@@ -117,5 +116,12 @@ public class UserRepository : IUserRepository
     public async Task<List<User>> GetAllActiveAsync()
     {
         return await _context.Set<User>().Where(u => u.IsActive && u.DeletedAt == null).ToListAsync();
+    }
+
+    public async Task<User?> GetByDocumentNumberAsync(string documentNumber)
+    {
+        return await _context.Set<User>()
+            .Where(u => u.DocumentNumber == documentNumber && u.IsActive && u.DeletedAt == null)
+            .FirstOrDefaultAsync();
     }
 }
