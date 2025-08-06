@@ -13,7 +13,7 @@ namespace Viagium.EntitiesDTO.TravelPackageDTO
         public int MaxPeople { get; set; }
         public int ConfirmedPeople { get; set; }
         public decimal OriginalPrice { get; set; }
-        public decimal? Price { get; set; }
+        public decimal? Price => CalculatedPrice 
         public decimal PackageTax { get; set; }
         public string CupomDiscount { get; set; } = string.Empty;
         public decimal DiscountValue { get; set; } = 0;
