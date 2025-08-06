@@ -357,9 +357,7 @@ namespace Viagium.Services
                 var durationNights = travelPackage.Duration;
 
                 // const acomodationTotal = pricePerNight * (durationNights > 1 ? durationNights - 1 : 0) * numPessoas;
-                var nightsToCharge = durationNights > 1 ? durationNights - 1 : 0;
-                var acomodationTotal = pricePerNight * nightsToCharge * numPessoas;
-
+                var acomodationTotal = pricePerNight * durationNights * numPessoas;
                 // const valorBase = price + packageTax + acomodationTotal;
                 var valorBase = price + packageTax + acomodationTotal;
 
