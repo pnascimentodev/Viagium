@@ -619,12 +619,21 @@ public class TravelPackageRepository : ITravelPackageRepository
     {
         var travelPackage = await _context.TravelPackages
             .FirstOrDefaultAsync(tp => tp.TravelPackageId == id);
+
         if (travelPackage != null)
         {
-            travelPackage.IsActive = true;
-            travelPackage.DeletedAt = null;
-            travelPackage.UpdatedAt = DateTime.Now;
-            await _context.SaveChangesAsync();
+            if (travelPackage.ConfirmedPeople >= travelPackage.MaxPeople)
+            {
+                throw new Exception("Não é possível ativar um pacote que já está cheio.");
+            }
+            else
+            {
+                travelPackage.IsActive = true;
+                travelPackage.DeletedAt = null;
+                travelPackage.UpdatedAt = DateTime.Now;
+                await _context.SaveChangesAsync();
+            }
+
         }
         return await ListAllAsync();
     }
