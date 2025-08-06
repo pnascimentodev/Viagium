@@ -57,6 +57,29 @@ public class UserRepository : IUserRepository
         if (existing == null)
             throw new KeyNotFoundException("Usuário não encontrado para desativação.");
 
+       
+        var confirmedOrPendingReservations = await _context.Reservations  // Obtém todas as reservas confirmadas ou pendentes do usuário
+        .Where(r => r.UserId == id &&
+                    r.IsActive &&
+                    (r.Status.ToLower() == "confirmed" || r.Status.ToLower() == "pending"))
+        .ToListAsync();
+
+        if (confirmedOrPendingReservations.Any())    // Verifica se há reservas confirmadas  ou pendentes
+        {
+            foreach (var reservation in confirmedOrPendingReservations)
+            {
+                // Não cancela reservas já finalizadas
+                if (reservation.Status?.ToLower() != "finished")
+                {
+                    reservation.Status = "cancelled";
+                    reservation.IsActive = false;
+                    _context.Reservations.Update(reservation);
+                }
+            }
+
+            //Console.WriteLine($"🚫 {confirmedReservations.Count} reserva(s) confirmada(s) cancelada(s) para o usuário {id}");
+        }
+
         existing.IsActive = false;
         existing.DeletedAt = DateTime.Now;
 
