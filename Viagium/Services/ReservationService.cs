@@ -368,22 +368,10 @@ namespace Viagium.Services
                 // const valorFinal = valorBase - valorDesconto;
                 var valorFinal = valorBase - valorDesconto;
 
-                Console.WriteLine($" Cálculo de preço da reserva:");
-                Console.WriteLine($"   - Usuário principal: 1 pessoa");
-                Console.WriteLine($"   - Viajantes adicionais: {numTravelersAdicionais} pessoas");
-                Console.WriteLine($"   - TOTAL DE PESSOAS: {numPessoas}");
-                Console.WriteLine($"   - Preço base do pacote: R$ {price:F2} ({travelPackage.OriginalPrice:F2} x {numPessoas} pessoas)");
-                Console.WriteLine($"   - Taxa do pacote: R$ {packageTax:F2}");
-                Console.WriteLine($"   - Acomodação: R$ {acomodationTotal:F2} ({pricePerNight:F2}/noite x {nightsToCharge} noites x {numPessoas} pessoas)");
-                Console.WriteLine($"   - Valor base: R$ {valorBase:F2}");
-                Console.WriteLine($"   - Desconto ({discountPercent}%): R$ {valorDesconto:F2}");
-                Console.WriteLine($"   - VALOR FINAL: R$ {valorFinal:F2}");
-
                 return valorFinal;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"rro ao calcular preço total: {ex.Message}");
                 throw new Exception($"Erro no cálculo do preço: {ex.Message}");
             }
 
