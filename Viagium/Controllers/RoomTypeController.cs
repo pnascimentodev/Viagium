@@ -67,13 +67,24 @@ public class RoomTypeController : ControllerBase
     }
 
     /// <summary>
-    /// Lista todos os tipos de quarto cadastrados.
+    /// Lista todos os tipos de quarto cadastrados (ativos/inativos).
     /// </summary>
     /// <remarks>Exemplo: GET /api/roomtype</remarks>
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
         var result = await _roomTypeService.GetAllAsync();
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Lista todos os tipos de quarto ativos.
+    /// </summary>
+    /// <remarks>Exemplo: GET /api/roomtype/active</remarks>
+    [HttpGet("active")]
+    public async Task<IActionResult> GetAllActive()
+    {
+        var result = await _roomTypeService.GetAllActiveAsync();
         return Ok(result);
     }
 
