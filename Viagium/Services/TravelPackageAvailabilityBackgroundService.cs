@@ -163,6 +163,8 @@ public class TravelPackageAvailabilityBackgroundService : BackgroundService
             peopleInReservation += travelers.Count();
             
             totalConfirmedPeople += peopleInReservation;
+            
+            _logger.LogInformation($"   Reserva {reservation.ReservationId}: 1 usuário + {travelers.Count()} viajantes = {peopleInReservation} pessoas");
         }
 
         // 4. Verificar se houve mudança
@@ -175,7 +177,7 @@ public class TravelPackageAvailabilityBackgroundService : BackgroundService
         // 5. Atualizar apenas se houver mudança
         if (currentConfirmedPeople != totalConfirmedPeople || currentIsAvailable != newIsAvailable)
         {
-            _logger.LogInformation($"🔄 Atualizando pacote {travelPackageId}:");
+            _logger.LogInformation($" Atualizando pacote {travelPackageId}:");
             _logger.LogInformation($"   - ConfirmedPeople: {currentConfirmedPeople} → {totalConfirmedPeople}");
             _logger.LogInformation($"   - IsAvailable: {currentIsAvailable} → {newIsAvailable}");
             _logger.LogInformation($"   - MaxPeople: {travelPackage.MaxPeople}");
@@ -197,16 +199,16 @@ public class TravelPackageAvailabilityBackgroundService : BackgroundService
             if (!newIsAvailable)
             {
                 packagesUnavailable++;
-                _logger.LogWarning($"🚫 Pacote {travelPackageId} ficou INDISPONÍVEL (lotação esgotada)");
+                _logger.LogWarning($" Pacote {travelPackageId} ficou INDISPONÍVEL (lotação esgotada)");
             }
             else if (!currentIsAvailable && newIsAvailable)
             {
-                _logger.LogInformation($"✅ Pacote {travelPackageId} ficou DISPONÍVEL novamente");
+                _logger.LogInformation($" Pacote {travelPackageId} ficou DISPONÍVEL novamente");
             }
         }
         else
         {
-            _logger.LogDebug($"📝 Pacote {travelPackageId} não precisou ser atualizado");
+            _logger.LogDebug($" Pacote {travelPackageId} não precisou ser atualizado");
         }
         
         return (packagesUpdated, packagesUnavailable);
@@ -219,7 +221,7 @@ public class TravelPackageAvailabilityBackgroundService : BackgroundService
     {
         try
         {
-            _logger.LogInformation($"🎯 Forçando atualização do pacote {travelPackageId}...");
+            _logger.LogInformation($" Forçando atualização do pacote {travelPackageId}...");
             
             using var scope = _serviceProvider.CreateScope();
             var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
@@ -248,7 +250,7 @@ public class TravelPackageAvailabilityBackgroundService : BackgroundService
 
     public override async Task StopAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("🔄 Parando serviço de monitoramento de disponibilidade de pacotes...");
+        _logger.LogInformation(" Parando serviço de monitoramento de disponibilidade de pacotes...");
         await base.StopAsync(stoppingToken);
     }
 }

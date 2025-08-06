@@ -459,7 +459,7 @@ namespace Viagium.Services
                     
                     totalConfirmedPeople += peopleInReservation;
                     
-                    Console.WriteLine($"   📊 Reserva {reservation.ReservationId}: {peopleInReservation} pessoas");
+                    Console.WriteLine($"   📊 Reserva {reservation.ReservationId}: 1 usuário + {travelers.Count()} viajantes = {peopleInReservation} pessoas");
                 }
 
                 // 4. Atualizar o contador no TravelPackage
