@@ -15,6 +15,7 @@ using Viagium.Services.Interfaces;
 using Viagium.Services.Auth;
 using AutoMapper;
 using Viagium.Services.Auth.Affiliate;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -63,7 +64,11 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        new MySqlServerVersion(new Version(8, 0, 0))
+    )
+);
 
 // Registra os repositórios
 builder.Services.AddScoped<ITravelPackageRepository, TravelPackageRepository>();
