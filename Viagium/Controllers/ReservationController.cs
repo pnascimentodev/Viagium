@@ -66,19 +66,20 @@ namespace Viagium.Controllers
         /// Checa e atualiza o status do pagamento da reserva.
         /// </summary>
         /// <remarks>Exemplo: GET /api/reservation/1/check-payment-status</remarks>
-        [HttpGet("{id}/check-payment-status")]
-        public async Task<IActionResult> CheckAndUpdatePaymentStatus(int id)
-        {
-            try
-            {
-                var (paymentStatus, reservationStatus) = await _service.CheckAndUpdatePaymentStatusAsync(id);
-                return Ok(new { paymentStatus, reservationStatus });
-            }
-            catch (Exception ex)
-            {
-                return ExceptionHandler.HandleException(ex);
-            }
-        }
+        /// NAO TEM MAIS NECESSIDADE DE USAR - nao faz mais parte do fluxo de pagamento
+        //[HttpGet("{id}/check-payment-status")]
+        //public async Task<IActionResult> CheckAndUpdatePaymentStatus(int id)
+        //{
+        //    try
+        //    {
+        //        var (paymentStatus, reservationStatus) = await _service.CheckAndUpdatePaymentStatusAsync(id);
+        //        return Ok(new { paymentStatus, reservationStatus });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return ExceptionHandler.HandleException(ex);
+        //    }
+        //}
 
         /// <summary>
         /// Desativa uma reserva.
