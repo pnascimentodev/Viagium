@@ -609,6 +609,7 @@ public class TravelPackageRepository : ITravelPackageRepository
         if (travelPackage != null)
         {
             travelPackage.IsActive = false;
+            travelPackage.IsAvailable = false;
             travelPackage.DeletedAt = DateTime.Now;
             await _context.SaveChangesAsync();
         }
@@ -622,6 +623,7 @@ public class TravelPackageRepository : ITravelPackageRepository
         if (travelPackage != null)
         {
             travelPackage.IsActive = true;
+            travelPackage.IsAvailable = true;
             travelPackage.DeletedAt = null;
             travelPackage.UpdatedAt = DateTime.Now;
             await _context.SaveChangesAsync();
