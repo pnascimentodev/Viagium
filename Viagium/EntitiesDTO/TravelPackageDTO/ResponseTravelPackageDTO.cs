@@ -18,7 +18,7 @@ namespace Viagium.EntitiesDTO.TravelPackageDTO
         public decimal PackageTax { get; set; }
         public string CupomDiscount { get; set; } = string.Empty;
         public decimal DiscountValue { get; set; } = 0;
-        public decimal ManualDiscountValue { get; set; } = 0;
+        public decimal ManualDiscountValue { get; set; }
         
         [DataType(DataType.Date)]
         [Display(Name = "Data de Início")]
