@@ -474,7 +474,7 @@ namespace Viagium.Services
                 await _unitOfWork.TravelPackageRepository.UpdateAsync(responseTravelPackageDTO);
                 await _unitOfWork.SaveAsync();
 
-                Console.WriteLine($"✅ Pessoas confirmadas no pacote {travelPackageId} atualizado:");
+                Console.WriteLine($"Pessoas confirmadas no pacote {travelPackageId} atualizado:");
                 Console.WriteLine($"   - Antes: {currentCount} pessoas");
                 Console.WriteLine($"   - Depois: {totalConfirmedPeople} pessoas");
                 Console.WriteLine($"   - Reservas confirmadas: {confirmedReservations.Count}");
