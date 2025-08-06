@@ -13,5 +13,6 @@ namespace Viagium.Repository.Interface
         Task UpdateAsync(Reservation reservation); // Necessário para atualizar status
         Task<Reservation> DeactivateAsync(int id);
         Task<IEnumerable<Reservation>> GetByUserIdAsync(int userId);
+        Task<IEnumerable<Reservation>> GetPendingReservationsByUserIdAsync(int userId);
     }
 }

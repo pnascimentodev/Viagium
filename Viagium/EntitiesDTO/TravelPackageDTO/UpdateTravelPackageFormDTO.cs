@@ -8,7 +8,7 @@ namespace Viagium.EntitiesDTO.TravelPackageDTO
         public int TravelPackageId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
-        public string ImageUrl { get; set; }
+        public string? ImageUrl { get; set; }
         public string VehicleType { get; set; }
         public int Duration { get; set; }
         public int MaxPeople { get; set; }

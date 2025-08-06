@@ -98,8 +98,8 @@ namespace Viagium.Services
                     await _unitOfWork.RoomRepository.UpdateAsync(availableRoom);
                 }
 
-                // ✅ NOVO: Atualizar o número de pessoas confirmadas no TravelPackage
-                await UpdateConfirmedPeopleCountAsync(createReservationDto.TravelPackageId);
+                // ✅ CORREÇÃO: Removido a chamada problemática que pode causar loop infinito
+                // await UpdateConfirmedPeopleCountAsync(createReservationDto.TravelPackageId);
 
                 return dto;
 
@@ -252,7 +252,7 @@ namespace Viagium.Services
                     throw new InvalidOperationException("A reserva já está desativada.");
 
                 // Verifica se a reserva pode ser desativada (ex: não está finalizada)
-                if (existingReservation.Status?.ToLower() == "completed")
+                if (existingReservation.Status?.ToLower() == "finished")
                     throw new InvalidOperationException("Não é possível desativar uma reserva que já foi finalizada.");
 
                 // Chama o repository para desativar
@@ -263,8 +263,8 @@ namespace Viagium.Services
                 await _unitOfWork.ReservationRepository.UpdateAsync(deactivatedReservation);
                 await _unitOfWork.SaveAsync();
 
-                // ✅ NOVO: Atualizar o número de pessoas confirmadas após cancelar a reserva
-                await UpdateConfirmedPeopleCountAsync(deactivatedReservation.TravelPackageId);
+                // ✅ CORREÇÃO: Removido a chamada problemática que causa loop infinito
+                // await UpdateConfirmedPeopleCountAsync(deactivatedReservation.TravelPackageId);
 
                 return deactivatedReservation;
 

@@ -91,5 +91,20 @@ namespace Viagium.Repository
                 .Where(r => r.UserId == userId)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Reservation>> GetPendingReservationsByUserIdAsync(int userId)
+        {
+            return await _context.Reservations
+                .Include(r => r.User)
+                .Include(r => r.Hotel)
+                .Include(r => r.RoomType)
+                .Include(r => r.TravelPackage)
+                .Include(r => r.ReservationRooms)
+                .Include(r => r.Travelers)
+                .Where(r => r.UserId == userId && 
+                           r.Status == "pending" && 
+                           r.IsActive)
+                .ToListAsync();
+        }
     }
 }
