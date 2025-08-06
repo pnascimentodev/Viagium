@@ -63,6 +63,12 @@ public class RoomTypeService : IRoomTypeService
         return roomTypes.Select(rt => _mapper.Map<RoomTypeDTO>(rt)).ToList();
     }
 
+    public async Task<List<RoomTypeDTO>> GetAllActiveAsync()
+    {
+        var roomTypes = await _roomTypeRepository.GetAllActiveAsync();
+        return roomTypes.Select(rt => _mapper.Map<RoomTypeDTO>(rt)).ToList();
+    }
+
     public async Task<List<RoomTypeDTO>> GetByAmenityId(List<int> amenityIds)
     {
         var roomTypes = await _roomTypeRepository.GetByAmenityId(amenityIds);

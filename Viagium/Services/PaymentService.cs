@@ -265,6 +265,11 @@ public class PaymentService : IPaymentService
         await _unitOfWork.PaymentRepository.AddAsync(payment);
         await _unitOfWork.SaveAsync();
 
+        // Atualiza a reserva com o ID do pagamento criado
+        reservation.PaymentId = payment.PaymentId;
+        await _unitOfWork.ReservationRepository.UpdateAsync(reservation);
+        await _unitOfWork.SaveAsync();
+
         // Se o pagamento foi confirmado imediatamente, atualiza a reserva
         if (initialStatus == PaymentStatus.RECEIVED)
         {
