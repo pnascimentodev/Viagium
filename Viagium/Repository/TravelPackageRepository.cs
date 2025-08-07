@@ -632,6 +632,10 @@ public class TravelPackageRepository : ITravelPackageRepository
             .FirstOrDefaultAsync(tp => tp.TravelPackageId == id);
         if (travelPackage != null)
         {
+            if(travelPackage.ConfirmedPeople >= travelPackage.MaxPeople)
+            {
+                throw new Exception("Não é possível ativar um pacote com pessoas confirmadas igual ou superior ao máximo permitido.");
+            }
             travelPackage.IsActive = true;
             travelPackage.IsAvailable = true;
             travelPackage.DeletedAt = null;

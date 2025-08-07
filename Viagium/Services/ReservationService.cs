@@ -368,12 +368,10 @@ namespace Viagium.Services
                 // const valorFinal = valorBase - valorDesconto;
                 var valorFinal = valorBase - valorDesconto;
 
-                
                 return valorFinal;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"rro ao calcular preço total: {ex.Message}");
                 throw new Exception($"Erro no cálculo do preço: {ex.Message}");
             }
 

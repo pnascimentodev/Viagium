@@ -11,12 +11,12 @@ namespace Viagium.EntitiesDTO.TravelPackageDTO
         public string VehicleType { get; set; } = string.Empty;
         public int Duration { get; set; }
         public int MaxPeople { get; set; }
-        public int ConfirmedPeople { get; set; } = 0;
+        public int ConfirmedPeople { get; set; } 
         public decimal OriginalPrice { get; set; }
         public decimal? Price { get; set; }
         public decimal PackageTax { get; set; }
         public string CupomDiscount { get; set; } = string.Empty;
-        public decimal DiscountValue { get; set; } = 0;
+        public decimal DiscountValue { get; set; }
         public decimal ManualDiscountValue { get; set; }
         
         [DataType(DataType.Date)]
