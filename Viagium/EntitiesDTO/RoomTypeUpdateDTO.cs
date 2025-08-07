@@ -9,17 +9,17 @@ public class RoomTypeUpdateDTO
     public int RoomTypeId { get; set; }
     [Required]
     public int HotelId { get; set; }
-    [Required]
+    //[Required]
     public string Name { get; set; } = string.Empty;
-    [Required]
+    //[Required]
     public string Description { get; set; } = string.Empty;
-    [Required]
+    //[Required]
     public string ImageUrl { get; set; } = string.Empty;
     public IFormFile? ImageFile { get; set; }
-    [Required]
+    //[Required]
     public decimal PricePerNight { get; set; }
-    [Required]
+    //[Required]
     public int MaxOccupancy { get; set; }
-    [Required]
+    //[Required]
     public int NumberOfRoomsAvailable { get; set; }
 }
