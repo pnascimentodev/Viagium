@@ -14,6 +14,7 @@ namespace Viagium.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class AffiliateController : ControllerBase
 {
     private IAuthAffiliateService _authAffiliateService;
@@ -33,6 +34,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/affiliate/create</remarks>
     [HttpPost("create")]
+    [AllowAnonymous]
     public async Task<IActionResult> CreateAffiliate([FromBody] AffiliateCreateDto affiliateCreateDto)
     {
         try
@@ -73,6 +75,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/affiliate/1</remarks>
     [HttpGet("{id}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetById(int id)
     {
         try
@@ -91,6 +94,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/affiliate</remarks>
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAll()
     {
         try
@@ -109,6 +113,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: DELETE /api/affiliate/deactivate/1</remarks>
     [HttpDelete("deactivate/{id}")]
+    [AllowAnonymous]
     public async Task<IActionResult> Deactivate(int id)
     {
         try
@@ -129,6 +134,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: PUT /api/affiliate/activate/1</remarks>
     [HttpPut("activate/{id}")]
+    [AllowAnonymous]
     public async Task<IActionResult> Activate(int id)
     {
         try
@@ -149,6 +155,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/affiliate/ByCity/SaoPaulo</remarks>
     [HttpGet("ByCity/{city}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetByCity(string city)
     {
         try
@@ -168,6 +175,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/affiliate/login</remarks>
     [HttpPost("login")]
+    [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequest)
     {
         try
@@ -194,6 +202,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/affiliate/by-email?email=exemplo@email.com</remarks>
     [HttpGet("by-email")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetByEmail([FromQuery] string email)
     {
         try
@@ -215,6 +224,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/affiliate/forgot-password</remarks>
     [HttpPost("forgot-password")]
+    [AllowAnonymous]
     public async Task<IActionResult> SendForgotPasswordEmailAsync([FromBody] string email)
     {
         try
@@ -233,7 +243,8 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: PUT /api/affiliate/update-password/1</remarks>
     [HttpPut("update-password/{id}")]
-   public async Task<IActionResult> UpdatePassword(int id, [FromBody] UpdatePasswordDto dto)
+    [AllowAnonymous]
+    public async Task<IActionResult> UpdatePassword(int id, [FromBody] UpdatePasswordDto dto)
     {
         try
         {
@@ -251,7 +262,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/affiliate/forgot-password/1</remarks>
     [HttpPost("forgot-password/{id}")]
-    // [AllowAnonymous]
+    [AllowAnonymous]
     public async Task<IActionResult> ForgotPassword(int id, [FromBody] ForgotPasswordDto dto)
     {
         try
@@ -290,6 +301,7 @@ public class AffiliateController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/affiliate/all-adm</remarks>
     [HttpGet("all-adm")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAllAdm()
     {
         try

@@ -1,15 +1,17 @@
-using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
-using Viagium.Models;
-using Viagium.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Viagium.EntitiesDTO;
 using Viagium.EntitiesDTO.Auth;
+using Viagium.Models;
 using Viagium.Services; // Adicionado para ExceptionHandler
+using Viagium.Services.Interfaces;
 
 namespace Viagium.Controllers;
 
 [ApiController]
 [Route("api/admin")]
+[Authorize]
 public class AdminController : ControllerBase
 {
     private readonly IAdminService _adminService;
@@ -26,6 +28,7 @@ public class AdminController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/admin/register</remarks>
     [HttpPost("register")]
+    [AllowAnonymous]
     public async Task<IActionResult> Register([FromBody] AdminRegisterDTO adminRegisterDto)
     {
         try
@@ -45,6 +48,7 @@ public class AdminController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: POST /api/admin/auth</remarks>
     [HttpPost("auth")]
+    [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequest)
     {
         try

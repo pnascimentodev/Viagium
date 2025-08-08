@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Viagium.EntitiesDTO.Reservation;
 using Viagium.Services;
@@ -8,6 +9,7 @@ namespace Viagium.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ReservationController : ControllerBase
     {
         private readonly IReservationService _service;
@@ -42,6 +44,7 @@ namespace Viagium.Controllers
         /// </summary>
         /// <remarks>Exemplo: GET /api/reservation/1</remarks>
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetById(int id)
         {
             var reservation = await _service.GetByIdAsync(id);
@@ -55,6 +58,7 @@ namespace Viagium.Controllers
         /// </summary>
         /// <remarks>Exemplo: GET /api/reservation</remarks>
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllReservations()
         {
             var reservations = await _service.GetAllAsync();
@@ -86,6 +90,7 @@ namespace Viagium.Controllers
         /// </summary>
         /// <remarks>Exemplo: DELETE /api/reservation/1</remarks>
         [HttpDelete("{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> Deactivate(int id)
         {
             try
@@ -104,6 +109,7 @@ namespace Viagium.Controllers
         /// </summary>
         /// <remarks>Exemplo: GET /api/reservation/user/1</remarks>
         [HttpGet("user/{userId}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetByUserId(int userId)
         {
             try

@@ -4,11 +4,13 @@ using AutoMapper;
 using Viagium.EntitiesDTO.TravelPackageDTO;
 using Viagium.Models;
 using Viagium.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Viagium.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class TravelPackageController : ControllerBase
 {
     private readonly TravelPackageService _service;
@@ -64,6 +66,7 @@ public class TravelPackageController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/TravelPackage/list</remarks>
     [HttpGet("list")]
+    [AllowAnonymous]
     public async Task<IActionResult> ListAll()
     {
         var result = await _service.ListAllAsync();
@@ -75,6 +78,7 @@ public class TravelPackageController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/TravelPackage/list-active</remarks>
     [HttpGet("list-active")]
+    [AllowAnonymous]
     public async Task<IActionResult> ListAllActive()
     {
         var result = await _service.ListAllActiveAsync();
@@ -183,6 +187,7 @@ public class TravelPackageController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/TravelPackage/getById/1</remarks>
     [HttpGet("getById/{id}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetById(int id)
     {
         var result = await _service.GetByIdAsync(id);
@@ -195,6 +200,7 @@ public class TravelPackageController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/TravelPackage/getByName/Natal</remarks>
     [HttpGet("getByName/{name}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetByName(string name)
     {
         var result = await _service.GetByNameAsync(name);
@@ -207,6 +213,7 @@ public class TravelPackageController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/TravelPackage/getByCityAndCountry?city=Garanhuns&amp;country=Brasil</remarks>
     [HttpGet("getByCityAndCountry")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetByCityAndCountry(string city, string country)
     {
         var result = await _service.GetByCityAndCountryAsync(city, country);
@@ -219,6 +226,7 @@ public class TravelPackageController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: PUT /api/TravelPackage/cupom</remarks>
     [HttpPut("cupom")]
+    [AllowAnonymous]
     public async Task<IActionResult> PutCupom([FromQuery] int travelPackageId, [FromQuery] string cupom, [FromQuery] decimal discountValue)
     {
         try
@@ -238,6 +246,7 @@ public class TravelPackageController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/TravelPackage/cupom-discount?travelPackageId=1&amp;cupom=MEUCUPOM</remarks>
     [HttpGet("cupom-discount")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetCupomDiscount([FromQuery] int travelPackageId, [FromQuery] string cupom)
     {
         var pacote = await _service.GetByIdAsync(travelPackageId);
