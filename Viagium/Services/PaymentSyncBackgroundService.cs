@@ -19,9 +19,9 @@ public class PaymentSyncBackgroundService : BackgroundService
         _serviceProvider = serviceProvider;
         _logger = logger;
         
-        // Lê configuração do appsettings.json com fallback para 2 minutos
+        // Lê configuração do appsettings.json com fallback para 5 minutos
         var intervalMinutes = configuration["PAYMENT_SYNC_INTERVAL_MINUTES"];
-        _syncInterval = TimeSpan.FromMinutes(int.TryParse(intervalMinutes, out var minutes) ? minutes : 2);
+        _syncInterval = TimeSpan.FromMinutes(int.TryParse(intervalMinutes, out var minutes) ? minutes : 5);
         
         _logger.LogInformation($"🔄 Serviço de sincronização iniciado. Intervalo: {_syncInterval.TotalMinutes} minutos");
     }

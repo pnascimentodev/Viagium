@@ -25,7 +25,7 @@ public class TravelPackageAvailabilityBackgroundService : BackgroundService
         
         // Intervalo configurável: padrão 5 minutos para verificação de disponibilidade
         var intervalMinutes = configuration["TRAVEL_PACKAGE_AVAILABILITY_CHECK_INTERVAL_MINUTES"];
-        _checkInterval = TimeSpan.FromMinutes(int.TryParse(intervalMinutes, out var minutes) ? minutes : 1);
+        _checkInterval = TimeSpan.FromMinutes(int.TryParse(intervalMinutes, out var minutes) ? minutes : 6);
         
         _logger.LogInformation($"🎯 Serviço de monitoramento de disponibilidade de pacotes iniciado. Intervalo: {_checkInterval.TotalMinutes} minutos");
     }

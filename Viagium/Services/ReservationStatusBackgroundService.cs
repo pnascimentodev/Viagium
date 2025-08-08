@@ -24,9 +24,8 @@ public class ReservationStatusBackgroundService : BackgroundService
         _serviceProvider = serviceProvider;
         _logger = logger;
         
-        // Intervalo configurável: padrão 1 minuto para monitoramento em tempo real
         var intervalMinutes = configuration["RESERVATION_STATUS_CHECK_INTERVAL_MINUTES"];
-        _checkInterval = TimeSpan.FromMinutes(int.TryParse(intervalMinutes, out var minutes) ? minutes : 1);
+        _checkInterval = TimeSpan.FromMinutes(int.TryParse(intervalMinutes, out var minutes) ? minutes : 4);
         
         _logger.LogInformation($"🏨 Serviço de monitoramento de reservas iniciado. Intervalo: {_checkInterval.TotalMinutes} minutos");
     }
