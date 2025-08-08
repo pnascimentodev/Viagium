@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Viagium.EntitiesDTO;
 using Viagium.Services;
 using Viagium.Services.Interfaces;
@@ -7,6 +8,7 @@ namespace Viagium.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class HotelController : ControllerBase
 {
     private readonly IHotelService _hotelService;
@@ -70,6 +72,7 @@ public class HotelController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: DELETE /api/hotel/1/desactivate</remarks>
     [HttpDelete("{id}/desactivate")]
+    [AllowAnonymous]
     public async Task<IActionResult> Desactivate(int id)
     {
         try
@@ -90,6 +93,7 @@ public class HotelController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: PUT /api/hotel/1/activate</remarks>
     [HttpPut("{id}/activate")]
+    [AllowAnonymous]
     public async Task<IActionResult> Activate(int id)
     {
         try
@@ -110,6 +114,7 @@ public class HotelController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/hotel/1</remarks>
     [HttpGet("{id}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetById(int id)
     {
         try
@@ -130,6 +135,7 @@ public class HotelController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/hotel</remarks>
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAll()
     {
         try
@@ -150,6 +156,7 @@ public class HotelController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/hotel/active</remarks>
     [HttpGet("active")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAllActive()
     {
         try
@@ -170,6 +177,7 @@ public class HotelController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/hotel/by-city/SaoPaulo</remarks>
     [HttpGet("by-city/{city}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetByCity(string city)
     {
         var hotels = await _hotelService.GetByCityAsync(city);
@@ -181,6 +189,7 @@ public class HotelController : ControllerBase
     /// </summary>
     /// <remarks>Exemplo: GET /api/hotel/by-amenities?amenityIds=1&amp;amenityIds=2</remarks>
     [HttpGet("by-amenities")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetByAmenities([FromQuery] List<int> amenityIds)
     {
         var hotels = await _hotelService.GetByAmenitiesAsync(amenityIds);
